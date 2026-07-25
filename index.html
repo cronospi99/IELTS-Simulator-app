@@ -8,6 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Optional private config: copy config.example.js to config.local.js (gitignored)
+     and put your Gemini key there so it auto-loads without touching Git. A missing
+     file here is harmless (it just logs a 404) and the app still runs. -->
+<script src="config.local.js" onerror="window.__noLocalConfig=true"></script>
 <style>
 :root{
   --ink:#131b2e;
@@ -478,11 +482,15 @@ textarea.essay{
     <div class="disclaimer" style="margin-top:0;">
       ⚠️ Important: this key is used directly from your browser and is visible to anyone who inspects this page's network traffic. That's fine for your own personal use, but <b>never share this exported HTML file with your key already saved in it</b> — if you want students to use Speaking scoring too, each of them should add their own key, or you should route requests through a small server you control that holds the key instead.
     </div>
-    <div style="display:flex;gap:10px;margin-top:16px;">
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
       <button class="btn brass small" id="saveSettings">Save</button>
+      <button class="btn secondary small" id="testSettings">Test connection</button>
       <button class="btn ghost small" id="clearSettings">Remove key</button>
     </div>
-    <p id="settingsStatus" style="font-size:12px;color:var(--teal);margin-top:10px;"></p>
+    <p style="font-size:11px;color:var(--slate);margin:10px 0 0;line-height:1.5;">
+      Tip: “Test connection” checks your key against Google and lists the model IDs it can actually use — the fastest way to fix “no content” errors.
+    </p>
+    <p id="settingsStatus" style="font-size:12px;color:var(--teal);margin-top:8px;line-height:1.5;"></p>
   </div>
 </div>
 
@@ -917,18 +925,35 @@ function renderDashboardIfActive(){
 }
 
 window.addEventListener("DOMContentLoaded", async ()=>{
+  let hadSaved = false;
   try {
     const saved = await window.storage.get("ielts-settings", false);
     if (saved && saved.value) {
       state.settings = JSON.parse(saved.value);
+      hadSaved = true;
     }
   } catch(e){}
-  // Migrate older stored settings to the current default model. The API key is
-  // intentionally NOT hard-coded here — enter it once in the "⚙ AI engine"
-  // panel and it is saved in this browser only, so it never lands in the repo.
+  // Optional private config (config.local.js -> window.GEMINI_CONFIG). This is the
+  // static-app equivalent of a .env file: it lives next to index.html and is listed
+  // in .gitignore. On a browser with no saved settings the file is authoritative;
+  // once you Save in the panel, those saved values win and the file only backfills
+  // anything left blank.
+  const cfg = window.GEMINI_CONFIG || {};
+  const PLACEHOLDER = "PASTE_YOUR_GEMINI_API_KEY_HERE";
+  const cfgKey = (cfg.key && cfg.key !== PLACEHOLDER) ? String(cfg.key).trim() : "";
+  const cfgModel = cfg.model ? String(cfg.model).trim() : "";
+  if(!hadSaved){
+    if(cfgKey) state.settings.geminiKey = cfgKey;
+    if(cfgModel) state.settings.geminiModel = cfgModel;
+  }else if(cfgKey && !state.settings.geminiKey){
+    state.settings.geminiKey = cfgKey;   // backfill a blank key from the file
+  }
+  // Migrate older stored model defaults to the current one. The API key is
+  // intentionally NOT hard-coded in this file — it comes from config.local.js or
+  // the "⚙ AI engine" panel, so it never lands in the repo.
   const OLD_MODELS = ["gemini-3.1-flash-lite","gemini-2.5-flash-lite","gemini-1.5-flash-latest",""];
   if(!state.settings.geminiModel || OLD_MODELS.includes(state.settings.geminiModel)){
-    state.settings.geminiModel = "gemini-3.6-flash-lite";
+    state.settings.geminiModel = cfgModel || "gemini-3.6-flash-lite";
   }
   document.getElementById("geminiKeyInput").value = state.settings.geminiKey || "";
   document.getElementById("geminiModelInput").value = state.settings.geminiModel || "gemini-3.6-flash-lite";
@@ -949,36 +974,104 @@ window.addEventListener("DOMContentLoaded", async ()=>{
    (hints, writing scoring, speaking scoring) now runs through callGemini(),
    which is the connector that actually works client-side. */
 
+const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
+
+/* Turn a raw Gemini HTTP failure into a sentence a teacher can act on. */
+function friendlyGeminiError(status, bodyText){
+  let apiMsg = "";
+  try{ const j = JSON.parse(bodyText); apiMsg = (j.error && j.error.message) || ""; }catch(e){}
+  const tail = apiMsg ? ` (${apiMsg})` : (bodyText ? ` (${bodyText.slice(0,140)})` : "");
+  switch(status){
+    case 400: return `400 Bad request — usually an invalid API key or a malformed model name.${tail}`;
+    case 401:
+    case 403: return `${status} Key rejected — this key isn't authorised for the Gemini API. Confirm it's an "AIza…" key from aistudio.google.com and that the Generative Language API is enabled.${tail}`;
+    case 404: return `404 Model not found — "${state.settings.geminiModel}" isn't a valid model for this key. Click “Test connection” to see the model IDs you can use.${tail}`;
+    case 429: return `429 Rate/quota limit reached — wait a minute or check your quota in Google AI Studio.${tail}`;
+    case 500:
+    case 503: return `${status} Google's service is temporarily unavailable — try again shortly.${tail}`;
+    default:  return `Gemini API error ${status}.${tail}`;
+  }
+}
+
 async function callGemini(systemPrompt, userText, audioBase64, audioMime){
-  const key = state.settings.geminiKey;
-  const model = state.settings.geminiModel || "gemini-3.6-flash-lite";
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-  
+  const key = (state.settings.geminiKey || "").trim();
+  const model = (state.settings.geminiModel || "gemini-3.6-flash-lite").trim();
+  if(!key){
+    throw new Error("No API key set. Open “⚙ AI engine”, paste your Gemini key, and Save (or add it to config.local.js).");
+  }
+  const url = `${GEMINI_BASE}/models/${model}:generateContent`;
+
   const parts = [{ text: systemPrompt + "\n\n" + userText }];
   if(audioBase64){
-    parts.push({
-      inline_data: {
-        mime_type: audioMime || "audio/webm",
-        data: audioBase64
-      }
-    });
+    parts.push({ inline_data: { mime_type: audioMime || "audio/webm", data: audioBase64 } });
   }
-  const res = await fetch(url, {
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "x-goog-api-key": key
-    },
-    body: JSON.stringify({ contents:[{ parts }] })
-  });
+  let res;
+  try{
+    res = await fetch(url, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "x-goog-api-key": key },
+      body: JSON.stringify({ contents:[{ parts }] })
+    });
+  }catch(netErr){
+    throw new Error("Network error reaching Gemini — check your internet connection (and that the browser isn't blocking the request).");
+  }
   if(!res.ok){
-    const errText = await res.text();
-    throw new Error("Gemini API error: "+res.status+" "+errText.slice(0,200));
+    throw new Error(friendlyGeminiError(res.status, await res.text().catch(()=> "")));
   }
   const data = await res.json();
+  // A 200 with no candidates usually means the response was safety-blocked.
+  const blocked = data.promptFeedback && data.promptFeedback.blockReason;
   const text = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts || [])
     .map(p=>p.text||"").join("\n");
+  if(!text.trim()){
+    if(blocked) throw new Error(`Gemini returned no content (blocked: ${blocked}). Try rephrasing the request.`);
+    throw new Error("Gemini returned an empty response. Try again, or switch model with “Test connection”.");
+  }
   return text;
+}
+
+/* List the models this key can actually use with generateContent. Used by the
+   “Test connection” button — the single most reliable way to debug failures. */
+async function geminiListModels(key){
+  const res = await fetch(`${GEMINI_BASE}/models`, { headers:{ "x-goog-api-key": key } });
+  if(!res.ok) throw new Error(friendlyGeminiError(res.status, await res.text().catch(()=> "")));
+  const data = await res.json();
+  return (data.models || [])
+    .filter(m => (m.supportedGenerationMethods || []).includes("generateContent"))
+    .map(m => (m.name || "").replace(/^models\//, ""))
+    .filter(Boolean);
+}
+
+async function testGeminiConnection(){
+  const statusEl = document.getElementById("settingsStatus");
+  const btn = document.getElementById("testSettings");
+  const key = document.getElementById("geminiKeyInput").value.trim();
+  const model = document.getElementById("geminiModelInput").value.trim();
+  if(!statusEl) return;
+  if(!key){ statusEl.style.color = "var(--coral)"; statusEl.textContent = "Enter an API key first, then test."; return; }
+  statusEl.style.color = "var(--slate)";
+  statusEl.textContent = "Testing connection to Google…";
+  if(btn){ btn.disabled = true; }
+  try{
+    const models = await geminiListModels(key);
+    const has = models.includes(model);
+    statusEl.style.color = has ? "var(--teal)" : "#b7791f";
+    if(has){
+      statusEl.innerHTML = `✅ Key works, and <b>${escapeHtml(model)}</b> is available (${models.length} usable models total). You're good to generate content.`;
+    }else{
+      const suggestions = models.slice(0, 8).map(escapeHtml).join(", ") || "(none)";
+      statusEl.innerHTML = `✅ Key works, but <b>${escapeHtml(model)}</b> is <b>not</b> in your available models. Change the model field to one of: ${suggestions}. Then Save.`;
+    }
+  }catch(err){
+    statusEl.style.color = "var(--coral)";
+    statusEl.textContent = "❌ " + (err.message || String(err));
+  }finally{
+    if(btn){ btn.disabled = false; }
+  }
+}
+
+function escapeHtml(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
 function blobToBase64(blob){
@@ -1206,13 +1299,16 @@ document.getElementById("saveSettings").addEventListener("click", async ()=>{
   try{
     await window.storage.set("ielts-settings", JSON.stringify(state.settings), false);
   }catch(e){}
-  document.getElementById("settingsStatus").textContent = "Saved successfully!";
+  const st = document.getElementById("settingsStatus");
+  st.style.color = "var(--teal)";
+  st.textContent = "Saved successfully!";
   setTimeout(()=>{
-    document.getElementById("settingsStatus").textContent = "";
+    st.textContent = "";
     sOverlay.style.display = "none";
     render();
   }, 800);
 });
+document.getElementById("testSettings").addEventListener("click", testGeminiConnection);
 document.getElementById("clearSettings").addEventListener("click", async ()=>{
   state.settings.geminiKey = "";
   document.getElementById("geminiKeyInput").value = "";
