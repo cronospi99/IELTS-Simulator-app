@@ -1,0 +1,15 @@
+# Private local config holding your Gemini API key — NEVER commit this.
+# Copy config.example.js -> config.local.js and put your real key there.
+config.local.js
+
+# Node / tooling (only used for local testing, not part of the app)
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
