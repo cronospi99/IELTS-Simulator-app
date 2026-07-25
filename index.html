@@ -410,6 +410,33 @@ textarea.essay{
 .heard-box b{font-size:12px;color:var(--ink);}
 .heard-box p{font-size:13px;color:var(--slate);line-height:1.6;margin:6px 0 0;font-style:italic;}
 
+/* ---------- grammar check ---------- */
+.grammar-box{background:#fff;border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:16px 18px;margin-top:14px;}
+.grammar-box .g-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.grammar-box .g-head b{font-size:13.5px;color:var(--ink);}
+.grammar-summary{font-size:12.5px;color:var(--slate);font-style:italic;}
+.grammar-corrected{font-size:13.5px;line-height:1.75;color:#2a3145;background:var(--paper-2);border-radius:8px;padding:12px 14px;white-space:pre-wrap;margin:6px 0 12px;}
+.grammar-list{list-style:none;margin:0;padding:0;}
+.grammar-list li{border-top:1px solid var(--line);padding:10px 0;font-size:13px;line-height:1.6;}
+.grammar-list li:first-child{border-top:none;}
+.g-type{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#8a6c11;background:#fbf4de;border-radius:999px;padding:2px 8px;margin-left:8px;vertical-align:middle;}
+.g-none{font-size:13px;color:var(--teal);}
+
+/* ---------- band-score model versions ---------- */
+.band-versions{background:linear-gradient(180deg,#fbf9f2,#f2eddd);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:20px;}
+.band-versions h3{font-family:'Fraunces',serif;font-size:18px;margin:0 0 4px;color:var(--ink);}
+.band-versions .bv-intro{font-size:12.5px;color:var(--slate);line-height:1.6;margin:0 0 14px;}
+.band-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.band-tab{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;font-family:'Fraunces',serif;min-width:46px;}
+.band-tab .lbl{display:block;font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.06em;color:var(--slate);text-transform:uppercase;margin-top:1px;}
+.band-tab.active{background:var(--azure);border-color:var(--azure);color:#fff;}
+.band-tab.active .lbl{color:rgba(255,255,255,.85);}
+.band-tab.ready{border-color:var(--teal);}
+.band-version-note{font-size:12.5px;color:#1f4238;background:#eef4f2;border-left:3px solid var(--teal);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:10px;line-height:1.6;}
+.band-version-box{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;font-size:14px;line-height:1.8;color:#2a3145;white-space:pre-wrap;}
+.band-version-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.band-version-meta .wc{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);}
+
 /* ---------- 3D chart (Three.js) ---------- */
 .viz3d-host{
   position:relative;width:100%;height:360px;border-radius:14px;overflow:hidden;
@@ -884,7 +911,7 @@ const state = {
   history: [],
   listening: { answers:{}, submitted:false, playedParts:{}, customAudio:{} },
   reading: { answers:{}, submitted:false, activePassage:0 },
-  writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, loading:{} },
+  writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
   speaking: { part:"part1", transcripts:{}, metrics:{}, report:null, loading:false, recording:false, audioB64:{}, audioMime:{} },
   settings: { geminiKey:"", geminiModel:"gemini-3.6-flash-lite" }
 };
@@ -1366,6 +1393,8 @@ function collectSessionData(){
       hints: state.writing.hints,
       reports: state.writing.reports,
       paraFeedback: state.writing.paraFeedback || {},
+      grammar: state.writing.grammar || {task1:null,task2:null},
+      bandVersions: state.writing.bandVersions || {task1:{},task2:{}},
       tasks: WRITING
     },
     speaking: {
@@ -1405,6 +1434,8 @@ function applySessionData(data){
     state.writing.hints = data.writing.hints || {task1:null,task2:null};
     state.writing.reports = data.writing.reports || {task1:null,task2:null};
     state.writing.paraFeedback = data.writing.paraFeedback || {};
+    state.writing.grammar = data.writing.grammar || {task1:null,task2:null};
+    state.writing.bandVersions = data.writing.bandVersions || {task1:{},task2:{}};
     if(data.writing.tasks && data.writing.tasks.task1 && data.writing.tasks.task2){
       WRITING = data.writing.tasks;
     }
@@ -2590,14 +2621,17 @@ function renderWriting(){
       <div class="wordcount" id="wcLabel">0 words</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn secondary small" id="hintBtn">Get a hint</button>
+        <button class="btn secondary small" id="grammarBtn">Grammar check</button>
         <button class="btn secondary small" id="paraFeedbackBtn">Paragraph feedback</button>
         <button class="btn small" id="scoreBtn">Score this response</button>
       </div>
     </div>
 
     <div id="hintArea"></div>
+    <div id="grammarArea"></div>
     <div id="paraFeedbackArea"></div>
     <div id="reportArea"></div>
+    <div id="bandVersionsArea"></div>
     ${rubricPanel("writing")}
   `;
 
@@ -2632,10 +2666,12 @@ function renderWriting(){
   }
 
   document.getElementById("hintBtn").addEventListener("click", ()=>requestWritingHint(task));
+  document.getElementById("grammarBtn").addEventListener("click", ()=>requestGrammarCheck(task));
   document.getElementById("paraFeedbackBtn").addEventListener("click", ()=>requestParagraphFeedback(task));
   document.getElementById("scoreBtn").addEventListener("click", ()=>requestWritingScore(task));
 
   if(W.hints[task]) showHint(task, W.hints[task]);
+  if(W.grammar && W.grammar[task]) showGrammar(task);
   if(W.paraFeedback[task]) showParagraphFeedback(task);
   if(W.reports[task]) showWritingReport(task, W.reports[task]);
 }
@@ -2678,6 +2714,8 @@ The chartData drives an interactive 3D visualisation, so keep it clean: use 3-6 
       state.writing.drafts = {task1:"", task2:""};
       state.writing.hints = {task1:null, task2:null};
       state.writing.reports = {task1:null, task2:null};
+      state.writing.grammar = {task1:null, task2:null};
+      state.writing.bandVersions = {task1:{}, task2:{}};
       renderWriting();
     } else {
       throw new Error("Missing required structure layers.");
@@ -3367,6 +3405,208 @@ function showWritingReport(task, r){
       `).join("")}
     </div>
   `;
+  // Once a response is assessed, offer model rewrites calibrated to each band.
+  renderBandVersions(task);
+}
+
+/* =========================================================================
+   GRAMMAR CHECK  (Task 1 & Task 2) — corrects grammar/mechanics only
+   ========================================================================= */
+
+const WRITING_GRAMMAR_SYS = `You are an IELTS Writing examiner acting as a strict grammar proofreader for an academic Task 1 or Task 2 response.
+Correct ONLY grammar and mechanics — verb tense, subject–verb agreement, articles, prepositions, plurals, word form, pronouns, run-ons/fragments, punctuation and capitalisation. Do NOT paraphrase, upgrade vocabulary, change the writer's ideas, or restructure sentences for style. Preserve the writer's wording wherever it is already correct.
+Respond with ONLY raw JSON in this exact shape:
+{
+  "summary": "one short sentence, e.g. '6 corrections: 3 verb tense, 2 articles, 1 punctuation'",
+  "corrected": "the FULL response with every grammar error fixed, paragraph breaks preserved",
+  "errors": [
+    { "original": "the exact incorrect phrase from the text", "correction": "the corrected phrase", "type": "verb tense | subject-verb agreement | article | preposition | plural | word form | pronoun | punctuation | sentence structure | other", "explanation": "one short reason" }
+  ]
+}
+If there are no grammar errors, return an empty "errors" array and set "corrected" to the original text.`;
+
+async function requestGrammarCheck(task){
+  const W = state.writing;
+  const draft = W.drafts[task];
+  if(!draft || !draft.trim()){
+    alert("Please write something first before running a grammar check.");
+    return;
+  }
+  if(!state.settings.geminiKey){
+    alert("Add a Gemini API key in ⚙ AI engine settings first.");
+    return;
+  }
+  const btn = document.getElementById("grammarBtn");
+  const original = btn.textContent;
+  btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
+  btn.disabled = true;
+  try{
+    const label = task==="task1" ? "Task 1 (academic report)" : "Task 2 (essay)";
+    const user = `This is an IELTS Academic Writing ${label}.\nTask prompt: ${WRITING[task].prompt}\n\nStudent response:\n${draft}`;
+    const text = await callGemini(WRITING_GRAMMAR_SYS, user, null, null);
+    const json = parseJSON(text);
+    W.grammar[task] = {
+      summary: json.summary || "",
+      corrected: json.corrected || draft,
+      errors: Array.isArray(json.errors) ? json.errors : []
+    };
+    showGrammar(task);
+  }catch(e){
+    console.error(e);
+    document.getElementById("grammarArea").innerHTML =
+      `<div class="hint-box" style="border-color:var(--coral);">Grammar check failed: ${escapeXml(e.message)}</div>`;
+  }
+  btn.textContent = original;
+  btn.disabled = false;
+}
+
+function showGrammar(task){
+  const g = state.writing.grammar[task];
+  const area = document.getElementById("grammarArea");
+  if(!area) return;
+  if(!g){ area.innerHTML = ""; return; }
+  const errs = g.errors || [];
+  area.innerHTML = `
+    <div class="grammar-box">
+      <div class="g-head">
+        <b>Grammar check — corrected version</b>
+        <span class="grammar-summary">${escapeXml(g.summary || (errs.length ? errs.length+" correction(s)" : "No grammar issues found"))}</span>
+      </div>
+      <div class="grammar-corrected">${escapeXml(g.corrected || "")}</div>
+      <button class="btn ghost small" id="copyGrammarBtn">Copy corrected text</button>
+      ${errs.length ? `
+        <div class="feedback-label" style="margin-top:14px;">Corrections</div>
+        <ul class="grammar-list">
+          ${errs.map(e=>`
+            <li>
+              <span class="bad-phrase">${escapeXml(e.original||"")}</span>
+              <span class="arrow">→</span>
+              <span class="good-phrase">${escapeXml(e.correction||"")}</span>
+              ${e.type ? `<span class="g-type">${escapeXml(e.type)}</span>` : ""}
+              ${e.explanation ? `<div class="why">${escapeXml(e.explanation)}</div>` : ""}
+            </li>
+          `).join("")}
+        </ul>
+      ` : `<div class="g-none" style="margin-top:12px;">✓ No grammar or mechanical errors detected. Your accuracy looks strong.</div>`}
+    </div>`;
+  const copyBtn = document.getElementById("copyGrammarBtn");
+  if(copyBtn){
+    copyBtn.addEventListener("click", ()=>{
+      const text = state.writing.grammar[task].corrected || "";
+      const done = ()=>{ copyBtn.textContent = "Copied ✓"; setTimeout(()=>copyBtn.textContent="Copy corrected text", 1500); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(done).catch(done);
+      }else{ done(); }
+    });
+  }
+}
+
+/* =========================================================================
+   MODEL ANSWERS BY BAND — rewrites the response at each target band
+   ========================================================================= */
+
+const BAND_TARGETS = ["4.5","5.0","5.5","6.0","6.5","7.0","7.5","8.0","9.0"];
+const BAND_NOTES = {
+  "4.5":"Band 4.5 — frequent grammar and vocabulary errors that often strain meaning; limited task coverage and weak organisation.",
+  "5.0":"Band 5.0 — meaning generally gets across but errors are frequent; limited range, basic linkers, partial task response.",
+  "5.5":"Band 5.5 — adequate coverage with noticeable errors; some organisation and a mix of simple and a few complex sentences.",
+  "6.0":"Band 6.0 — task addressed with generally clear progression; a mix of sentence forms with errors that rarely impede communication.",
+  "6.5":"Band 6.5 — good, well-organised response; wider vocabulary and more accurate complex sentences, with only occasional slips.",
+  "7.0":"Band 7.0 — clear position/overview, logical cohesion, flexible vocabulary and frequent error-free complex sentences.",
+  "7.5":"Band 7.5 — well-developed and cohesive; precise vocabulary and strong grammatical control with very few errors.",
+  "8.0":"Band 8.0 — fully developed, seamlessly cohesive, wide and precise lexis, and a wide range of structures with rare minor errors.",
+  "9.0":"Band 9.0 — fully extended, effortless cohesion, natural and sophisticated language, and complete grammatical accuracy."
+};
+
+function bandVersionPrompt(task, band){
+  const kind = task==="task1"
+    ? "IELTS Academic Writing Task 1 (a report describing the visual/data in the prompt, ~150–180 words, no personal opinion)"
+    : "IELTS Academic Writing Task 2 (an argumentative/discursive essay, ~250–290 words, with a clear position)";
+  return `Write a model answer for the following ${kind} that would be awarded EXACTLY IELTS band ${band}.
+Task prompt: ${WRITING[task].prompt}
+
+Requirements:
+- Calibrate task response, coherence & cohesion, lexical resource and grammatical range & accuracy so they are genuinely characteristic of band ${band} against the official IELTS descriptors — this means deliberately including realistic weaknesses/errors for lower bands, and only near-flawless language for the highest bands.
+- Keep it realistic in length for the task.
+- Return ONLY the essay text itself. No preamble, no band label, no markdown, no quotation marks.`;
+}
+
+function stripFences(t){
+  return String(t||"").replace(/```[a-z]*\n?/gi,"").replace(/```/g,"").trim();
+}
+
+function renderBandVersions(task){
+  const area = document.getElementById("bandVersionsArea");
+  if(!area) return;
+  const store = state.writing.bandVersions[task] || (state.writing.bandVersions[task] = {});
+  const active = store.__active || null;
+  area.innerHTML = `
+    <div class="band-versions">
+      <h3>Model answers by band score</h3>
+      <p class="bv-intro">See how this same task looks written at each IELTS band. Pick a band — the model answer is generated on demand and then saved here.</p>
+      <div class="band-tabs">
+        ${BAND_TARGETS.map(b=>`
+          <button class="band-tab ${b===active?"active":""} ${store[b]?"ready":""}" data-band="${b}">
+            ${b}<span class="lbl">${store[b]?"ready":"band"}</span>
+          </button>`).join("")}
+      </div>
+      <div id="bandVersionBody"></div>
+    </div>`;
+  area.querySelectorAll(".band-tab").forEach(btn=>{
+    btn.addEventListener("click", ()=>selectBandVersion(task, btn.dataset.band));
+  });
+  if(active && store[active]) showBandVersionBody(task, active);
+}
+
+async function selectBandVersion(task, band){
+  const store = state.writing.bandVersions[task] || (state.writing.bandVersions[task] = {});
+  store.__active = band;
+  // reflect active state on tabs
+  const area = document.getElementById("bandVersionsArea");
+  if(area) area.querySelectorAll(".band-tab").forEach(b=>b.classList.toggle("active", b.dataset.band===band));
+
+  if(store[band]){ showBandVersionBody(task, band); return; }
+
+  if(!state.settings.geminiKey){
+    document.getElementById("bandVersionBody").innerHTML =
+      `<div class="band-version-note" style="border-color:var(--coral);color:var(--coral);background:#fdecea;">Add a Gemini API key in ⚙ AI engine settings to generate model answers.</div>`;
+    return;
+  }
+  const body = document.getElementById("bandVersionBody");
+  body.innerHTML = `<div class="band-version-note">${escapeXml(BAND_NOTES[band]||("Band "+band))}</div>
+    <div class="band-version-box"><span class="loader"><span></span><span></span><span></span></span> Writing a band ${escapeXml(band)} model answer…</div>`;
+  try{
+    const text = await callGemini("You are an expert IELTS examiner who writes calibrated model answers at a requested band.", bandVersionPrompt(task, band), null, null);
+    store[band] = stripFences(text);
+    showBandVersionBody(task, band);
+    // mark the tab as ready
+    if(area){ const t = area.querySelector(`.band-tab[data-band="${band}"]`); if(t) t.classList.add("ready"); }
+  }catch(e){
+    console.error(e);
+    body.innerHTML = `<div class="band-version-note" style="border-color:var(--coral);color:var(--coral);background:#fdecea;">Couldn't generate the band ${escapeXml(band)} version: ${escapeXml(e.message)}</div>`;
+  }
+}
+
+function showBandVersionBody(task, band){
+  const body = document.getElementById("bandVersionBody");
+  const text = (state.writing.bandVersions[task]||{})[band];
+  if(!body || text == null) return;
+  const wc = text.trim() ? text.trim().split(/\s+/).length : 0;
+  body.innerHTML = `
+    <div class="band-version-note">${escapeXml(BAND_NOTES[band]||("Band "+band))}</div>
+    <div class="band-version-box">${escapeXml(text)}</div>
+    <div class="band-version-meta">
+      <span class="wc">${wc} words · Band ${escapeXml(band)} model</span>
+      <button class="btn ghost small" id="copyBandBtn">Copy</button>
+    </div>`;
+  const copyBtn = document.getElementById("copyBandBtn");
+  if(copyBtn){
+    copyBtn.addEventListener("click", ()=>{
+      const done = ()=>{ copyBtn.textContent="Copied ✓"; setTimeout(()=>copyBtn.textContent="Copy",1500); };
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done).catch(done); }
+      else done();
+    });
+  }
 }
 
 /* =========================================================================
