@@ -1,0 +1,3651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IELTS Academic — Full Mock Test (v6.5)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --ink:#131b2e;
+  --ink-2:#1c2740;
+  --paper:#f6f3ea;
+  --paper-2:#ece7d8;
+  --brass:#c9a227;
+  --brass-2:#e0bd4a;
+  --coral:#c1443c;
+  --teal:#2f6f62;
+  --azure:#3567a6;
+  --azure-2:#5f8fc9;
+  --slate:#5b6478;
+  --line:rgba(19,27,46,0.12);
+  --paper-line:rgba(246,243,234,0.14);
+  --radius:14px;
+  --shadow:0 20px 50px -20px rgba(19,27,46,0.45);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--ink);
+  background-image:
+    radial-gradient(circle at 10% 0%, rgba(201,162,39,0.10), transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(47,111,98,0.12), transparent 45%);
+  color:var(--paper);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'IBM Plex Mono',monospace;}
+.display{font-family:'Fraunces',serif;}
+button{font-family:inherit;cursor:pointer;}
+::selection{background:var(--brass);color:var(--ink);}
+:focus-visible{outline:2px solid var(--brass-2);outline-offset:2px;}
+
+/* ---------- shell ---------- */
+.shell{max-width:1080px;margin:0 auto;padding:0 20px 80px;}
+header.topbar{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding:28px 20px 18px;border-bottom:1px solid var(--paper-line);
+  max-width:1080px;margin:0 auto;flex-wrap:wrap;gap:14px;
+}
+.brand-block .eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brass-2);margin:0 0 6px;
+}
+.brand-block h1{
+  font-family:'Fraunces',serif;font-weight:600;font-size:30px;margin:0;
+  letter-spacing:-0.01em;
+}
+.candidate-card{
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper);
+  background:var(--ink-2);border:1px solid var(--paper-line);border-radius:10px;
+  padding:10px 16px;line-height:1.7;text-align:right;
+}
+.candidate-card b{color:var(--brass-2);}
+
+/* ---------- tabs ---------- */
+nav.tabs{
+  display:flex;gap:6px;padding:18px 20px 0;max-width:1080px;margin:0 auto;
+  flex-wrap:wrap;
+}
+nav.tabs button{
+  background:transparent;border:1px solid var(--paper-line);color:var(--paper);
+  padding:10px 18px;border-radius:999px 999px 0 0;font-size:13px;font-weight:600;
+  letter-spacing:.02em;opacity:.55;transition:opacity .2s, background .2s;
+  border-bottom:none;
+}
+nav.tabs button.active{opacity:1;background:var(--paper);color:var(--ink);}
+nav.tabs button:hover{opacity:.9;}
+
+main{padding-top:0;}
+.panel{
+  background:var(--paper);color:var(--ink);border-radius:2px 14px 14px 14px;
+  box-shadow:var(--shadow);padding:36px;margin-top:0;min-height:400px;
+}
+@media(max-width:640px){.panel{padding:22px;}}
+
+.section-title{
+  font-family:'Fraunces',serif;font-size:24px;font-weight:600;margin:0 0 6px;
+}
+.section-sub{color:var(--slate);font-size:14px;margin:0 0 26px;line-height:1.6;}
+hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
+
+/* ---------- seal (signature element) ---------- */
+.seal{
+  width:108px;height:108px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, var(--brass-2), var(--brass) 60%, #9c7d1c 100%);
+  color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;box-shadow:0 10px 24px -8px rgba(201,162,39,0.55), inset 0 0 0 3px rgba(19,27,46,0.25);
+  transform:scale(0) rotate(-18deg);
+  animation:stamp .55s cubic-bezier(.2,1.6,.4,1) forwards;
+  flex-shrink:0;
+}
+.seal .band-num{font-size:34px;font-weight:700;line-height:1;}
+.seal .band-lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;margin-top:2px;font-family:'IBM Plex Mono',monospace;}
+@keyframes stamp{to{transform:scale(1) rotate(-8deg);}}
+@media (prefers-reduced-motion: reduce){.seal{animation:none;transform:scale(1) rotate(-8deg);}}
+
+/* ---------- CEFR seal (blue variant) + inline CEFR tags ---------- */
+.seal-cefr{
+  background:radial-gradient(circle at 35% 30%, var(--azure-2), var(--azure) 60%, #1f3f66 100%);
+  color:#fff;
+  box-shadow:0 10px 24px -8px rgba(53,103,166,0.55), inset 0 0 0 3px rgba(19,27,46,0.18);
+  animation:stampBlue .55s cubic-bezier(.2,1.6,.4,1) forwards;
+  animation-delay:.12s;
+}
+@keyframes stampBlue{to{transform:scale(1) rotate(8deg);}}
+@media (prefers-reduced-motion: reduce){.seal-cefr{animation:none;transform:scale(1) rotate(8deg);}}
+.cefr-tag{
+  display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;
+  color:#fff;background:var(--azure);border-radius:999px;padding:2px 8px;margin-left:6px;
+  letter-spacing:.03em;vertical-align:middle;
+}
+
+/* ---------- dashboard ---------- */
+.dash-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;}
+@media(max-width:760px){.dash-grid{grid-template-columns:1fr;}}
+.overall-row{display:flex;align-items:center;gap:22px;margin-bottom:20px;flex-wrap:wrap;}
+.overall-text .big{font-family:'Fraunces',serif;font-size:15px;color:var(--slate);}
+.skill-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px;}
+.skill-card{
+  border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:#fff;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.skill-card .name{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate);font-weight:600;}
+.skill-card .band{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--ink);}
+.skill-card .go{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);
+  border:1px solid var(--teal);padding:6px 10px;border-radius:8px;background:transparent;
+}
+.chart-box{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fff;}
+.chart-box h3{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);}
+
+/* ---------- buttons ---------- */
+.btn{
+  border-radius:9px;padding:11px 20px;font-size:13.5px;font-weight:600;border:1px solid var(--ink);
+  background:var(--ink);color:var(--paper);transition:transform .12s, opacity .12s;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.btn.secondary{background:transparent;color:var(--ink);}
+.btn.ghost{background:transparent;color:var(--slate);border-color:var(--line);}
+.btn.brass{background:var(--brass);border-color:var(--brass);color:var(--ink);}
+.btn.coral{background:var(--coral);border-color:var(--coral);color:#fff;}
+.btn.small{padding:7px 13px;font-size:12px;}
+
+/* ---------- test intro cards ---------- */
+.module-hero{
+  display:flex;justify-content:space-between;gap:24px;align-items:flex-start;flex-wrap:wrap;
+}
+.meta-row{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;}
+.meta-pill{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--slate);
+  border:1px solid var(--line);padding:6px 12px;border-radius:999px;
+}
+
+/* ---------- timer bar ---------- */
+.timerbar{
+  position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;
+  background:var(--ink);color:var(--paper);border-radius:10px;padding:10px 18px;margin-bottom:22px;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;
+}
+.timerbar .time{color:var(--brass-2);font-weight:600;letter-spacing:.03em;}
+.timerbar .time.warn{color:var(--coral);}
+
+/* ---------- reading / listening ---------- */
+.passage{
+  columns:1;line-height:1.85;font-size:15px;color:#2a3145;background:#fff;
+  border:1px solid var(--line);border-radius:12px;padding:26px 28px;max-height:900px;overflow-y:auto;
+}
+.passage p{margin:0 0 16px;}
+.passage .para-label{
+  display:inline-block;font-family:'IBM Plex Mono',monospace;color:var(--brass);
+  font-weight:600;margin-right:8px;
+}
+.two-col{display:grid;grid-template-columns:1.2fr 0.9fr;gap:24px;}
+@media(max-width:960px){.two-col{grid-template-columns:1fr;}}
+#readingQuestions{max-height:900px;overflow-y:auto;}
+@media(max-width:960px){#readingQuestions{max-height:none;overflow-y:visible;}}
+.qgroup{margin-bottom:26px;}
+.qgroup h4{
+  font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--slate);
+  margin:0 0 4px;
+}
+.qgroup .instructions{font-size:13px;color:var(--slate);margin-bottom:14px;line-height:1.6;font-style:italic;}
+.q-item{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:14px;}
+.q-item .num{
+  font-family:'IBM Plex Mono',monospace;color:var(--brass);font-weight:700;min-width:22px;
+}
+.q-item input[type=text]{
+  border:none;border-bottom:1.5px solid var(--slate);background:transparent;padding:4px 2px;
+  font-size:14px;font-family:inherit;min-width:160px;color:var(--ink);
+}
+.q-item input[type=text]:focus{border-bottom-color:var(--ink);outline:none;}
+.q-item select{
+  border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-family:inherit;font-size:13px;
+}
+.opt-row{display:flex;flex-direction:column;gap:6px;margin-left:32px;}
+.opt-row label{font-size:13.5px;display:flex;gap:8px;align-items:flex-start;cursor:pointer;}
+
+.audio-player{
+  display:flex;align-items:center;gap:14px;background:var(--ink);color:var(--paper);
+  border-radius:12px;padding:16px 20px;margin-bottom:24px;flex-wrap:wrap;
+}
+.audio-player .playbtn{
+  width:44px;height:44px;border-radius:50%;background:var(--brass);border:none;color:var(--ink);
+  font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.audio-player .info{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper-2);flex:1;min-width:180px;}
+.audio-player .rate select{
+  background:var(--ink-2);color:var(--paper);border:1px solid var(--paper-line);border-radius:6px;padding:4px 8px;font-size:12px;
+}
+
+/* answer key reveal */
+.key-box{
+  border:1px dashed var(--brass);border-radius:10px;padding:16px 18px;background:#fbf4de;margin-top:10px;
+}
+.key-box h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;color:#8a6c11;letter-spacing:.06em;}
+.key-line{font-size:13.5px;margin-bottom:4px;display:flex;gap:8px;}
+.key-line .ok{color:var(--teal);font-weight:700;}
+.key-line .bad{color:var(--coral);font-weight:700;}
+.correct-answer{color:var(--slate);}
+.answer-key-box{background:#fff;border-style:solid;border-color:var(--line);border-left:3px solid var(--brass);margin-top:14px;}
+.answer-key-box h4{color:var(--ink);}
+.key-num{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--brass);min-width:34px;display:inline-block;}
+.answer-key-box .correct-answer{font-weight:600;color:var(--ink-2);}
+
+/* ---------- writing ---------- */
+.write-tabs{display:flex;gap:8px;margin-bottom:18px;}
+.write-tabs button{
+  border:1px solid var(--line);background:#fff;color:var(--slate);padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;
+}
+.write-tabs button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.chart-type-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.prompt-card{
+  background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px;
+  font-size:14.5px;line-height:1.7;
+}
+.prompt-card .task-tag{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--brass);text-transform:uppercase;letter-spacing:.08em;
+  margin-bottom:6px;display:block;
+}
+textarea.essay{
+  width:100%;min-height:320px;border:1px solid var(--line);border-radius:12px;padding:18px;
+  font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1.75;color:var(--ink);resize:vertical;
+  background:#fff;
+}
+.essay-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:10px;}
+.wordcount{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate);}
+.wordcount.low{color:var(--coral);}
+.hint-box{
+  background:#eef4f2;border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:14px 18px;margin-top:14px;
+  font-size:13.5px;line-height:1.7;color:#1f4238;
+}
+.hint-box ul{margin:6px 0 0;padding-left:18px;}
+.score-report{margin-top:24px;}
+.criterion-row{
+  display:grid;grid-template-columns:1fr 60px;gap:14px;align-items:center;
+  border-bottom:1px solid var(--line);padding:12px 0;
+}
+.criterion-row .name{font-weight:600;font-size:13.5px;}
+.criterion-row .comment{font-size:13px;color:var(--slate);margin-top:3px;line-height:1.6;}
+.criterion-row .band{font-family:'Fraunces',serif;font-size:22px;font-weight:600;text-align:center;}
+
+/* ---------- paragraph feedback ---------- */
+.para-feedback{margin-top:18px;}
+.para-fb-block{
+  background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:12px;
+}
+.para-fb-num{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--brass);font-weight:700;margin-bottom:6px;
+}
+.para-fb-original{font-size:13.5px;color:#2a3145;line-height:1.7;background:var(--paper-2);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.para-fb-comment{font-size:13px;color:var(--slate);font-style:italic;margin-bottom:8px;}
+.para-fb-issues{list-style:none;margin:0;padding:0;}
+.para-fb-issues li{border-top:1px solid var(--line);padding:10px 0;font-size:13px;line-height:1.6;}
+.para-fb-issues li:first-child{border-top:none;}
+.bad-phrase{color:var(--coral);text-decoration:line-through;font-weight:600;}
+.good-phrase{color:var(--teal);font-weight:600;}
+.arrow{color:var(--slate);margin:0 6px;}
+.why{color:var(--slate);font-size:12px;margin-top:3px;}
+.no-issues{font-size:12.5px;color:var(--teal);}
+
+/* ---------- session list ---------- */
+.session-row{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  border-bottom:1px solid var(--line);padding:10px 0;font-size:13px;
+}
+.session-row:last-child{border-bottom:none;}
+
+/* ---------- listening custom audio upload ---------- */
+.audio-upload-row{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:11.5px;color:var(--slate);
+}
+.audio-upload-row input[type=file]{font-size:11.5px;max-width:220px;}
+.audio-source-note{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.05em;
+  padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--slate);
+}
+.audio-source-note.real{border-color:var(--teal);color:var(--teal);}
+
+/* ---------- speaking ---------- */
+.part-nav{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.part-nav button{
+  border:1px solid var(--line);background:#fff;color:var(--slate);padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;
+}
+.part-nav button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.cue-card{
+  background:#fff;border:2px solid var(--ink);border-radius:10px;padding:22px 24px;font-size:14.5px;line-height:1.85;
+  box-shadow:4px 4px 0 var(--brass);
+}
+.cue-card ul{margin:10px 0 0;padding-left:18px;}
+.rec-controls{display:flex;align-items:center;gap:14px;margin:20px 0;flex-wrap:wrap;}
+.rec-dot{
+  width:12px;height:12px;border-radius:50%;background:var(--coral);opacity:0;
+}
+.rec-dot.live{opacity:1;animation:pulse 1.1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.transcript-box{
+  border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:#fff;min-height:90px;
+  font-size:14px;line-height:1.7;color:#2a3145;white-space:pre-wrap;
+}
+.metrics-row{display:flex;gap:22px;margin-top:14px;flex-wrap:wrap;}
+.metric{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate);}
+.metric b{color:var(--ink);font-size:15px;display:block;font-family:'Fraunces',serif;}
+.upload-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.disclaimer{
+  font-size:12px;color:var(--slate);background:#f4f1e6;border-radius:8px;padding:10px 14px;margin-top:16px;line-height:1.6;
+}
+
+.loader{
+  display:inline-flex;gap:4px;align-items:center;
+}
+.loader span{width:6px;height:6px;border-radius:50%;background:var(--slate);animation:bounce 1s infinite;}
+.loader span:nth-child(2){animation-delay:.15s;}
+.loader span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.4;}50%{transform:translateY(-4px);opacity:1;}}
+
+.empty-history{color:var(--slate);font-size:13.5px;padding:30px 0;text-align:center;}
+.settings-overlay{
+  position:fixed;inset:0;background:rgba(19,27,46,0.6);z-index:50;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.settings-modal{
+  background:var(--paper);color:var(--ink);border-radius:14px;max-width:480px;width:100%;
+  padding:26px 28px;box-shadow:var(--shadow);max-height:90vh;overflow-y:auto;
+}
+.settings-modal a{color:var(--teal);}
+.engine-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 10px;border-radius:999px;
+  border:1px solid var(--line);color:var(--slate);display:inline-flex;align-items:center;gap:6px;
+}
+.engine-badge.on{border-color:var(--teal);color:var(--teal);}
+.engine-dot{width:6px;height:6px;border-radius:50%;background:var(--slate);}
+.engine-badge.on .engine-dot{background:var(--teal);}
+.footer-note{max-width:1080px;margin:30px auto 0;padding:0 20px;color:var(--paper-2);opacity:.55;font-size:11.5px;text-align:center;font-family:'IBM Plex Mono',monospace;}
+
+/* ---------- rubric card ---------- */
+.rubric-card{background:linear-gradient(180deg,#fbf9f2,#f2eddd);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin:30px 0 6px;}
+.rubric-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+.rubric-head h3{font-family:'Fraunces',serif;font-size:18px;margin:0;color:var(--ink);}
+.rubric-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:var(--brass-2);padding:4px 9px;border-radius:999px;}
+.rubric-intro{font-size:13px;color:var(--slate);line-height:1.6;margin:0 0 16px;}
+.rubric-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:640px){.rubric-grid{grid-template-columns:1fr;}}
+.rubric-item{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+.rubric-name{font-weight:700;font-size:13px;color:var(--ink);margin-bottom:4px;}
+.rubric-desc{font-size:12.5px;color:var(--slate);line-height:1.55;}
+.rubric-note{font-size:11.5px;color:var(--slate);font-style:italic;margin:14px 0 0;}
+/* ---------- listening generator slots ---------- */
+.gen-slots{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:640px){.gen-slots{grid-template-columns:1fr;}}
+.gen-slot{border:1px dashed var(--line);border-radius:10px;padding:10px 12px;background:#fff;}
+/* ---------- generation progress bar (shared by all 4 skills) ---------- */
+.gen-progress{margin-top:14px;}
+.gen-progress-track{height:8px;border-radius:99px;background:var(--paper-2);overflow:hidden;border:1px solid var(--line);}
+.gen-progress-fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,var(--brass),var(--brass-2));transition:width .4s ease;}
+.gen-progress-fill.indeterminate{width:38% !important;animation:genIndeterminate 1.15s ease-in-out infinite;}
+@keyframes genIndeterminate{
+  0%{transform:translateX(-100%);}
+  100%{transform:translateX(360%);}
+}
+.gen-progress-label{font-size:11.5px;color:var(--slate);margin-top:6px;}
+.gen-slot.filled{border-style:solid;border-color:var(--teal);}
+.gen-slot-label{display:block;font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px;}
+.gen-slot input[type=file]{font-size:11.5px;color:var(--slate);max-width:100%;}
+.gen-slot-file{display:block;font-size:11px;color:var(--slate);margin-top:5px;}
+.gen-slot.filled .gen-slot-file{color:var(--teal);}
+/* ---------- speaking feedback extras ---------- */
+.pace-note{background:#fff;border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--slate);line-height:1.55;margin:4px 0 16px;}
+.feedback-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);margin:6px 0 10px;}
+.heard-box{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:16px;}
+.heard-box b{font-size:12px;color:var(--ink);}
+.heard-box p{font-size:13px;color:var(--slate);line-height:1.6;margin:6px 0 0;font-style:italic;}
+
+/* ---------- 3D chart (Three.js) ---------- */
+.viz3d-host{
+  position:relative;width:100%;height:360px;border-radius:14px;overflow:hidden;
+  background:
+    radial-gradient(120% 120% at 20% 0%, #20304f 0%, #16203a 42%, #0f1729 100%);
+  border:1px solid rgba(19,27,46,0.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.06), 0 14px 34px -20px rgba(19,27,46,0.65);
+  cursor:grab;touch-action:none;
+}
+.viz3d-host:active{cursor:grabbing;}
+.viz3d-host canvas{display:block;width:100%;height:100%;}
+.viz3d-hint{
+  position:absolute;left:12px;bottom:10px;z-index:2;pointer-events:none;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;
+  color:rgba(246,243,234,0.62);text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;
+}
+.viz3d-hint .dot{width:5px;height:5px;border-radius:50%;background:var(--brass-2);}
+.viz3d-legend{
+  position:absolute;right:12px;top:10px;z-index:2;pointer-events:none;
+  display:flex;flex-direction:column;gap:5px;align-items:flex-end;
+}
+.viz3d-legend .chip{
+  display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;
+  color:rgba(246,243,234,0.92);background:rgba(15,23,41,0.55);
+  border:1px solid rgba(246,243,234,0.14);border-radius:999px;padding:3px 10px 3px 8px;
+  backdrop-filter:blur(4px);
+}
+.viz3d-legend .chip i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+.viz3d-fallback{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;
+  color:rgba(246,243,234,0.8);font-size:12.5px;padding:24px;line-height:1.6;
+}
+.chart-type-btn.threed{border-color:var(--azure);color:var(--azure);font-weight:700;}
+.chart-type-btn.threed.active{background:var(--azure);border-color:var(--azure);color:#fff;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand-block">
+    <p class="eyebrow">Teacher Esteban Yepes · Mock Examination</p>
+    <h1>IELTS Academic Simulator</h1>
+  </div>
+  <div style="display:flex;align-items:flex-end;gap:12px;">
+    <div class="candidate-card">
+      Candidate No. <b id="candNo">—</b><br>
+      Test date: <b id="testDate">—</b><br>
+      Module: <b id="modLabel">Dashboard</b>
+    </div>
+    <button id="sessionBtn" class="btn ghost small" style="border-color:var(--paper-line);color:var(--paper);">💾 Session</button>
+    <button id="settingsBtn" class="btn ghost small" style="border-color:var(--paper-line);color:var(--paper);">⚙ AI engine</button>
+  </div>
+</header>
+
+<div id="settingsOverlay" class="settings-overlay" style="display:none;">
+  <div class="settings-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <h3 style="font-family:'Fraunces',serif;margin:0;font-size:19px;">AI engine settings</h3>
+      <button id="closeSettings" class="btn ghost small">Close</button>
+    </div>
+    <p style="font-size:13px;color:var(--slate);line-height:1.6;margin:0 0 18px;">
+      Writing hints/scoring, paragraph feedback, and Speaking scoring all run on <b>Gemini 3.6 Flash-Lite</b> using the key below. To score Speaking from the <b>actual audio</b> (real pronunciation and intonation, not just the transcript), Gemini listens to the audio directly. Paste your key once and it is saved in this browser only — get a free key at
+      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
+    </p>
+    <label style="font-size:12px;font-weight:600;color:var(--slate);">Gemini API key (stored only in this browser)</label>
+    <input type="password" id="geminiKeyInput" placeholder="AIza..." style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
+    <label style="font-size:12px;font-weight:600;color:var(--slate);">Text model (hints, scoring, paragraph feedback)</label>
+    <input type="text" id="geminiModelInput" value="gemini-3.6-flash-lite" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
+    <div class="disclaimer" style="margin-top:0;">
+      ⚠️ Important: this key is used directly from your browser and is visible to anyone who inspects this page's network traffic. That's fine for your own personal use, but <b>never share this exported HTML file with your key already saved in it</b> — if you want students to use Speaking scoring too, each of them should add their own key, or you should route requests through a small server you control that holds the key instead.
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn brass small" id="saveSettings">Save</button>
+      <button class="btn ghost small" id="clearSettings">Remove key</button>
+    </div>
+    <p id="settingsStatus" style="font-size:12px;color:var(--teal);margin-top:10px;"></p>
+  </div>
+</div>
+
+<div id="sessionOverlay" class="settings-overlay" style="display:none;">
+  <div class="settings-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <h3 style="font-family:'Fraunces',serif;margin:0;font-size:19px;">Session save & load</h3>
+      <button id="closeSession" class="btn ghost small">Close</button>
+    </div>
+    <p style="font-size:13px;color:var(--slate);line-height:1.6;margin:0 0 16px;">
+      Export today's progress — scores, answers, drafts, AI-generated exam content — to a file you can keep or share, then load it later to pick up exactly where you left off. Saving again just overwrites with your newest progress.
+    </p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+      <button class="btn brass small" id="exportSessionBtn">⬇ Save session to file</button>
+      <label class="btn secondary small" style="display:inline-flex;align-items:center;margin:0;">
+        ⬆ Load session from file
+        <input type="file" id="importSessionInput" accept="application/json" style="display:none;">
+      </label>
+    </div>
+    <p style="font-size:11.5px;color:var(--slate);margin:0 0 10px;">Loading a file replaces current answers/drafts/generated content with whatever is in that file.</p>
+    <hr class="rule" style="margin:16px 0;">
+    <label style="font-size:12px;font-weight:600;color:var(--slate);">Quick save in this browser (no file needed)</label>
+    <div style="display:flex;gap:8px;margin:6px 0 14px;">
+      <input type="text" id="sessionLabelInput" placeholder="e.g. Class 4B — Tuesday" style="flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;">
+      <button class="btn small" id="saveSnapshotBtn">Save new</button>
+    </div>
+    <div id="sessionList" style="max-height:200px;overflow-y:auto;"></div>
+    <p id="sessionStatus" style="font-size:12px;color:var(--teal);margin-top:10px;"></p>
+  </div>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-mod="dashboard" class="active">Dashboard</button>
+  <button data-mod="listening">Listening</button>
+  <button data-mod="reading">Reading</button>
+  <button data-mod="writing">Writing</button>
+  <button data-mod="speaking">Speaking</button>
+</nav>
+
+<div class="shell">
+  <main>
+    <div class="panel" id="panel"></div>
+  </main>
+</div>
+
+<p class="footer-note">Original practice materials in the official IELTS Academic format. Band scores are AI-estimated against published assessment criteria and are a study aid, not an official result.</p>
+
+<script>
+/* =========================================================================
+   STORAGE SHIM — lets this file run outside claude.ai (plain browser)
+   using localStorage, while keeping window.storage if the host provides it.
+   ========================================================================= */
+if(!window.storage){
+  window.storage = {
+    async get(key){ const v = localStorage.getItem("ielts:"+key); if(v===null) throw new Error("not found"); return {key, value:v}; },
+    async set(key, value){ localStorage.setItem("ielts:"+key, value); return {key, value}; },
+    async delete(key){ localStorage.removeItem("ielts:"+key); return {key, deleted:true}; },
+    async list(prefix){ const keys=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k.startsWith("ielts:")&&(!prefix||k.slice(6).startsWith(prefix))) keys.push(k.slice(6)); } return {keys}; }
+  };
+}
+
+/* =========================================================================
+   DATA
+   ========================================================================= */
+
+let READING_PASSAGES = [
+{
+  id:1,
+  title: "The Return of the Urban Beehive",
+  paras: {
+    A: "For most of the twentieth century, beekeeping was considered a rural pursuit, tucked away in orchards and farmland far from the noise of the city. Today, that picture has changed dramatically. Rooftops in Paris, London and New York now host thousands of hives, and municipal governments increasingly promote urban apiculture as a tool for environmental education and biodiversity. What began as a niche hobby has become a visible feature of city planning.",
+    B: "The reasons behind this shift are partly ecological. Cities, somewhat counterintuitively, can offer bees a more stable food supply than the countryside. Modern agriculture favours vast fields of a single crop, which bloom briefly and then leave pollinators with little to forage on for the rest of the year. Urban parks, gardens and even roadside verges, by contrast, provide a constantly changing patchwork of flowering plants across the seasons. Several studies have found that honeybee colonies kept in cities can produce more honey and survive winter at higher rates than those kept in intensively farmed rural areas.",
+    C: "Yet the growth of urban beekeeping has not been without controversy. Some ecologists warn that a concentration of managed honeybee hives in a limited urban area can crowd out wild, native pollinators such as solitary bees and bumblebees, which compete with honeybees for the same limited flowers. Because honeybees are generalists and highly efficient foragers, an oversupply of hives in a small park may leave fewer resources for species that, in many cases, pollinate more effectively and are already in steeper decline. Several cities have responded by capping the number of hives permitted per hectare of green space.",
+    D: "Beyond the ecological debate, advocates argue that urban hives serve an important educational function. Rooftop apiaries attached to schools and community centres allow city residents, many of whom have never seen a working hive, to observe pollination first-hand and to understand the wider agricultural systems that depend on it. Beekeeping associations report that participants frequently become more attentive to the sourcing of their food and more supportive of local environmental policy after handling bees themselves, though rigorous long-term data on this behavioural change is still limited.",
+    E: "Urban beekeeping also intersects with questions of public health and safety. Local authorities must balance enthusiasm for pollinator-friendly policy against the practical concerns of residents, some of whom fear stings or are unaware that most urban bee species, aside from managed honeybees, are non-aggressive. Regulations in cities such as Melbourne and Toronto now require hives to be registered, set back a minimum distance from property boundaries, and shielded by a flight-path barrier so that bees are directed upward and away from pedestrians.",
+    F: "Looking ahead, several researchers argue that the future of urban apiculture lies not in maximising the number of hives but in redesigning cities to support pollinators more broadly. This means planting a wider variety of native flowering species along streets and in parks, reducing pesticide use in public green space, and treating honeybee hives as one component of a larger pollinator strategy rather than its centrepiece. Under this view, a city's rooftop hive is less an end in itself than a visible symbol of a much larger, largely invisible network of insects on which urban food systems quietly depend."
+  },
+  groups: [
+    { type:"heading", qStart:1, instructions:"The passage has six paragraphs, A–F. Choose the correct heading for paragraphs A–D from the list of headings below.",
+      paragraphs:["A","B","C","D"],
+      options: [
+        "A comparison between rural and city forage conditions",
+        "Rules designed to protect residents from harm",
+        "A shift in where beekeeping traditionally takes place",
+        "A call to think beyond the honeybee alone",
+        "Concerns that domestic bees may disadvantage wild species",
+        "The financial cost of maintaining a rooftop hive",
+        "A claimed link between beekeeping and changed attitudes"
+      ],
+      key: { A:2, B:0, C:4, D:6 }
+    },
+    { type:"tfng", qStart:5, instructions:"Do the following statements agree with the information in the passage? Choose TRUE, FALSE or NOT GIVEN.",
+      items: [
+        { q: "Honeybee colonies in cities sometimes fare better over winter than those in rural farmland.", a: "TRUE" },
+        { q: "All city governments now limit the number of hives allowed per park.", a: "NOT GIVEN" },
+        { q: "Long-term evidence that beekeeping changes people's environmental behaviour is well established.", a: "FALSE" }
+      ]
+    },
+    { type:"completion", qStart:8, instructions:"Complete the sentences below. Use NO MORE THAN TWO WORDS from the passage for each answer.",
+      items: [
+        { q: "In Melbourne and Toronto, hives must be kept a minimum ___ from property boundaries.", a: ["distance","setback"] },
+        { q: "Hives are increasingly fitted with a flight-path ___ to direct bees away from people.", a: ["barrier"] },
+        { q: "Some researchers believe cities should plant more native ___ species rather than just adding hives.", a: ["flowering"] }
+      ]
+    }
+  ]
+},
+{
+  id:2,
+  title: "Deciding How Cities Grow: The Case for Vertical Farming",
+  paras: {
+    A: "As the world's urban population continues to expand, planners face a persistent question: where should the food that feeds a city actually be grown? For most of urban history the answer was straightforward — outside the city, on land unsuitable for building, transported in along an increasingly long supply chain. Vertical farming offers an alternative vision, stacking growing trays inside climate-controlled buildings within the city itself, sometimes occupying disused warehouses or purpose-built towers many storeys high.",
+    B: "Proponents point to impressive efficiency gains. Because vertical farms use hydroponic or aeroponic systems rather than soil, and recycle almost all of their water, some operations report using as little as five percent of the water required by an equivalent outdoor farm. Combined with LED lighting tuned to the specific wavelengths plants need, crops can be grown year-round regardless of season, and multiple harvests can be layered vertically within a single footprint of land.",
+    C: "Critics, however, note that these gains come at a considerable energy cost. Unlike a field crop, which draws its light and warmth from the sun for free, a vertical farm must generate artificial light and maintain a controlled climate entirely through purchased electricity. Even with efficient LEDs, some studies estimate the energy required to grow a kilogram of lettuce indoors can exceed that of conventional greenhouse cultivation several times over, unless the facility is powered by genuinely low-carbon electricity.",
+    D: "There is also a question of which crops the model actually suits. Leafy greens and herbs, which are light, fast-growing and command a relatively high retail price, have proven commercially viable in vertical farms in several major cities. Staple crops such as wheat or rice, by contrast, are far less profitable to grow this way: their low price per kilogram and the sheer volume of light and space that grain crops require make vertical cultivation of staples economically unworkable with current technology.",
+    E: "For now, most industry analysts view vertical farming not as a wholesale replacement for traditional agriculture but as a complementary approach, best suited to producing high-value, perishable crops close to the urban consumers who will eat them. Whether the model can be extended much further will likely depend on the falling cost of renewable electricity and continued advances in lighting efficiency."
+  },
+  groups: [
+    { type:"matchinfo", qStart:11, instructions:"Which paragraph contains the following information? Write the correct letter, A–E. NB You may use any letter more than once.",
+      letters:["A","B","C","D","E"],
+      items: [
+        { q:"a comparison of water usage between vertical and traditional farms", a:"B" },
+        { q:"a description of the traditional method of feeding cities", a:"A" },
+        { q:"an explanation of why certain crops are unsuitable for vertical farming", a:"D" },
+        { q:"a suggestion about what might allow the industry to expand further", a:"E" }
+      ]
+    },
+    { type:"mc", qStart:15, instructions:"Choose the correct letter, A, B or C.",
+      items: [
+        { q:"According to the passage, vertical farms mainly grow crops using", options:["soil-based methods","hydroponic or aeroponic systems","traditional greenhouse methods"], a:1 },
+        { q:"LED lighting in vertical farms is used to", options:["cut labour costs","match the wavelengths plants need, enabling year-round growth","reduce the need for water recycling"], a:1 },
+        { q:"Studies suggest the energy cost of growing lettuce indoors", options:["is always lower than greenhouse farming","can exceed conventional greenhouse cultivation several times over","cannot yet be measured accurately"], a:1 }
+      ]
+    },
+    { type:"completion", qStart:18, instructions:"Complete the summary below. Use NO MORE THAN TWO WORDS from the passage for each answer.",
+      summaryIntro:"Vertical farms grow crops indoors using systems that need very little (18) ___ compared with outdoor farms. However, because they rely on artificial lighting, their (19) ___ costs can be very high unless renewable power is used. High-value crops such as leafy (20) ___ are currently the most commercially successful choice.",
+      items: [
+        { q:"(18)", a:["water"] },
+        { q:"(19)", a:["energy","electricity"] },
+        { q:"(20)", a:["greens"] }
+      ]
+    }
+  ]
+},
+{
+  id:3,
+  title: "The Psychology of Procrastination",
+  paras: {
+    A: "Procrastination is often mischaracterised as simple laziness, yet psychologists who study the behaviour argue that this description misses what is actually happening. Research by Dr. Tim Pychyl and colleagues at Carleton University frames procrastination primarily as a problem of emotional regulation rather than time management: people delay a task not because they cannot organise their schedule, but because the task itself triggers an unpleasant feeling — boredom, anxiety, self-doubt — that they seek to avoid in the short term, even though doing so creates greater stress later.",
+    B: "This helps explain why simple productivity advice, such as breaking a task into smaller steps, often fails to solve chronic procrastination on its own. If the underlying issue is emotional avoidance rather than a lack of planning, then reorganising the task changes very little; the discomfort that caused the avoidance in the first place is still present the next time the person sits down to begin.",
+    C: "A separate strand of research, associated with psychologist Piers Steel, approaches procrastination through what is known as temporal discounting: the tendency to value immediate rewards far more highly than future ones, even when the future reward is objectively larger. Under this model, a distant deadline simply carries less psychological weight than an immediately available distraction, and the gap only narrows, prompting action, as the deadline draws near — which is why many people report working best 'under pressure.'",
+    D: "Interventions that show measurable success tend to target the emotional dimension directly rather than the practical one. Self-compassion, somewhat counterintuitively, has been linked in several studies to reduced procrastination, on the theory that people who forgive themselves for a previous delay experience less of the anxiety that fuels further avoidance. Other effective strategies include deliberately reducing the number of decisions required to start a task, and precommitment devices, such as telling a colleague about a deadline, which raise the social cost of continued delay."
+  },
+  groups: [
+    { type:"tfng", qStart:21, instructions:"Do the following statements agree with the information in the passage? Choose TRUE, FALSE or NOT GIVEN.",
+      items: [
+        { q:"Psychologists studying procrastination generally agree it is best explained as poor time management.", a:"FALSE" },
+        { q:"Breaking a task into smaller steps always solves chronic procrastination.", a:"FALSE" },
+        { q:"According to Piers Steel's model, people place less value on rewards that are far in the future.", a:"TRUE" }
+      ]
+    },
+    { type:"matchinfo", qStart:24, instructions:"Look at the following statements and match each one with the correct researcher, A or B.",
+      letters:["A","B"],
+      legend:["A — Tim Pychyl","B — Piers Steel"],
+      items: [
+        { q:"Associated with the concept of temporal discounting", a:"B" },
+        { q:"Frames procrastination as an emotional regulation problem", a:"A" },
+        { q:"Argues distant deadlines carry less psychological weight", a:"B" },
+        { q:"Suggests procrastination is not primarily about scheduling", a:"A" }
+      ]
+    },
+    { type:"completion", qStart:28, instructions:"Complete the sentences below. Use NO MORE THAN TWO WORDS from the passage for each answer.",
+      items: [
+        { q:"According to Dr. Pychyl, delaying a task is often a way of avoiding an unpleasant ___.", a:["feeling","emotion"] },
+        { q:"Piers Steel's research draws on the concept of temporal ___.", a:["discounting"] },
+        { q:"Telling a colleague about a deadline is an example of a ___ device.", a:["precommitment"] }
+      ]
+    }
+  ]
+},
+{
+  id:4,
+  title: "Writing in the Age of the Printing Press",
+  paras: {
+    A: "When Johannes Gutenberg introduced movable-type printing to Europe in the mid-fifteenth century, few of his contemporaries grasped how thoroughly the technology would reshape intellectual life. Manuscripts had until then been copied by hand, a slow and costly process that kept books scarce and largely confined to monasteries, universities and the very wealthy. Within a few decades of Gutenberg's press, the number of books in circulation across Europe rose from a few tens of thousands to many millions, and the price of a single volume fell to a fraction of what it had been.",
+    B: "The immediate effect was not, as is sometimes assumed, a sudden surge in literacy among ordinary people. Literacy rates rose only gradually over the following two centuries. The more direct consequence was a transformation in how knowledge was standardised and shared. Because printed copies of a text were identical, scholars in different cities could, for the first time, refer confidently to the same page of the same edition, allowing errors to be identified and corrected across a whole print run rather than being multiplied by hand.",
+    C: "Printing also altered the economics of authorship. A writer whose work could be reproduced cheaply and sold widely could, in principle, reach an audience far beyond a single patron's court. This gradually loosened the dependence of authors on wealthy sponsors, though it would be centuries before writing became a financially viable profession for more than a fortunate few. Publishers, meanwhile, emerged as a new commercial force, deciding which manuscripts were worth the considerable expense of typesetting and paper.",
+    D: "Not everyone welcomed the change. Some scholars complained that the flood of cheap printed material lowered standards, spreading poorly edited or frivolous texts alongside serious works. Authorities in several states moved quickly to license and censor presses, recognising that a technology capable of spreading ideas so rapidly could spread inconvenient ones just as easily. The tension between the press as a tool of free enquiry and as an object of official control would persist for generations.",
+    E: "Historians today generally caution against treating the printing press as a single cause of the profound changes that followed, from the Reformation to the scientific revolution. The press was better understood as an amplifier: it did not by itself generate new ideas, but it dramatically accelerated the speed and reach with which ideas, once formed, could circulate, be challenged and be built upon."
+  },
+  groups: [
+    { type:"tfng", qStart:31, instructions:"Do the following statements agree with the information in the passage? Choose TRUE, FALSE or NOT GIVEN.",
+      items: [
+        { q:"Before Gutenberg's press, books were mainly available only to a small, privileged section of society.", a:"TRUE" },
+        { q:"Printing caused literacy among ordinary people to rise sharply and immediately.", a:"FALSE" },
+        { q:"Gutenberg himself predicted the full impact his invention would have.", a:"NOT GIVEN" }
+      ]
+    },
+    { type:"mc", qStart:34, instructions:"Choose the correct letter, A, B or C.",
+      items: [
+        { q:"According to the passage, one of the most direct effects of printing was", options:["an immediate rise in mass literacy","the standardisation of shared texts","the disappearance of handwritten manuscripts"], a:1 },
+        { q:"Printing affected authorship by", options:["ending all reliance on wealthy patrons at once","gradually reducing authors' dependence on individual sponsors","making writing immediately profitable for most authors"], a:1 },
+        { q:"Some authorities responded to the printing press by", options:["banning all printed books","licensing and censoring presses","funding presses generously"], a:1 }
+      ]
+    },
+    { type:"completion", qStart:37, instructions:"Complete the sentences below. Use NO MORE THAN TWO WORDS from the passage for each answer.",
+      items: [
+        { q:"Identical printed copies allowed scholars in different cities to refer to the same ___ of the same edition.", a:["page"] },
+        { q:"A new commercial force that emerged was the ___, who chose which manuscripts to print.", a:["publisher","publishers"] },
+        { q:"Historians today describe the printing press less as a cause and more as an ___.", a:["amplifier"] },
+        { q:"The press accelerated the speed and ___ with which ideas could circulate.", a:["reach"] }
+      ]
+    }
+  ]
+}
+];
+
+let LISTENING = {
+  parts: [
+    {
+      id:1, title:"Section 1 — Community Garden Booking",
+      context:"A woman phones a community centre to enquire about renting an allotment plot. Listen and complete the form below.",
+      script:`Receptionist: Good morning, Fairview Community Centre, how can I help?
+Caller: Hi, I'd like to ask about renting one of the garden plots I saw advertised.
+Receptionist: Of course. Could I take your name first?
+Caller: It's Marianne Cole. That's C-O-L-E.
+Receptionist: Thanks Marianne. And a contact phone number?
+Caller: 0161 496 2280.
+Receptionist: Great. We currently have two plot sizes available: a small plot, which is four metres by three, and a large plot, six by four. The small one is fifteen pounds a month, the large is twenty-five.
+Caller: I'll go for the small one, that should be plenty for me.
+Receptionist: Good choice for a first-timer. Plots are allocated for a minimum of six months. Would you like to start this month or next?
+Caller: Next month would be better, so let's say the first of September.
+Receptionist: Noted. Now, we ask everyone to bring their own tools, but we do have a communal shed with a tap and a wheelbarrow you can borrow. There's also a small membership fee of twelve pounds a year, which covers public liability insurance.
+Caller: That's fine. Is there anything I should know about what I can grow?
+Receptionist: Just no permanent structures without permission, and please keep pathways clear. Oh, and one more thing — could you give me your email so I can send the contract?
+Caller: Sure, it's m dot cole at outbox dot com.
+Receptionist: Perfect, I'll send that over today. Welcome to Fairview!`,
+      questions:[
+        {n:1, type:"gap", label:"Caller's surname:", answer:["cole"]},
+        {n:2, type:"gap", label:"Contact number:", answer:["01614962280","0161 496 2280"]},
+        {n:3, type:"gap", label:"Monthly cost of the small plot: £", answer:["15","fifteen"]},
+        {n:4, type:"gap", label:"Size of the large plot: 6 x", answer:["4","four"]},
+        {n:5, type:"gap", label:"Minimum rental period:", answer:["six months","6 months"]},
+        {n:6, type:"gap", label:"Start date:", answer:["1 september","first of september","september 1"]},
+        {n:7, type:"gap", label:"Members must bring their own:", answer:["tools"]},
+        {n:8, type:"gap", label:"Annual membership fee: £", answer:["12","twelve"]},
+        {n:9, type:"gap", label:"Pathways must always be kept:", answer:["clear"]},
+        {n:10, type:"gap", label:"Contract will be sent by:", answer:["email"]}
+      ]
+    },
+    {
+      id:2, title:"Section 2 — Royal Botanical Gardens Tour",
+      context:"You will hear a tour guide welcoming a group of visitors to the Royal Botanical Gardens. Listen and answer questions 11–20.",
+      script:`Guide: Good morning everyone, and welcome to the Royal Botanical Gardens. My name's David, and I'll be your guide for this morning's introductory walk. Before we set off through the main gates, I have a few practical updates regarding our schedule and layout today.
+The gardens cover a total area of eighteen hectares — so we won't see absolutely everything in our ninety-minute tour, but we will hit the major highlights. Our first stop will be the Temperate House. This structure was completed in 1862, making it the second-oldest surviving glasshouse in the country, and it contains some of the rarest oceanic island plants in the world.
+After that, we'll stroll over to the Rose Terrace. Normally this is a highlight of the summer tour, but I must warn you that due to some essential path maintenance and drainage work, the southern half of the terrace is partially closed to the public at the moment. You can still view the main display from the northern pavilion, however, and the scent is absolutely magnificent.
+We'll finish up our walk around twelve-thirty at the Orchard Café, which is located right next to the gift shop. Your ticket includes a ten percent discount voucher for the café, which is valid for any hot food or drinks. If you'd like to buy plants, the shop only accepts card payment today because of a technical fault with the cash register. Finally, please stay on the marked paths at all times — several of the rarer specimens are extremely sensitive to soil compaction around their roots.`,
+      questions:[
+        {n:11, type:"mc", label:"How large are the gardens?", options:["Eight hectares","Eighteen hectares","Eighty hectares"], answer:1},
+        {n:12, type:"mc", label:"The Temperate House is", options:["the oldest glasshouse in the country","the second-oldest glasshouse in the country","a newly built glasshouse"], answer:1},
+        {n:13, type:"mc", label:"The Rose Terrace is", options:["fully open","completely closed","partially closed"], answer:2},
+        {n:14, type:"mc", label:"The Orchard Café is next to the", options:["gift shop","main gates","Temperate House"], answer:0},
+        {n:15, type:"mc", label:"The visitor voucher provides a discount on", options:["gift shop items","all plants","hot food or drinks"], answer:2},
+        {n:16, type:"mc", label:"The plant shop currently cannot accept", options:["cash","credit cards","vouchers"], answer:0},
+        {n:17, type:"mc", label:"Visitors are asked to stay on paths to prevent", options:["getting lost","damage to rare soil and roots","accidents with maintenance machinery"], answer:1},
+        {n:18, type:"gap", label:"The introductory walk takes ___ minutes.", answer:["90","ninety"]},
+        {n:19, type:"gap", label:"The Temperate House was completed in the year ___.", answer:["1862"]},
+        {n:20, type:"gap", label:"The tour concludes at ___ o'clock.", answer:["12:30","twelve-thirty","12.30"]}
+      ]
+    },
+    {
+      id:3, title:"Section 3 — Tutor Consultation on Assignment",
+      context:"Two environmental science students, Liam and Sarah, discuss their upcoming research presentation with their project tutor.",
+      script:`Tutor: Come in, Liam, Sarah. Take a seat. How are your preparations going for next week's presentation on urban microclimates?
+Liam: Well, we've collected most of our thermal data from the city centre parks, but we're struggling a bit with how to structure the middle section.
+Sarah: Yes, we initially thought we'd present the results chronologically, looking at the temperature changes from morning to night. But it feels a bit repetitive.
+Tutor: I see. A chronological layout can work, but for an academic presentation, it's often more effective to group your findings by variable. For instance, compare the concrete areas directly with the turf or canopy areas.
+Liam: That makes sense. That way we can analyze the 'heat island' effect based on surface materials rather than just the clock.
+Tutor: Exactly. Now, have you decided on your main visual aids?
+Sarah: We've got a series of digital maps with temperature overlays. We were planning to overlay all twelve data sets onto one single master map so the audience can see everything at once.
+Tutor: I'd advise against that. It sounds comprehensive, but in reality, a map with that many layers becomes completely unreadable from the back of a lecture hall. It's much better to use a maximum of three layers per map, or better yet, show a side-by-side comparison.
+Liam: Right, let's split them into three separate charts then.
+Tutor: Good. And remember your final section must address the limitations of your methodology. What are you planning to mention there?
+Liam: We had an issue with sensor calibration on the third day of tracking — the battery was low, so the readings in the afternoon might be slightly inflated.
+Sarah: And we also missed two of our scheduled reading windows because of the heavy rain on Thursday morning.
+Tutor: Both of those are classic points to include. Just be sure to explain briefly how you adjusted your final averages to account for those anomalies. If you do that, it shows good critical awareness.`,
+      questions:[
+        {n:21, type:"mc", label:"The tutor suggests restructuring the presentation results by", options:["chronological order","environmental variable and surface material","the time of day data was captured"], answer:1},
+        {n:22, type:"mc", label:"What is the tutor's concern about the proposed master map?", options:["The color contrast is too low","It contains too many overlapping layers for an audience to read","The data fields are outdated"], answer:1},
+        {n:23, type:"mc", label:"The students decide to display their map data using", options:["a single map","three separate charts","a printed handout"], answer:1},
+        {n:24, type:"mc", label:"On the third day of tracking, a problem occurred due to", options:["low sensor batteries","vandalism of equipment","incorrect software settings"], answer:0},
+        {n:25, type:"mc", label:"Why were two data collection windows missed entirely?", options:["The campus was closed","The students were late","Heavy rainfall disrupted the schedule"], answer:2},
+        {n:26, type:"gap", label:"The presentation topic is urban ___.", answer:["microclimates"]},
+        {n:27, type:"gap", label:"The tutor states that grouping findings by variable shows better ___ awareness.", answer:["academic"]},
+        {n:28, type:"gap", label:"Maps should display a maximum of ___ layers each.", answer:["3","three"]},
+        {n:29, type:"gap", label:"Students must explain how they calculated their final ___ to account for errors.", answer:["averages"]},
+        {n:30, type:"gap", label:"The presentation is scheduled for ___ week.", answer:["next"]}
+      ]
+    },
+    {
+      id:4, title:"Section 4 — Lecture: The Phenology Mismatch",
+      context:"You will hear part of a university lecture about human impacts on animal migration and ecosystem timings. Listen and complete the notes.",
+      script:`Professor: Good afternoon. In today's lecture on global ecology, we are going to explore the phenomenon of phenological mismatch — a critical disruption to the timing of recurring natural events caused by rapid climate shifts.
+Phenology, as you may recall, is the study of seasonal biological cycles: when plants leaf out, when insects emerge, and when birds migrate. For millions of years, these events have evolved to occur in perfect synchronicity. Take, for example, the blue tit, a small woodland bird native to Europe. For centuries, its breeding cycle has been perfectly timed so that its chicks hatch precisely when the population of oak tree caterpillars reaches its annual peak. This provides an abundant, high-protein food source for the rapidly growing nestlings.
+However, as global temperatures rise, spring is arriving earlier. Oak trees are producing leaves sooner, and in response, caterpillars are emerging up to two weeks earlier than they did forty years ago. But the blue tits, which base their migration and laying cues largely on day length rather than temperature, have not adjusted their schedule at the same pace. Consequently, by the time the chicks hatch, the caterpillar population has already peaked and is in sharp decline. This leads to severe food shortages and reduced survival rates for the chicks.
+This mismatch is not isolated to woodlands. We see it in marine environments, where changes in sea ice melt disrupt the alignment between phytoplankton blooms and the arrival of migrating baleen whales. To mitigate these impacts, conservationists are looking at landscape connectivity. By creating protected habitat corridors that span multiple latitudes, we allow species the geographic flexibility to shift their ranges northward or upward to find synchronized food webs.
+A notable five-year trial in the Netherlands established a nationwide network of insect-friendly wildflower verges along major transport lines. Researchers observed that while local mismatches persisted, wild bee populations within these corridors rose by approximately thirty percent compared to control zones, providing a vital buffer. This demonstrates that local intervention can yield measurable resilience, though scaling these frameworks remains a major challenge for international policy. Increasingly, scientists are relying on citizen science platforms to log seasonal observations across millions of data points globally, turning smartphone photos into critical ecological infrastructure.`,
+      questions:[
+        {n:31, type:"gap", label:"Phenology tracks biological events linked to changing ___.", answer:["seasons"]},
+        {n:32, type:"gap", label:"Blue tit chicks historically hatch alongside a peak in the ___ population.", answer:["caterpillar","caterpillars"]},
+        {n:33, type:"gap", label:"Oak trees react to warmer temperatures, but birds rely more on ___ length.", answer:["day"]},
+        {n:34, type:"gap", label:"Marine mismatches occur when changes in sea ___ melt alter plankton blooms.", answer:["ice"]},
+        {n:35, type:"gap", label:"A disruption in insect and predator emergence is called a phenological ___", answer:["mismatch"]},
+        {n:36, type:"gap", label:"Proposed solution: pollinator ___", answer:["corridor","corridors"]},
+        {n:37, type:"gap", label:"Trial location mentioned: the ___", answer:["netherlands"]},
+        {n:38, type:"gap", label:"Trial length:", answer:["five-year","5 year","five years"]},
+        {n:39, type:"gap", label:"Wild bee numbers rose by around ___ percent", answer:["30","thirty"]},
+        {n:40, type:"gap", label:"Increasingly important monitoring tool: citizen ___", answer:["science"]}
+      ]
+    }
+  ]
+};
+
+let WRITING = {
+  task1: {
+    tag:"Writing Task 1 · 20 minutes · at least 150 words",
+    prompt:"The chart below shows the percentage of households with home internet access in three regions between 2000 and 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+    chartData:{
+      labels:["2000","2005","2010","2015","2020"],
+      series:[
+        {label:"Northern Europe", data:[35,58,78,90,96], color:"#2f6f62"},
+        {label:"Southern Asia", data:[2,6,15,34,58], color:"#c9a227"},
+        {label:"Sub-Saharan Africa", data:[1,2,5,14,29], color:"#c1443c"}
+      ]
+    }
+  },
+  task2: {
+    tag:"Writing Task 2 · 40 minutes · at least 250 words",
+    prompt:"Some people believe that unpaid community service should be a compulsory part of every high school student's education. Others think students should be free to decide how to spend their free time. Discuss both views and give your own opinion."
+  }
+};
+
+let SPEAKING = {
+  part1: {
+    title:"Part 1 — Introduction & Interview",
+    note:"The examiner asks general questions about yourself, your home, work or studies. Answer each one naturally, giving 2-4 sentences.",
+    questions:[
+      "Let's talk about where you live. Do you live in a house or an apartment?",
+      "What do you like most about your neighborhood?",
+      "Let's talk about bikes and motorcycles. Are motorcycles popular in your country?",
+      "Do you think it's easy to learn how to ride a motorcycle or a bicycle?",
+      "Why do you think some people prefer driving a car to riding a two-wheeled vehicle?"
+    ]
+  },
+  part2: {
+    title:"Part 2 — Individual Long Turn (Cue Card)",
+    note:"You have 1 minute to prepare a talk on this topic. You should speak for 1 to 2 minutes.",
+    cue: {
+      title: "Describe a journey you made on a motorcycle or bicycle that you remember well.",
+      points: [
+        "where you went and who was with you",
+        "why you chose to make this journey",
+        "what happened along the way",
+        "and explain why this specific journey stands out in your memory."
+      ]
+    }
+  },
+  part3: {
+    title:"Part 3 — Two-Way Discussion",
+    note:"The examiner asks broader, abstract questions linked to the Part 2 topic. Aim for extended, well-argued answers.",
+    questions:[
+      "How have modern infrastructure developments changed the way people travel within a city?",
+      "In many cities, traffic congestion is a major problem. Do you think promoting two-wheeled vehicles is an effective solution?",
+      "Some countries mandate strict training before someone can ride a high-capacity motorcycle. Do you agree with this policy?",
+      "How do you think environmental regulations will affect personal vehicle ownership over the next twenty years?"
+    ]
+  }
+};
+
+const CRITERIA_WRITING = ["Task Achievement","Coherence & Cohesion","Lexical Resource","Grammatical Range & Accuracy"];
+const CRITERIA_SPEAKING = ["Fluency & Coherence","Lexical Resource","Grammatical Range & Accuracy","Pronunciation (estimated)"];
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+
+const state = {
+  mod: "dashboard",
+  candNo: Math.floor(100000 + Math.random()*899999),
+  scores: { listening:null, reading:null, writing:null, speaking:null },
+  history: [],
+  listening: { answers:{}, submitted:false, playedParts:{}, customAudio:{} },
+  reading: { answers:{}, submitted:false, activePassage:0 },
+  writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, loading:{} },
+  speaking: { part:"part1", transcripts:{}, metrics:{}, report:null, loading:false, recording:false, audioB64:{}, audioMime:{} },
+  settings: { geminiKey:"", geminiModel:"gemini-3.6-flash-lite" }
+};
+
+/* =========================================================================
+   PERSISTENCE (window.storage — survives across sessions)
+   ========================================================================= */
+
+async function loadHistory(){
+  try{
+    const r = await window.storage.get('ielts-history', false);
+    if(r && r.value){
+      const parsed = JSON.parse(r.value);
+      state.history = parsed.history || [];
+      state.scores = parsed.scores || state.scores;
+    }
+  }catch(e){ /* no history yet */ }
+  renderDashboardIfActive();
+}
+
+async function saveHistory(){
+  try{
+    await window.storage.set('ielts-history', JSON.stringify({history:state.history, scores:state.scores}), false);
+  }catch(e){
+    console.error("storage save failed", e);
+  }
+}
+
+function recordScore(module, band, detail){
+  state.scores[module] = band;
+  state.history.unshift({date:new Date().toISOString(), module, band, detail: detail||""});
+  state.history = state.history.slice(0,30);
+  saveHistory();
+}
+
+function renderDashboardIfActive(){
+  if(state.mod==="dashboard") renderDashboard();
+}
+
+window.addEventListener("DOMContentLoaded", async ()=>{
+  try {
+    const saved = await window.storage.get("ielts-settings", false);
+    if (saved && saved.value) {
+      state.settings = JSON.parse(saved.value);
+    }
+  } catch(e){}
+  // Migrate older stored settings to the current default model. The API key is
+  // intentionally NOT hard-coded here — enter it once in the "⚙ AI engine"
+  // panel and it is saved in this browser only, so it never lands in the repo.
+  const OLD_MODELS = ["gemini-3.1-flash-lite","gemini-2.5-flash-lite","gemini-1.5-flash-latest",""];
+  if(!state.settings.geminiModel || OLD_MODELS.includes(state.settings.geminiModel)){
+    state.settings.geminiModel = "gemini-3.6-flash-lite";
+  }
+  document.getElementById("geminiKeyInput").value = state.settings.geminiKey || "";
+  document.getElementById("geminiModelInput").value = state.settings.geminiModel || "gemini-3.6-flash-lite";
+  await loadHistory();
+  render();
+});
+
+/* =========================================================================
+   CORE BACKEND CONNECTORS
+   ========================================================================= */
+
+/* NOTE: the previous version of this app tried to call api.anthropic.com
+   directly from the browser with a placeholder key ("x-api-key: internal").
+   That request has no valid credentials and browsers can't call the
+   Anthropic Messages API directly anyway (no CORS/browser access without a
+   real key + special header), so it always failed and surfaced as
+   "Scoring failed. Verify key connection profiles." Every AI feature
+   (hints, writing scoring, speaking scoring) now runs through callGemini(),
+   which is the connector that actually works client-side. */
+
+async function callGemini(systemPrompt, userText, audioBase64, audioMime){
+  const key = state.settings.geminiKey;
+  const model = state.settings.geminiModel || "gemini-3.6-flash-lite";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  
+  const parts = [{ text: systemPrompt + "\n\n" + userText }];
+  if(audioBase64){
+    parts.push({
+      inline_data: {
+        mime_type: audioMime || "audio/webm",
+        data: audioBase64
+      }
+    });
+  }
+  const res = await fetch(url, {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "x-goog-api-key": key
+    },
+    body: JSON.stringify({ contents:[{ parts }] })
+  });
+  if(!res.ok){
+    const errText = await res.text();
+    throw new Error("Gemini API error: "+res.status+" "+errText.slice(0,200));
+  }
+  const data = await res.json();
+  const text = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts || [])
+    .map(p=>p.text||"").join("\n");
+  return text;
+}
+
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onloadend = ()=>resolve(reader.result.split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function genProgressShow(id, label){
+  const bar = document.getElementById(id+"Bar");
+  if(!bar) return;
+  bar.style.display = "block";
+  const fill = bar.querySelector(".gen-progress-fill");
+  const lbl = bar.querySelector(".gen-progress-label");
+  fill.classList.add("indeterminate");
+  fill.style.width = "0%";
+  if(lbl) lbl.textContent = label || "Working…";
+}
+function genProgressSet(id, pct, label){
+  const bar = document.getElementById(id+"Bar");
+  if(!bar) return;
+  const fill = bar.querySelector(".gen-progress-fill");
+  const lbl = bar.querySelector(".gen-progress-label");
+  if(pct !== null && pct !== undefined){
+    fill.classList.remove("indeterminate");
+    fill.style.width = Math.max(2,Math.min(100,pct)) + "%";
+  } else {
+    fill.classList.add("indeterminate");
+  }
+  if(lbl && label) lbl.textContent = label;
+}
+function genProgressDone(id, finalLabel){
+  const bar = document.getElementById(id+"Bar");
+  if(!bar) return;
+  const fill = bar.querySelector(".gen-progress-fill");
+  const lbl = bar.querySelector(".gen-progress-label");
+  fill.classList.remove("indeterminate");
+  fill.style.width = "100%";
+  if(lbl) lbl.textContent = finalLabel || "Done.";
+  setTimeout(()=>{ if(bar) bar.style.display = "none"; }, 700);
+}
+function genProgressHide(id){
+  const bar = document.getElementById(id+"Bar");
+  if(bar) bar.style.display = "none";
+}
+
+// Approximate IELTS-to-CEFR equivalency, based on the published British
+// Council / Cambridge correspondence tables. The real mapping isn't
+// perfectly linear across all four skills, so treat this as a helpful
+// approximation for study purposes, not an official conversion.
+function bandToCEFR(band){
+  const b = Number(band);
+  if(!isFinite(b)) return "—";
+  if(b >= 8.5) return "C2";
+  if(b >= 7.0) return "C1";
+  if(b >= 5.5) return "B2";
+  if(b >= 4.0) return "B1";
+  if(b >= 3.0) return "A2";
+  return "A1";
+}
+
+function officialRound(avg){
+  // Official IELTS rounding: average the criteria, then round the
+  // fractional remainder up to the nearest half-band at .25, and up to
+  // the next whole band at .75 (e.g. 6.25→6.5, 6.75→7.0, 6.1→6.0).
+  let whole = Math.floor(avg);
+  const rem = avg - whole;
+  if(rem >= 0.75) whole += 1;
+  else if(rem >= 0.25) whole += 0.5;
+  return whole;
+}
+
+function parseJSON(text){
+  let clean = text.replace(/```json/gi,"").replace(/```/g,"").trim();
+  // The response can be a top-level object ({...}) or a top-level array ([...]).
+  // Previously this always sliced from the first "{" to the last "}", which
+  // silently stripped the outer [ ] brackets off array responses (like the
+  // Reading generator's 4-section array), leaving several JSON objects
+  // separated by commas but with no wrapping array — invalid JSON that fails
+  // with "Unexpected non-whitespace character after JSON at position N".
+  const firstBrace = clean.indexOf("{");
+  const firstBracket = clean.indexOf("[");
+  let start, closeChar;
+  if(firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)){
+    start = firstBracket; closeChar = "]";
+  } else {
+    start = firstBrace; closeChar = "}";
+  }
+  const end = clean.lastIndexOf(closeChar);
+  if(start>=0 && end>start) clean = clean.slice(start, end+1);
+  return JSON.parse(clean);
+}
+
+const WRITING_RUBRIC = `You are an experienced IELTS Academic Writing examiner. Score strictly against the four official criteria: Task Achievement (or Task Response), Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy. IMPORTANT ON PRECISION: each criterion MUST be scored on the full 0-9 scale in 0.5 steps — half-bands (5.5, 6.5, 7.5, etc.) are the norm, not the exception, because real writing rarely sits cleanly on a whole band. Only give a whole number when the performance is unambiguously and consistently at that exact level across the whole response; if it shows a mix of two adjacent levels (which is most responses), score the half-band between them. Do not default to whole numbers out of habit. Be a calibrated examiner: typical competent B2/C1 essays land between band 5.5 and 7.5. Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":""}`;
+
+const WRITING_PARAGRAPH_RUBRIC = `You are an IELTS Writing examiner giving developmental, paragraph-by-paragraph feedback — not a score. You will receive the student's essay already split into numbered paragraphs. For EACH paragraph, in order, find concrete mistakes or weak spots (grammar, word choice, cohesion, task relevance, clarity) and give a short corrected/improved version of each specific problem phrase, plus a one-line reason. If a paragraph has no notable issues, return an empty "issues" array and a positive one-line comment instead. Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"paragraphs":[{"comment":"one short sentence on this paragraph's main strength or weakness","issues":[{"original":"short exact phrase from the paragraph, under 12 words","suggestion":"the corrected or improved phrase","why":"brief reason, under 15 words"}]}]}. Return exactly one entry in "paragraphs" for every numbered paragraph given, in the same order — never merge, skip, or add paragraphs.`;
+
+const SPEAKING_RUBRIC_TRANSCRIPT = `You are an experienced IELTS Speaking examiner. You are given only an un-timed text transcript of the speaker's answers. Score against the criteria: Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy. For Pronunciation, guess an estimate based on spelling anomalies or note that it is estimated. IMPORTANT ON PRECISION: use the full 0-9 scale in 0.5 steps for every criterion — half-bands (5.5, 6.5, 7.5, etc.) should be your default whenever performance sits between two levels, which is most of the time; reserve whole numbers for performance that is consistently and unambiguously at one exact level. Warning: remember that this is from a transcript, not from actual acoustic analysis, and should be verified by a teacher listening to the recording. Be a calibrated examiner: typical competent B2/C1 speech lands between band 5.5 and 7.5. Respond ONLY with raw JSON, no markdown, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":""}.`;
+
+const SPEAKING_RUBRIC_AUDIO = `You are an experienced IELTS Speaking examiner. You have been given the candidate's actual audio recording — listen to it directly. Base your judgement on what you actually hear: real pronunciation (individual sounds, word stress, sentence stress, intonation, chunking/rhythm), true fluency (hesitation, self-correction, pace, natural connected speech), lexical resource and grammatical range as used in speech. Score against the four official IELTS Speaking criteria: Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy, Pronunciation. IMPORTANT ON PRECISION: use the full 0-9 scale in 0.5 steps for every criterion — half-bands (5.5, 6.5, 7.5, etc.) should be your default whenever performance sits between two levels, which is most of the time; reserve whole numbers for performance that is consistently and unambiguously at one exact level. Be a calibrated examiner: typical competent B2/C1 speech lands between band 5.5 and 7.5, reserve 8+ for genuinely native-like control. Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","heard_transcript":""}. In "heard_transcript", write your own transcription in English of what the candidate said.`;
+
+
+/* =========================================================================
+   OFFICIAL IELTS BAND DESCRIPTORS (public criteria, summarised per skill)
+   Shown in a panel under each module so candidates can self-assess.
+   ========================================================================= */
+const IELTS_RUBRICS = {
+  listening: {
+    title: "IELTS Listening — how the raw score becomes a band",
+    intro: "Listening (and Reading) are marked out of 40. Each correct answer scores one mark; the raw total is converted to a 9-band scale. There is no half-mark for spelling — an answer must be correctly spelled to be accepted.",
+    criteria: [
+      { name:"Band 8 (≈35–36 / 40)", desc:"Very good user. Handles complex language well; only occasional lapses in unfamiliar situations." },
+      { name:"Band 7 (≈30–32 / 40)", desc:"Good user. Follows detailed argument and distinguishes fine differences of meaning, with occasional inaccuracies." },
+      { name:"Band 6 (≈23–26 / 40)", desc:"Competent user. Grasps main ideas and specific factual detail, though may miss some information in fast or complex passages." },
+      { name:"Band 5 (≈16–18 / 40)", desc:"Modest user. Understands the gist and some detail but struggles with connected speech, distraction and paraphrase." }
+    ],
+    note:"Approximate conversions only — the official Academic table varies slightly by test version."
+  },
+  reading: {
+    title: "IELTS Academic Reading — how the raw score becomes a band",
+    intro: "Reading is marked out of 40, one mark per correct answer, converted to the 9-band scale. Academic Reading conversions are stricter than General Training. Spelling and grammar must be correct.",
+    criteria: [
+      { name:"Band 8 (≈35–36 / 40)", desc:"Very good user. Reads with ease, inferring meaning and handling implicit argument across a range of academic texts." },
+      { name:"Band 7 (≈30–32 / 40)", desc:"Good user. Locates detail and follows argument reliably; occasional misreadings under time pressure." },
+      { name:"Band 6 (≈23–26 / 40)", desc:"Competent user. Understands main ideas and much detail but paraphrase-heavy or inference items cause errors." },
+      { name:"Band 5 (≈15–18 / 40)", desc:"Modest user. Copes with straightforward factual text; struggles with matching, headings and TRUE/FALSE/NOT GIVEN." }
+    ],
+    note:"Approximate conversions only — the official Academic table varies slightly by test version."
+  },
+  writing: {
+    title: "IELTS Writing — four assessment criteria (each 25% of the band)",
+    intro: "Both tasks are marked against four equally-weighted criteria on the 9-band scale. Task 2 counts twice as much as Task 1 toward the overall Writing band.",
+    criteria: [
+      { name:"Task Achievement / Response", desc:"Does the response fully address every part of the prompt with a clear position and well-developed, relevant, extended ideas? (Task 1: accurate overview + key features; Task 2: fully developed argument.)" },
+      { name:"Coherence & Cohesion", desc:"Is information logically organised, with clear progression, effective paragraphing, and a natural, non-mechanical use of linking devices and referencing?" },
+      { name:"Lexical Resource", desc:"Range, precision and naturalness of vocabulary, including less common items and collocation, with control of spelling and word formation." },
+      { name:"Grammatical Range & Accuracy", desc:"Range of sentence structures and grammatical accuracy, including error frequency and the effect of errors on communication and punctuation." }
+    ],
+    note:"To reach Band 7 a response typically needs frequent error-free sentences, flexible vocabulary and a fully-addressed, well-organised answer of the required length."
+  },
+  speaking: {
+    title: "IELTS Speaking — four assessment criteria (each 25% of the band)",
+    intro: "The examiner scores the whole interview against four equally-weighted criteria on the 9-band scale.",
+    criteria: [
+      { name:"Fluency & Coherence", desc:"Ability to speak at length without noticeable effort, self-correction or hesitation, with logically connected ideas and effective use of cohesive features and discourse markers." },
+      { name:"Lexical Resource", desc:"Range of vocabulary used flexibly and precisely, including idiomatic and less common language and paraphrase, to discuss a variety of topics." },
+      { name:"Grammatical Range & Accuracy", desc:"Range and accurate use of simple and complex structures, judged on the frequency of errors and their effect on communication." },
+      { name:"Pronunciation", desc:"Use of a wide range of pronunciation features — individual sounds, stress, rhythm and intonation — that make speech easy to understand, with a light or no first-language influence." }
+    ],
+    note:"Pace (words per minute) is a study aid only, not an official criterion — natural fluency matters more than raw speed. A comfortable IELTS range is roughly 120–160 wpm."
+  }
+};
+
+function rubricPanel(skill){
+  const r = IELTS_RUBRICS[skill];
+  if(!r) return "";
+  return `
+    <div class="rubric-card">
+      <div class="rubric-head">
+        <span class="rubric-badge">Official criteria</span>
+        <h3>${r.title}</h3>
+      </div>
+      <p class="rubric-intro">${r.intro}</p>
+      <div class="rubric-grid">
+        ${r.criteria.map(c=>`
+          <div class="rubric-item">
+            <div class="rubric-name">${c.name}</div>
+            <div class="rubric-desc">${c.desc}</div>
+          </div>
+        `).join("")}
+      </div>
+      <p class="rubric-note">${r.note}</p>
+    </div>
+  `;
+}
+
+/* =========================================================================
+   RENDER ROOT
+   ========================================================================= */
+
+const panel = document.getElementById("panel");
+document.getElementById("candNo").textContent = "SM-"+state.candNo;
+document.getElementById("testDate").textContent = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+
+document.getElementById("tabs").addEventListener("click", (e)=>{
+  const btn = e.target.closest("button[data-mod]");
+  if(!btn) return;
+  setModule(btn.dataset.mod);
+});
+
+function setModule(mod){
+  state.mod = mod;
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.mod===mod));
+  const labels = {dashboard:"Dashboard", listening:"Listening", reading:"Reading", writing:"Writing", speaking:"Speaking"};
+  document.getElementById("modLabel").textContent = labels[mod];
+  render();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function render(){
+  // Any panel switch replaces #panel's HTML, orphaning a live WebGL context.
+  // Tear the 3D chart down explicitly so its animation loop and GPU resources
+  // are released before we render the next module.
+  if(typeof chart3D !== "undefined" && chart3D){ chart3D.dispose(); chart3D = null; }
+  if(state.mod==="dashboard") return renderDashboard();
+  if(state.mod==="listening") return renderListening();
+  if(state.mod==="reading") return renderReading();
+  if(state.mod==="writing") return renderWriting();
+  if(state.mod==="speaking") return renderSpeaking();
+}
+
+/* =========================================================================
+   SETTINGS MODAL
+   ========================================================================= */
+
+const sOverlay = document.getElementById("settingsOverlay");
+document.getElementById("settingsBtn").addEventListener("click", ()=>sOverlay.style.display="flex");
+document.getElementById("closeSettings").addEventListener("click", ()=>sOverlay.style.display="none");
+document.getElementById("saveSettings").addEventListener("click", async ()=>{
+  state.settings.geminiKey = document.getElementById("geminiKeyInput").value.trim();
+  state.settings.geminiModel = document.getElementById("geminiModelInput").value.trim() || "gemini-3.6-flash-lite";
+  try{
+    await window.storage.set("ielts-settings", JSON.stringify(state.settings), false);
+  }catch(e){}
+  document.getElementById("settingsStatus").textContent = "Saved successfully!";
+  setTimeout(()=>{
+    document.getElementById("settingsStatus").textContent = "";
+    sOverlay.style.display = "none";
+    render();
+  }, 800);
+});
+document.getElementById("clearSettings").addEventListener("click", async ()=>{
+  state.settings.geminiKey = "";
+  document.getElementById("geminiKeyInput").value = "";
+  try{
+    await window.storage.set("ielts-settings", JSON.stringify(state.settings), false);
+  }catch(e){}
+  document.getElementById("settingsStatus").textContent = "Key removed.";
+  setTimeout(()=>{
+    document.getElementById("settingsStatus").textContent = "";
+    sOverlay.style.display = "none";
+    render();
+  }, 800);
+});
+
+/* =========================================================================
+   SESSION SAVE / LOAD
+   ========================================================================= */
+
+const sessionOverlay = document.getElementById("sessionOverlay");
+document.getElementById("sessionBtn").addEventListener("click", ()=>{
+  sessionOverlay.style.display = "flex";
+  renderSessionList();
+});
+document.getElementById("closeSession").addEventListener("click", ()=>sessionOverlay.style.display="none");
+document.getElementById("exportSessionBtn").addEventListener("click", exportSessionToFile);
+document.getElementById("importSessionInput").addEventListener("change", (e)=>{
+  const file = e.target.files[0];
+  if(file) importSessionFromFile(file);
+  e.target.value = "";
+});
+document.getElementById("saveSnapshotBtn").addEventListener("click", saveSessionSnapshot);
+
+function collectSessionData(){
+  return {
+    _meta: { app:"IELTS Academic Simulator", exportedAt: new Date().toISOString() },
+    candNo: state.candNo,
+    scores: state.scores,
+    history: state.history,
+    listening: {
+      answers: state.listening.answers,
+      submitted: state.listening.submitted,
+      playedParts: state.listening.playedParts,
+      customAudio: state.listening.customAudio || {},
+      parts: LISTENING.parts
+    },
+    reading: {
+      answers: state.reading.answers,
+      submitted: state.reading.submitted,
+      activePassage: state.reading.activePassage,
+      passages: READING_PASSAGES
+    },
+    writing: {
+      activeTask: state.writing.activeTask,
+      drafts: state.writing.drafts,
+      hints: state.writing.hints,
+      reports: state.writing.reports,
+      paraFeedback: state.writing.paraFeedback || {},
+      tasks: WRITING
+    },
+    speaking: {
+      part: state.speaking.part,
+      transcripts: state.speaking.transcripts,
+      metrics: state.speaking.metrics,
+      report: state.speaking.report,
+      questions: SPEAKING
+    }
+  };
+}
+
+function applySessionData(data){
+  if(!data) return;
+  if(data.scores) state.scores = data.scores;
+  if(data.history) state.history = data.history;
+  if(data.listening){
+    state.listening.answers = data.listening.answers || {};
+    state.listening.submitted = !!data.listening.submitted;
+    state.listening.playedParts = data.listening.playedParts || {};
+    state.listening.customAudio = data.listening.customAudio || {};
+    if(Array.isArray(data.listening.parts) && data.listening.parts.length){
+      LISTENING.parts = data.listening.parts;
+    }
+  }
+  if(data.reading){
+    state.reading.answers = data.reading.answers || {};
+    state.reading.submitted = !!data.reading.submitted;
+    state.reading.activePassage = data.reading.activePassage || 0;
+    if(Array.isArray(data.reading.passages) && data.reading.passages.length){
+      READING_PASSAGES = data.reading.passages;
+    }
+  }
+  if(data.writing){
+    state.writing.activeTask = data.writing.activeTask || "task1";
+    state.writing.drafts = data.writing.drafts || {task1:"",task2:""};
+    state.writing.hints = data.writing.hints || {task1:null,task2:null};
+    state.writing.reports = data.writing.reports || {task1:null,task2:null};
+    state.writing.paraFeedback = data.writing.paraFeedback || {};
+    if(data.writing.tasks && data.writing.tasks.task1 && data.writing.tasks.task2){
+      WRITING = data.writing.tasks;
+    }
+  }
+  if(data.speaking){
+    state.speaking.part = data.speaking.part || "part1";
+    state.speaking.transcripts = data.speaking.transcripts || {};
+    state.speaking.metrics = data.speaking.metrics || {};
+    state.speaking.report = data.speaking.report || null;
+    if(data.speaking.questions && data.speaking.questions.part1 && data.speaking.questions.part2 && data.speaking.questions.part3){
+      SPEAKING = data.speaking.questions;
+    }
+  }
+  saveHistory();
+  render();
+}
+
+function exportSessionToFile(){
+  const data = collectSessionData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `ielts-session-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  document.getElementById("sessionStatus").textContent = "Session file saved!";
+  setTimeout(()=>{ document.getElementById("sessionStatus").textContent = ""; }, 1500);
+}
+
+function importSessionFromFile(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      applySessionData(data);
+      sessionOverlay.style.display = "none";
+      document.getElementById("sessionStatus").textContent = "";
+    }catch(e){
+      alert("Couldn't read that session file: " + e.message);
+    }
+  };
+  reader.onerror = ()=>alert("Couldn't read that file.");
+  reader.readAsText(file);
+}
+
+async function saveSessionSnapshot(){
+  const labelInput = document.getElementById("sessionLabelInput");
+  const label = labelInput.value.trim() || `Session ${new Date().toLocaleString()}`;
+  try{
+    const data = collectSessionData();
+    const id = "snap-" + Date.now();
+    await window.storage.set(`session:${id}`, JSON.stringify({label, savedAt:new Date().toISOString(), data}), false);
+    let idx = [];
+    try{
+      const r = await window.storage.get("session-index", false);
+      if(r && r.value) idx = JSON.parse(r.value);
+    }catch(e){ /* no index yet */ }
+    idx.unshift({id, label, savedAt:new Date().toISOString()});
+    idx = idx.slice(0, 15);
+    await window.storage.set("session-index", JSON.stringify(idx), false);
+    labelInput.value = "";
+    document.getElementById("sessionStatus").textContent = "Saved in this browser!";
+    setTimeout(()=>{ document.getElementById("sessionStatus").textContent = ""; }, 1500);
+    renderSessionList();
+  }catch(e){
+    console.error(e);
+    alert("Browser storage isn't available here — use 'Save session to file' instead.");
+  }
+}
+
+async function renderSessionList(){
+  const box = document.getElementById("sessionList");
+  if(!box) return;
+  box.innerHTML = `<p style="font-size:12px;color:var(--slate);">Loading…</p>`;
+  let idx = [];
+  try{
+    const r = await window.storage.get("session-index", false);
+    idx = r && r.value ? JSON.parse(r.value) : [];
+  }catch(e){
+    box.innerHTML = `<p style="font-size:12px;color:var(--slate);">Browser storage isn't available in this environment — use "Save session to file" / "Load session from file" above instead.</p>`;
+    return;
+  }
+  if(!idx.length){
+    box.innerHTML = `<p style="font-size:12px;color:var(--slate);">No quick-saved sessions in this browser yet.</p>`;
+    return;
+  }
+  box.innerHTML = idx.map(s=>`
+    <div class="session-row">
+      <div><b>${s.label}</b><br><span style="font-size:11px;color:var(--slate);">${new Date(s.savedAt).toLocaleString()}</span></div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn ghost small" data-load-session="${s.id}" style="padding:5px 10px;font-size:11px;">Load</button>
+        <button class="btn ghost small" data-overwrite-session="${s.id}" style="padding:5px 10px;font-size:11px;">Overwrite</button>
+        <button class="btn ghost small" data-del-session="${s.id}" style="padding:5px 10px;font-size:11px;">Delete</button>
+      </div>
+    </div>
+  `).join("");
+
+  box.querySelectorAll("[data-load-session]").forEach(b=>b.addEventListener("click", async ()=>{
+    try{
+      const r2 = await window.storage.get(`session:${b.dataset.loadSession}`, false);
+      if(r2 && r2.value){
+        applySessionData(JSON.parse(r2.value).data);
+        sessionOverlay.style.display = "none";
+      }
+    }catch(e){ alert("Couldn't load that saved session."); }
+  }));
+
+  box.querySelectorAll("[data-overwrite-session]").forEach(b=>b.addEventListener("click", async ()=>{
+    const id = b.dataset.overwriteSession;
+    const existing = idx.find(s=>s.id===id);
+    const data = collectSessionData();
+    try{
+      await window.storage.set(`session:${id}`, JSON.stringify({label: existing.label, savedAt:new Date().toISOString(), data}), false);
+      const newIdx = idx.map(s=> s.id===id ? {...s, savedAt:new Date().toISOString()} : s);
+      await window.storage.set("session-index", JSON.stringify(newIdx), false);
+      document.getElementById("sessionStatus").textContent = "Progress overwritten!";
+      setTimeout(()=>{ document.getElementById("sessionStatus").textContent = ""; }, 1500);
+      renderSessionList();
+    }catch(e){ alert("Couldn't overwrite that saved session."); }
+  }));
+
+  box.querySelectorAll("[data-del-session]").forEach(b=>b.addEventListener("click", async ()=>{
+    const id = b.dataset.delSession;
+    try{
+      await window.storage.delete(`session:${id}`, false).catch(()=>{});
+      const newIdx = idx.filter(s=>s.id!==id);
+      await window.storage.set("session-index", JSON.stringify(newIdx), false);
+      renderSessionList();
+    }catch(e){ alert("Couldn't delete that saved session."); }
+  }));
+}
+
+/* =========================================================================
+   DASHBOARD
+   ========================================================================= */
+
+let radarChart=null, barChart=null;
+function renderDashboard(){
+  panel.innerHTML = `
+    <div class="dash-grid">
+      <div>
+        <p class="section-title display" style="font-size:28px;">Performance Overview</p>
+        <p class="section-sub">Your interactive IELTS scoring panel, powered by Gemini and Claude examinations. Click any module below to begin or redo a section.</p>
+        
+        <div class="overall-row">
+          <div class="seal" id="dashSeal">
+            <span class="band-num">—</span>
+            <span class="band-lbl">Band</span>
+          </div>
+          <div class="seal seal-cefr" id="dashSealCefr">
+            <span class="band-num" style="font-size:26px;">—</span>
+            <span class="band-lbl">CEFR</span>
+          </div>
+          <div class="overall-text">
+            <h2 class="display" style="margin:0 0 4px;font-size:22px;color:var(--ink);">Estimated Overall Score</h2>
+            <p class="big" id="dashSummary">Complete all modules to find your overall calibrated band metric.</p>
+          </div>
+        </div>
+
+        <div class="skill-cards">
+          ${["listening","reading","writing","speaking"].map(m=>{
+            const b = state.scores[m];
+            return `
+              <div class="skill-card">
+                <div>
+                  <div class="name">${m}</div>
+                  <div class="band">${b !== null ? b.toFixed(1) : "—"}${b !== null ? `<span class="cefr-tag">${bandToCEFR(b)}</span>` : ""}</div>
+                </div>
+                <button class="go" data-mod="${m}">${b !== null ? "Retake" : "Start"} →</button>
+              </div>
+            `;
+          }).join("")}
+        </div>
+        <p style="font-size:11px;color:var(--slate);margin:10px 0 0;font-style:italic;">CEFR badges (A1–C2) are an approximate equivalence based on published IELTS↔CEFR correspondence tables — a study reference, not an official conversion.</p>
+
+        <hr class="rule">
+        <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);margin-bottom:12px;">Recent history</h3>
+        <div id="historyList">
+          ${state.history.length===0 
+            ? `<div class="empty-history">No attempts yet — your history will appear here.</div>`
+            : state.history.slice(0,8).map(h=>`
+                <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;">
+                  <span style="text-transform:capitalize;">${h.module}</span>
+                  <span class="mono" style="color:var(--slate);">${new Date(h.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>
+                  <span style="font-weight:700;">${h.band.toFixed(1)}</span>
+                </div>
+              `).join("")
+          }
+        </div>
+      </div>
+
+      <div>
+        <div class="chart-box">
+          <h3>Skill profile</h3>
+          <canvas id="radarCanvas" height="220"></canvas>
+        </div>
+        <div class="chart-box" style="margin-top:16px;">
+          <h3>Band history</h3>
+          <canvas id="barCanvas" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+  `;
+
+  panel.querySelectorAll("[data-mod]").forEach(b=>b.addEventListener("click", ()=>setModule(b.dataset.mod)));
+  drawDashCharts();
+}
+
+function drawDashCharts(){
+  const rc = document.getElementById("radarCanvas");
+  const bc = document.getElementById("barCanvas");
+  if(radarChart) radarChart.destroy();
+  if(barChart) barChart.destroy();
+
+  const labels = ["Listening","Reading","Writing","Speaking"];
+  const data = ["listening","reading","writing","speaking"].map(m=>state.scores[m]||0);
+
+  radarChart = new Chart(rc, {
+    type:"radar",
+    data:{
+      labels,
+      datasets:[{
+        label:"Band",
+        data,
+        backgroundColor:"rgba(201,162,39,0.22)",
+        borderColor:"#c9a227",
+        pointBackgroundColor:"#131b2e"
+      }]},
+    options:{
+      scales:{ r:{ min:0, max:9, ticks:{stepSize:3}, pointLabels:{font:{size:11}} } },
+      plugins:{legend:{display:false}}
+    }
+  });
+
+  const hist = [...state.history].reverse().slice(-10);
+  barChart = new Chart(bc, {
+    type:"bar",
+    data:{
+      labels: hist.map(h=>new Date(h.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})),
+      datasets:[{
+        label:"Module Score",
+        data: hist.map(h=>h.band),
+        backgroundColor:"#2f6f62",
+        borderRadius:4
+      }]
+    },
+    options:{
+      scales:{ y:{ min:0, max:9, ticks:{stepSize:2} } },
+      plugins:{legend:{display:false}}
+    }
+  });
+
+  const activeScores = ["listening","reading","writing","speaking"].map(m=>state.scores[m]).filter(v=>v!==null);
+  if(activeScores.length===4){
+    const avg = activeScores.reduce((a,b)=>a+b,0)/4;
+    let rounded = Math.floor(avg);
+    const rem = avg - rounded;
+    if(rem>=0.75) rounded += 1.0;
+    else if(rem>=0.25) rounded += 0.5;
+    
+    document.querySelector("#dashSeal .band-num").textContent = rounded.toFixed(1);
+    document.getElementById("dashSeal").style.transform = "scale(1) rotate(-8deg)";
+    const cefr = bandToCEFR(rounded);
+    document.querySelector("#dashSealCefr .band-num").textContent = cefr;
+    document.getElementById("dashSealCefr").style.transform = "scale(1) rotate(8deg)";
+    document.getElementById("dashSummary").textContent = `Superb effort. Your official average calculates to ${avg.toFixed(2)}, matching an IELTS Band ${rounded.toFixed(1)} (approx. CEFR ${cefr}).`;
+  }
+}
+
+/* =========================================================================
+   LISTENING
+   ========================================================================= */
+
+function renderListening(){
+  const L = state.listening;
+  const geminiOn = !!state.settings.geminiKey;
+  L.genAudio = L.genAudio || {};
+  L.transcriptOpen = L.transcriptOpen || {};
+  const genReady = [1,2,3,4].filter(i=>L.genAudio[i]).length;
+  panel.innerHTML = `
+    <p class="section-title">Listening Mock Examination</p>
+    <p class="section-sub">Four sections, 40 questions — the official IELTS Listening structure. This app plays <b>real audio files only</b> (no synthetic text-to-speech): attach the official recording you own under each section, press play once, and answer as you listen.</p>
+    <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-bottom:20px; font-size:12.5px; color:var(--slate); line-height:1.6;">
+      <b style="color:var(--ink);">About audio files:</b> official IELTS recordings (Cambridge, IDP, British Council) are copyrighted, so they can't be bundled inside this file or downloaded by the app. Instead, attach the MP3/WAV files you legally own — from your Cambridge IELTS book CDs/downloads or other licensed practice materials — under each section below, or drop four of them into the generator to build a brand-new test around them.
+    </div>
+
+    <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:24px;">
+      <b>🎧 New Listening Test Generator (from your own official audios)</b>
+      <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${geminiOn ? "Attach a different official recording for each of the four sections. The AI listens to each audio, transcribes it, and writes 10 fresh IELTS-style questions per section (40 total) — replacing the current test. Your audios become the playable tracks." : "Add a Gemini API key in ⚙ AI engine to enable question generation from audio."}</p>
+      <div class="gen-slots">
+        ${[1,2,3,4].map(i=>{
+          const slot = L.genAudio && L.genAudio[i];
+          return `<div class="gen-slot ${slot?'filled':''}">
+            <span class="gen-slot-label">Section ${i} audio</span>
+            <input type="file" data-gen-slot="${i}" accept="audio/*" ${!geminiOn?"disabled":""}>
+            <span class="gen-slot-file">${slot ? "✓ " + slot.name : "no file yet"}</span>
+          </div>`;
+        }).join("")}
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn brass small" id="generateListeningBtn" ${(!geminiOn || genReady<4) ? "disabled" : ""}>Generate 4-section test from these audios</button>
+        <span style="font-size:12px;color:var(--slate);" id="genListeningStatus">${genReady}/4 audios attached${genReady<4?" — attach all four to enable generation":""}</span>
+      </div>
+      <div class="gen-progress" id="listeningGenBar" style="display:none;">
+        <div class="gen-progress-track"><div class="gen-progress-fill"></div></div>
+        <div class="gen-progress-label"></div>
+      </div>
+    </div>
+
+    <div id="listeningContainer"></div>
+    ${rubricPanel("listening")}
+    <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+      <button class="btn" id="submitListening" ${L.submitted?"disabled":""}>Submit Listening Answers</button>
+      ${L.submitted ? `<button class="btn secondary" id="retakeListening">Retake Exam</button>` : ""}
+      <button class="btn ghost small" id="toggleListeningKey" style="margin-left:auto;">${L.showKey ? "Hide answer key" : "📋 Show answer key"}</button>
+    </div>
+    <div id="listeningResult"></div>
+    <div id="listeningKeyPanel"></div>
+  `;
+
+  const container = document.getElementById("listeningContainer");
+  LISTENING.parts.forEach((part, index)=>{
+    const played = L.playedParts[part.id];
+    const isPlaying = activeListeningAudio && activeListeningAudio.partId === part.id;
+    const custom = L.customAudio && L.customAudio[part.id];
+    const transcriptOpen = !!L.transcriptOpen[part.id];
+
+    const block = document.createElement("div");
+    block.style.marginBottom = "34px";
+    block.innerHTML = `
+      <h3 class="display" style="font-size:18px;margin-bottom:4px;color:var(--ink);">${part.title}</h3>
+      <p style="font-size:13.5px;color:var(--slate);margin:0 0 14px;line-height:1.6;">${part.context}</p>
+      
+      <div class="audio-player">
+        <button class="playbtn" data-pid="${part.id}" ${!custom ? 'style="opacity:.35;cursor:not-allowed;"' : ''}>${isPlaying ? "⏸" : "▶"}</button>
+        <div class="info">
+          <b>Audio Track</b> <span class="audio-source-note ${custom?'real':''}">${custom ? "Official recording attached" : "No audio attached"}</span><br>
+          <span style="opacity:.7;">${custom ? "Playing your attached audio file" : "Attach the official recording below to enable playback"}</span>
+        </div>
+        <div class="rate">
+          <select data-rate="${part.id}">
+            <option value="1">1.0x Speed</option>
+            <option value="0.9">0.9x Speed</option>
+            <option value="0.8">0.8x Speed</option>
+          </select>
+        </div>
+      </div>
+      <div class="audio-upload-row">
+        <span>Attach the official recording for this section (mp3/wav/m4a):</span>
+        <input type="file" data-audio-upload="${part.id}" accept="audio/*">
+        ${custom ? `<button class="btn ghost small" data-clear-audio="${part.id}" style="padding:3px 8px;font-size:11px;">Remove</button>` : ""}
+      </div>
+      <div class="two-col">
+        <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; font-size:13.5px; max-height:360px; overflow-y:auto; line-height:1.7; color:var(--slate);">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;">
+            <span class="mono" style="font-size:10px;text-transform:uppercase;color:var(--brass);">Transcript</span>
+            <button class="btn ghost small" data-toggle-transcript="${part.id}" style="padding:3px 10px;font-size:11px;" ${!played ? "disabled" : ""}>${transcriptOpen ? "🙈 Hide transcript" : "👁 Show transcript"}</button>
+          </div>
+          <div style="display:${(played && transcriptOpen)?'block':'none'};">
+            ${part.script.replace(/\n/g,"<br>")}
+          </div>
+          ${!played ? `<span style="opacity:.6;">Play the audio at least once to unlock the transcript.</span>` : (!transcriptOpen ? `<span style="opacity:.6;">Transcript hidden — click "Show transcript" to reveal it.</span>` : "")}
+        </div>
+        <div>
+          <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:22px 24px;">
+            ${part.questions.map(q=>renderListeningQ(q)).join("")}
+          </div>
+        </div>
+      </div>
+      <hr class="rule">
+    `;
+    container.appendChild(block);
+  });
+
+  container.querySelectorAll(".playbtn").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const pid = parseInt(b.dataset.pid);
+      toggleListeningAudio(pid);
+    });
+  });
+
+  container.querySelectorAll("[data-audio-upload]").forEach(inp=>{
+    inp.addEventListener("change", async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const pid = parseInt(inp.dataset.audioUpload);
+      try{
+        const b64 = await blobToBase64(file);
+        L.customAudio = L.customAudio || {};
+        L.customAudio[pid] = { b64, mime: file.type || "audio/mpeg" };
+        renderListening();
+      }catch(err){
+        console.error(err);
+        alert("Couldn't read that audio file.");
+      }
+    });
+  });
+
+  container.querySelectorAll("[data-clear-audio]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const pid = parseInt(b.dataset.clearAudio);
+      if(L.customAudio) delete L.customAudio[pid];
+      renderListening();
+    });
+  });
+
+  container.querySelectorAll("[data-toggle-transcript]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const pid = parseInt(b.dataset.toggleTranscript);
+      L.transcriptOpen[pid] = !L.transcriptOpen[pid];
+      renderListening();
+    });
+  });
+
+  panel.querySelectorAll("[data-gen-slot]").forEach(inp=>{
+    inp.addEventListener("change", async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      if(file.size > 18*1024*1024){
+        alert("That file is larger than 18 MB — the AI can't process it inline. Please compress it (e.g. mono 64 kbps MP3) and try again.");
+        return;
+      }
+      const slot = parseInt(inp.dataset.genSlot);
+      try{
+        const b64 = await blobToBase64(file);
+        L.genAudio[slot] = { b64, mime: file.type || "audio/mpeg", name: file.name };
+        renderListening();
+      }catch(err){
+        console.error(err);
+        alert("Couldn't read that audio file.");
+      }
+    });
+  });
+  const genBtn = document.getElementById("generateListeningBtn");
+  if(genBtn) genBtn.addEventListener("click", generateNewListeningWithAI);
+
+  container.querySelectorAll("[data-rate]").forEach(sel=>{
+    sel.addEventListener("change", ()=>{
+      audioRate = parseFloat(sel.value);
+      if(activeAudioEl) activeAudioEl.playbackRate = audioRate;
+    });
+  });
+
+  container.querySelectorAll("input[type=text][data-q]").forEach(inp=>{
+    inp.value = L.answers[inp.dataset.q] || "";
+    inp.addEventListener("input", ()=>{
+      L.answers[inp.dataset.q]=inp.value;
+    });
+    inp.disabled = L.submitted;
+  });
+
+  container.querySelectorAll("input[type=radio][data-q]").forEach(inp=>{
+    inp.checked = L.answers[inp.dataset.q]==inp.value;
+    inp.addEventListener("change", ()=>{
+      L.answers[inp.dataset.q]=inp.value;
+    });
+    inp.disabled = L.submitted;
+  });
+
+  document.getElementById("submitListening").addEventListener("click", submitListening);
+  const retake = document.getElementById("retakeListening");
+  if(retake) retake.addEventListener("click", ()=>{
+    state.listening={answers:{},submitted:false,playedParts:{},customAudio:L.customAudio||{}};
+    renderListening();
+  });
+  document.getElementById("toggleListeningKey").addEventListener("click", ()=>{
+    L.showKey = !L.showKey;
+    renderListening();
+  });
+
+  if(L.submitted) showListeningResult();
+  if(L.showKey) showListeningAnswerKey();
+}
+
+// Answer key — the full correct-answer list, independent of whether the
+// candidate has submitted. Useful for teachers checking a test before
+// giving it out, or for review after the fact.
+function showListeningAnswerKey(){
+  const box = document.getElementById("listeningKeyPanel");
+  if(!box) return;
+  const rows = [];
+  LISTENING.parts.forEach(part=>{
+    part.questions.forEach(q=>{
+      const ans = q.type==="gap" ? q.answer.join(" OR ") : q.options[q.answer];
+      rows.push(`<div class="key-line"><span class="key-num">Q${q.n}</span><span class="correct-answer">${ans}</span></div>`);
+    });
+  });
+  box.innerHTML = `
+    <div class="key-box answer-key-box">
+      <h4>📋 Listening — Full Answer Key (${rows.length} questions)</h4>
+      <div style="columns:2;column-gap:24px;">${rows.join("")}</div>
+    </div>
+  `;
+}
+
+function renderListeningQ(q){
+  if(q.type==="gap"){
+    return `<div class="q-item"><span class="num">${q.n}.</span><span>${q.label}</span> <input type="text" data-q="${q.n}"></div>`;
+  }
+  if(q.type==="mc"){
+    return `<div class="q-item" style="flex-direction:column;">
+      <div><span class="num">${q.n}.</span><span>${q.label}</span></div>
+      <div class="opt-row">
+        ${q.options.map((o,i)=>`<label><input type="radio" name="q${q.n}" data-q="${q.n}" value="${i}"> ${o}</label>`).join("")}
+      </div>
+    </div>`;
+  }
+}
+
+function checkGap(userVal, answers){
+  if(!userVal) return false;
+  const v = userVal.trim().toLowerCase().replace(/[.,]/g,"");
+  return answers.some(a=>a.toLowerCase()===v);
+}
+
+function submitListening(){
+  const L = state.listening;
+  let correct=0, total=0;
+  LISTENING.parts.forEach(part=>part.questions.forEach(q=>{
+    total++;
+    const user = L.answers[q.n];
+    if(q.type==="gap"){
+      if(checkGap(user, q.answer)) correct++;
+    } else {
+      if(user!==undefined && parseInt(user)===q.answer) correct++;
+    }
+  }));
+  L.submitted = true;
+  const band = rawToBandListening(correct);
+  recordScore("listening", band, `${correct}/${total} correct`);
+  renderListening();
+}
+
+function showListeningResult(){
+  const L = state.listening;
+  let correct=0, total=0;
+  const lines = [];
+  LISTENING.parts.forEach(part=>part.questions.forEach(q=>{
+    total++;
+    const user = L.answers[q.n];
+    let ok = false;
+    if(q.type==="gap"){
+      ok = checkGap(user, q.answer);
+      lines.push({n:q.n, ok, answer: q.answer.join(" OR ")});
+    } else {
+      ok = (user!==undefined && parseInt(user)===q.answer);
+      lines.push({n:q.n, ok, answer: q.options[q.answer]});
+    }
+    if(ok) correct++;
+  }));
+
+  const box = document.getElementById("listeningResult");
+  const rows = lines.map(l=>`<div class="key-line"><span class="${l.ok?'ok':'bad'}">${l.ok?'✓':'✗'}</span> Q${l.n}: <span class="correct-answer">${l.answer}</span></div>`).join("");
+  box.innerHTML = `
+    <div class="key-box">
+      <h4>Score Evaluation: ${correct} / ${total} → Band ${rawToBandListening(correct).toFixed(1)}<span class="cefr-tag">${bandToCEFR(rawToBandListening(correct))}</span></h4>
+      <div style="columns:2;column-gap:24px;">${rows}</div>
+    </div>
+  `;
+}
+
+function rawToBandListening(c){
+  if(c>=39) return 9.0; if(c>=37) return 8.5; if(c>=35) return 8.0; if(c>=32) return 7.5;
+  if(c>=30) return 7.0; if(c>=27) return 6.5; if(c>=23) return 6.0; if(c>=18) return 5.5;
+  if(c>=14) return 5.0; if(c>=10) return 4.5; if(c>=7) return 4.0; return 3.5;
+}
+
+let activeListeningAudio=null;
+let activeAudioEl=null;
+let audioRate=1.0;
+function toggleListeningAudio(pid){
+  const custom = state.listening.customAudio && state.listening.customAudio[pid];
+  if(!custom){
+    alert("No audio is attached to this section yet. Attach the official recording you own using the control below the player.");
+    return;
+  }
+  if(activeAudioEl && activeListeningAudio && activeListeningAudio.partId === pid){
+    activeAudioEl.pause();
+    activeAudioEl = null;
+    activeListeningAudio = null;
+    renderListening();
+    return;
+  }
+  if(activeAudioEl) activeAudioEl.pause();
+  state.listening.playedParts[pid] = true;
+  const audio = new Audio(`data:${custom.mime};base64,${custom.b64}`);
+  audio.playbackRate = audioRate;
+  audio.onended = ()=>{
+    activeAudioEl = null;
+    activeListeningAudio = null;
+    renderListening();
+  };
+  audio.play().catch(err=>console.error(err));
+  activeAudioEl = audio;
+  activeListeningAudio = { partId: pid };
+  renderListening();
+}
+
+const LISTENING_GEN_RUBRIC = `You are an experienced IELTS Listening test writer. You are given the REAL audio recording for ONE section of an IELTS Listening test. Listen to the audio carefully and do two things: (1) produce a faithful transcript of what is said; (2) write exactly 10 IELTS-style questions that can be answered ONLY from this audio. Use a natural mix of these two question types: "gap" (a sentence/form/note completion item; the "answer" field is an array of accepted answers, all lowercase, each NO MORE THAN TWO WORDS AND/OR A NUMBER, including reasonable spelling variants like "15"/"fifteen") and "mc" (multiple choice with exactly 3 options; the "answer" field is the 0-based index of the correct option). Questions must follow the order of the audio. Respond ONLY with raw JSON, no markdown, in this exact shape: {"title":"Section N — short descriptive title","context":"One sentence telling the candidate what they will hear and what to do.","transcript":"the full transcript","questions":[{"n":1,"type":"gap","label":"Sentence with a blank: ___","answer":["accepted","variants"]},{"n":2,"type":"mc","label":"Question text","options":["A","B","C"],"answer":0}]}`;
+
+async function generateNewListeningWithAI(){
+  const L = state.listening;
+  const btn = document.getElementById("generateListeningBtn");
+  const status = document.getElementById("genListeningStatus");
+  if(activeAudioEl){ activeAudioEl.pause(); activeAudioEl=null; activeListeningAudio=null; }
+  btn.disabled = true;
+  genProgressShow("listeningGen", "Starting…");
+  const newParts = [];
+  try{
+    for(let i=1;i<=4;i++){
+      const slot = L.genAudio[i];
+      if(!slot) throw new Error("Section "+i+" has no audio attached.");
+      btn.textContent = `Listening to Section ${i} audio…`;
+      genProgressSet("listeningGen", ((i-1)/4)*100, `Section ${i} of 4 — transcribing and writing questions…`);
+      if(status) status.textContent = `Generating questions for Section ${i} of 4 — this can take a minute per audio.`;
+      const startN = (i-1)*10 + 1;
+      const user = `This audio is Section ${i} of 4. Number the 10 questions from ${startN} to ${startN+9} (set "n" accordingly).`;
+      const text = await callGemini(LISTENING_GEN_RUBRIC, user, slot.b64, slot.mime);
+      const json = parseJSON(text);
+      if(!json || !Array.isArray(json.questions) || json.questions.length !== 10){
+        throw new Error("Section "+i+": the AI didn't return exactly 10 questions. Try again.");
+      }
+      json.questions.forEach((q, qi)=>{
+        q.n = startN + qi;
+        if(q.type === "gap"){
+          if(!Array.isArray(q.answer)) q.answer = [String(q.answer)];
+          q.answer = q.answer.map(a=>String(a).toLowerCase().trim());
+        } else {
+          q.type = "mc";
+          q.answer = parseInt(q.answer) || 0;
+          if(!Array.isArray(q.options) || q.options.length < 2) throw new Error("Section "+i+": malformed multiple-choice item.");
+        }
+      });
+      newParts.push({
+        id: i,
+        title: json.title || `Section ${i}`,
+        context: json.context || "",
+        script: json.transcript || "(transcript unavailable)",
+        questions: json.questions
+      });
+    }
+    LISTENING.parts = newParts;
+    const keptAudio = {};
+    for(let i=1;i<=4;i++) keptAudio[i] = { b64: L.genAudio[i].b64, mime: L.genAudio[i].mime };
+    state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: keptAudio, genAudio: L.genAudio };
+    genProgressDone("listeningGen", "Done — 40 new questions generated.");
+    alert("✨ New 4-section Listening test generated from your audios. Each section now plays the recording you attached.");
+    renderListening();
+  }catch(e){
+    console.error(e);
+    alert("Couldn't generate the new listening test: " + e.message);
+    btn.textContent = "Generate 4-section test from these audios";
+    btn.disabled = false;
+    genProgressHide("listeningGen");
+    if(status) status.textContent = "Generation failed — check your Gemini key and audio files, then try again.";
+  }
+}
+
+/* =========================================================================
+   READING
+   ========================================================================= */
+
+function renderReading(){
+  const R = state.reading;
+  const geminiOn = !!state.settings.geminiKey;
+
+  panel.innerHTML = `
+    <p class="section-title">Reading Mock Examination</p>
+    <p class="section-sub">Read the academic passages and complete the timed evaluation forms below.</p>
+    
+    <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+      <div>
+        <b>AI Test Generator (Replaces current sections)</b>
+        <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Builds 4 full-length (700–950 word) academic articles with a mixed set of question types per section — headings, TRUE/FALSE/NOT GIVEN, matching information, multiple choice, and completion." : "Add a Gemini API key in ⚙ AI engine to enable live generation."}</p>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <select id="aiTopic" style="border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px;" ${!geminiOn ? "disabled" : ""}>
+          <option value="random">Random Academic Topic</option>
+          <option value="Technology & Artificial Intelligence">Technology & AI</option>
+          <option value="Environmental Science & Ecology">Climate & Ecology</option>
+          <option value="History & Archaeology">History & Archaeology</option>
+          <option value="Psychology & Human Behaviour">Psychology & Behaviour</option>
+          <option value="Business, Economics & Globalisation">Business & Economics</option>
+          <option value="Health, Medicine & Public Health">Health & Medicine</option>
+          <option value="Space, Astronomy & Physics">Space & Astronomy</option>
+          <option value="Linguistics & Human Communication">Linguistics & Communication</option>
+          <option value="Urban Planning & Architecture">Urban Planning & Architecture</option>
+          <option value="Anthropology & Cultural Studies">Anthropology & Culture</option>
+          <option value="Marine Biology & Oceanography">Marine Biology & Oceanography</option>
+          <option value="Sociology & Modern Society">Sociology & Society</option>
+          <option value="Art, Design & Architecture History">Art & Design History</option>
+          <option value="Education & Learning Science">Education & Learning</option>
+          <option value="Agriculture & Food Science">Agriculture & Food Science</option>
+          <option value="Renewable Energy & Engineering">Energy & Engineering</option>
+        </select>
+        <button id="generateReadingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate Exam Sections</button>
+      </div>
+      </div>
+      <div class="gen-progress" id="readingGenBar" style="display:none;">
+        <div class="gen-progress-track"><div class="gen-progress-fill"></div></div>
+        <div class="gen-progress-label"></div>
+      </div>
+    </div>
+
+    <hr class="rule">
+    <div class="write-tabs" id="passageTabs">
+      ${READING_PASSAGES.map((p,i)=>`<button data-pi="${i}" class="${R.activePassage===i?'active':''}">Section ${i + 1}</button>`).join("")}
+    </div>
+    <div id="readingBody"></div>
+    <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
+      <button class="btn" id="submitReading" ${R.submitted?"disabled":""}>Submit Reading</button>
+      ${R.submitted ? `<button class="btn secondary" id="retakeReading">Retake</button>` : ""}
+      <button class="btn ghost small" id="toggleReadingKey" style="margin-left:auto;">${R.showKey ? "Hide answer key" : "📋 Show answer key"}</button>
+    </div>
+    <div id="readingResult"></div>
+    <div id="readingKeyPanel"></div>
+    ${rubricPanel("reading")}
+  `;
+
+  if(geminiOn) {
+    document.getElementById("generateReadingBtn").addEventListener("click", generateNewReadingWithAI);
+  }
+
+  panel.querySelectorAll("[data-pi]").forEach(b=>b.addEventListener("click", ()=>{
+    R.activePassage=parseInt(b.dataset.pi);
+    renderReading();
+  }));
+
+  if (READING_PASSAGES[R.activePassage]) {
+    renderReadingPassage(READING_PASSAGES[R.activePassage], R.activePassage + 1);
+  }
+  document.getElementById("submitReading").addEventListener("click", submitReading);
+  const retake = document.getElementById("retakeReading");
+  if(retake) retake.addEventListener("click", ()=>{
+    state.reading={answers:{},submitted:false,activePassage:0};
+    renderReading();
+  });
+  document.getElementById("toggleReadingKey").addEventListener("click", ()=>{
+    R.showKey = !R.showKey;
+    renderReading();
+  });
+
+  if(R.submitted) showReadingResult();
+  if(R.showKey) showReadingAnswerKey();
+}
+
+// Full answer key across all 4 sections, independent of submission —
+// mirrors the same per-type answer formatting used in the graded result
+// view, so the two never disagree with each other.
+function showReadingAnswerKey(){
+  const box = document.getElementById("readingKeyPanel");
+  if(!box) return;
+  const lines = [];
+  READING_PASSAGES.forEach(p=>{
+    p.groups.forEach(g=>{
+      if(g.type==="heading"){
+        Object.entries(g.key).forEach(([pname, targetIdx])=>{
+          lines.push({label:`Para ${pname} (Section ${p.id})`, answer:g.options[targetIdx]});
+        });
+      } else if(g.type==="tfng"){
+        g.items.forEach((item,i)=>lines.push({n:g.qStart+i, answer:item.a}));
+      } else if(g.type==="completion"){
+        g.items.forEach((item,i)=>lines.push({n:g.qStart+i, answer:item.a[0]}));
+      } else if(g.type==="matchinfo"){
+        g.items.forEach((item,i)=>lines.push({n:g.qStart+i, answer:item.a}));
+      } else if(g.type==="mc"){
+        g.items.forEach((item,i)=>lines.push({n:g.qStart+i, answer:item.options[item.a]}));
+      }
+    });
+  });
+  const rows = lines.map(l=>`<div class="key-line"><span class="key-num">${l.n!==undefined ? "Q"+l.n : l.label}</span><span class="correct-answer">${l.answer}</span></div>`).join("");
+  box.innerHTML = `
+    <div class="key-box answer-key-box">
+      <h4>📋 Reading — Full Answer Key (${lines.length} questions)</h4>
+      <div style="columns:2;column-gap:24px;">${rows}</div>
+    </div>
+  `;
+}
+
+async function generateNewReadingWithAI() {
+  const btn = document.getElementById("generateReadingBtn");
+  const topic = document.getElementById("aiTopic").value;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+
+  const prompt = `Generate a complete set of exactly 4 IELTS Academic Reading Sections based on the domain theme: "${topic}". This must read like genuine Cambridge/British Council IELTS Academic Reading material, not a simplified exercise.
+
+PASSAGE REQUIREMENTS (apply to all 4 sections):
+- Each passage must be a full, complex academic article of roughly 700-950 words, split into 6 to 9 lettered paragraphs (A, B, C, D, E, F, and G/H/I as needed — do not stop at 4-5 short paragraphs).
+- Register: dense, formal academic English — the kind found in a broadsheet science/humanities section or a university textbook. Use hedged claims ("it has been argued that…", "some researchers maintain…"), named studies or institutions where natural, subordinate clauses, and topic-specific technical vocabulary. Avoid short, simple sentences throughout — this is a high-difficulty B2-C1 reading test, not a graded reader.
+- Each paragraph should be substantial (roughly 80-140 words), developing one clear idea in depth so it can support heading-matching, information-matching and detail questions.
+
+QUESTION-TYPE REQUIREMENTS — variety is strongly preferred, correctness matters most:
+- There are 5 available group types: "heading", "tfng", "matchinfo", "mc", "completion". Try to use a good mix across the 4 sections (ideally all 5 appear somewhere), and avoid giving every section the identical combination.
+- Each section should have 2 to 4 question groups — whatever combination cleanly adds up.
+- MOST IMPORTANT RULE, more important than variety: each section's groups must contain EXACTLY 10 questions in total when you count (for "heading": one question per paragraph listed; for "tfng"/"mc"/"completion": one per item; for "matchinfo": one per item). Count carefully before finalizing — e.g. 4+3+3, 5+5, 3+3+4, 6+4 all work as long as they sum to exactly 10. A section with 9 or 11 will be rejected.
+- Do not worry about the exact "qStart" numbers — the application recalculates numbering automatically from your item order. Just make sure each section internally totals exactly 10 questions.
+
+Each section must look exactly like this JSON schema shape inside a master array of 4 objects. Below is ONE example of each of the 5 possible group types — use 2 to 4 of these per section, following the field names exactly:
+
+[
+  {
+    "title": "Clear Academic Title",
+    "paras": { "A": "Full paragraph content (80-140 words)...", "B": "...", "C": "...", "D": "...", "E": "...", "F": "..." },
+    "groups": [
+      {
+        "type": "heading",
+        "instructions": "The passage has [N] paragraphs, A-[last letter]. Choose the correct heading for paragraphs A-[letter] from the list of headings below.",
+        "paragraphs": ["A","B","C","D"],
+        "options": ["Heading option 1","Heading option 2","Heading option 3","Heading option 4","Heading option 5","Heading option 6"],
+        "key": {"A":0,"B":2,"C":4,"D":1}
+      },
+      {
+        "type": "tfng",
+        "instructions": "Do the following statements agree with the information in the passage? Choose TRUE, FALSE or NOT GIVEN.",
+        "items": [ {"q":"A specific claim taken from the passage.","a":"TRUE"}, {"q":"Another claim.","a":"FALSE"}, {"q":"A third claim not addressed by the passage.","a":"NOT GIVEN"} ]
+      },
+      {
+        "type": "matchinfo",
+        "instructions": "Which paragraph contains the following information? Write the correct letter. NB You may use any letter more than once.",
+        "letters": ["A","B","C","D","E","F"],
+        "items": [ {"q":"a description of a specific method or process","a":"C"}, {"q":"a reference to a counter-argument","a":"E"} ]
+      },
+      {
+        "type": "mc",
+        "instructions": "Choose the correct letter, A, B or C.",
+        "items": [ {"q":"According to the passage, X is best explained by","options":["option A text","option B text","option C text"],"a":1} ]
+      },
+      {
+        "type": "completion",
+        "instructions": "Complete the sentences/summary below. Use NO MORE THAN TWO WORDS from the passage for each answer.",
+        "summaryIntro": "Optional: a short summary paragraph with blanks like (___) embedded in running text, OR omit this field and use standalone sentence-completion items instead.",
+        "items": [ {"q":"A sentence with a blank: the process is driven mainly by ___.","a":["exactword","acceptedvariant"]} ]
+      }
+    ]
+  }
+]
+
+Remember: this array shows all 5 group-type shapes for reference only — do NOT put all 5 in one section. Each section gets 2-4 of these types, EXACTLY 10 questions total when counted as described above.
+Double-check before returning: every section's paragraphs are long and academically dense, not short filler sentences, and every section's item count adds up to exactly 10. Return ONLY the raw JSON array, no markdown, no commentary, no "qStart" fields needed.`;
+
+  const sys = "You are a meticulous IELTS Academic Reading test-writer. You output only raw JSON arrays matching the exact schema you are given, with genuinely long, complex academic content. You always double check that every section's questions sum to exactly 10 before responding.";
+
+  const MAX_ATTEMPTS = 3;
+  let lastError = null;
+  genProgressShow("readingGen", "Starting…");
+  for(let attempt=1; attempt<=MAX_ATTEMPTS; attempt++){
+    btn.textContent = MAX_ATTEMPTS>1 ? `Generating Sections… (attempt ${attempt}/${MAX_ATTEMPTS})` : "Generating Sections...";
+    genProgressSet("readingGen", ((attempt-1)/MAX_ATTEMPTS)*100, `Writing 4 academic passages — attempt ${attempt}/${MAX_ATTEMPTS}…`);
+    try {
+      const correction = lastError ? `\n\nYour previous attempt was rejected for this reason: "${lastError}". Fix that specific problem this time.` : "";
+      const rawText = await callGemini(sys, prompt + correction, null, null);
+      const parsedArray = parseJSON(rawText);
+      normalizeReadingArray(parsedArray); // recalculates qStart, so the AI's own numbering is never trusted
+      validateReadingArray(parsedArray);
+      READING_PASSAGES = parsedArray.map((p, idx) => {
+        p.id = idx + 1;
+        return p;
+      });
+      genProgressDone("readingGen", "Done — 40 questions across 4 sections.");
+      alert(`✨ Success! Full exam reloaded with 4 new, longer academic sections (40 questions, mixed question types).`);
+      state.reading.activePassage = 0;
+      state.reading.answers = {};
+      state.reading.submitted = false;
+      renderReading();
+      btn.textContent = originalText;
+      btn.disabled = false;
+      return;
+    } catch (error) {
+      console.error(`Reading generation attempt ${attempt} failed:`, error);
+      lastError = error.message;
+    }
+  }
+  genProgressHide("readingGen");
+  alert("Failed to generate reading sections after " + MAX_ATTEMPTS + " attempts: " + lastError + "\n\nTip: try again, or try a different topic — the AI occasionally miscounts questions in a section.");
+  btn.textContent = originalText;
+  btn.disabled = false;
+}
+
+// The AI is unreliable at hand-assigning "qStart" numbers across groups and
+// sections, which was the single biggest source of rejected tests. Instead
+// of trusting its numbers, we recompute them ourselves from the order and
+// size of each group — the AI only needs to get the *content* right.
+function normalizeReadingArray(arr){
+  if(!Array.isArray(arr)) return;
+  let n = 1;
+  arr.forEach(p => {
+    if(!p || !Array.isArray(p.groups)) return;
+    p.groups.forEach(g => {
+      g.qStart = n;
+      if(g.type === "heading") n += Array.isArray(g.paragraphs) ? g.paragraphs.length : 0;
+      else n += Array.isArray(g.items) ? g.items.length : 0;
+    });
+  });
+}
+
+// Fails loudly with a specific, actionable message instead of silently
+// rendering a broken passage. Deliberately lenient on group count (2-4) and
+// on type variety (encouraged, not enforced) since those aren't the app's
+// real requirements — only the true hard constraints are checked here:
+// valid types, required fields per type, and exactly 10 questions/section.
+function validateReadingArray(arr){
+  if(!Array.isArray(arr) || arr.length !== 4){
+    throw new Error("Expected exactly 4 sections in the response, got " + (Array.isArray(arr) ? arr.length : typeof arr) + ".");
+  }
+  const allNumbers = [];
+  arr.forEach((p, si) => {
+    const label = `Section ${si+1}`;
+    if(!p || typeof p !== "object") throw new Error(label + " is not a valid object.");
+    if(!p.paras || typeof p.paras !== "object" || Object.keys(p.paras).length < 4){
+      throw new Error(label + " needs at least 4 lettered paragraphs.");
+    }
+    if(!Array.isArray(p.groups) || p.groups.length < 2 || p.groups.length > 4){
+      throw new Error(label + " must have between 2 and 4 question groups, got " + (p.groups ? p.groups.length : 0) + ".");
+    }
+    let sectionCount = 0;
+    p.groups.forEach((g, gi) => {
+      const glabel = `${label}, group ${gi+1} (${g.type})`;
+      if(typeof g.qStart !== "number") throw new Error(glabel + " is missing a numeric qStart.");
+      if(g.type === "heading"){
+        if(!Array.isArray(g.paragraphs) || !Array.isArray(g.options) || !g.key) throw new Error(glabel + " is missing paragraphs/options/key.");
+        g.paragraphs.forEach((_,i)=>allNumbers.push(g.qStart+i));
+        sectionCount += g.paragraphs.length;
+      } else if(g.type === "tfng" || g.type === "mc" || g.type === "completion"){
+        if(!Array.isArray(g.items) || g.items.length === 0) throw new Error(glabel + " is missing its items array.");
+        g.items.forEach((_,i)=>allNumbers.push(g.qStart+i));
+        sectionCount += g.items.length;
+      } else if(g.type === "matchinfo"){
+        if(!Array.isArray(g.letters) || !Array.isArray(g.items) || g.items.length === 0) throw new Error(glabel + " is missing letters/items.");
+        g.items.forEach((_,i)=>allNumbers.push(g.qStart+i));
+        sectionCount += g.items.length;
+      } else {
+        throw new Error(glabel + " has an unrecognised type.");
+      }
+    });
+    if(sectionCount !== 10) throw new Error(label + " has " + sectionCount + " questions instead of 10.");
+  });
+  const uniqueSorted = [...new Set(allNumbers)].sort((a,b)=>a-b);
+  if(allNumbers.length !== uniqueSorted.length){
+    throw new Error("Question numbers overlap somewhere — found duplicates across the test.");
+  }
+  for(let i=1;i<=40;i++){
+    if(!uniqueSorted.includes(i)) throw new Error("Question " + i + " is missing — numbering isn't continuous from 1 to 40.");
+  }
+}
+
+function renderReadingPassage(p, sectionNumber){
+  const R = state.reading;
+  const body = document.getElementById("readingBody");
+  body.innerHTML = `
+    <div class="two-col">
+      <div>
+        <div class="passage">
+          <p class="display" style="font-size:18px;font-weight:600;margin-bottom:12px;">Section ${sectionNumber}: ${p.title}</p>
+          ${Object.entries(p.paras).map(([k,v])=>`<p><span class="para-label">${k}</span>${v}</p>`).join("")}
+        </div>
+      </div>
+      <div id="readingQuestions"></div>
+    </div>
+  `;
+
+  const qbox = document.getElementById("readingQuestions");
+  p.groups.forEach(g=>{
+    qbox.appendChild(renderGroup(p.id, g));
+  });
+
+  qbox.querySelectorAll("[data-rq]").forEach(el=>{
+    const key = el.dataset.rq;
+    if(el.tagName==="SELECT"){
+      el.value = R.answers[key]||"";
+      el.addEventListener("change", ()=>{R.answers[key]=el.value;});
+      el.disabled=R.submitted;
+    } else if(el.type==="text"){
+      el.value = R.answers[key]||"";
+      el.addEventListener("input", ()=>{R.answers[key]=el.value;});
+      el.disabled=R.submitted;
+    } else if(el.type==="radio"){
+      el.checked = R.answers[key]===el.value;
+      el.addEventListener("change", ()=>{R.answers[key]=el.value;});
+      el.disabled=R.submitted;
+    }
+  });
+}
+
+function groupRange(g){
+  const n = g.type==="heading" ? g.paragraphs.length : g.items.length;
+  return g.qStart===undefined ? "" : (n>1 ? `${g.qStart}–${g.qStart+n-1}` : `${g.qStart}`);
+}
+
+function renderGroup(passageId, g){
+  const div = document.createElement("div");
+  div.className = "qgroup";
+  let inner = `<h4>Questions ${groupRange(g)}</h4><p class="instructions">${g.instructions}</p>`;
+
+  if(g.type==="heading"){
+    inner += `<div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;"><b>List of Headings</b><br>`;
+    g.options.forEach((o,i)=>{
+      inner += `<b>${i}:</b> ${o}<br>`;
+    });
+    inner += `</div>`;
+    g.paragraphs.forEach(pname=>{
+      inner += `<div class="q-item"><span class="mono" style="min-width:30px;">Para ${pname}</span> 
+        <select data-rq="p${passageId}-heading-${pname}">
+          <option value="">—</option>
+          ${g.options.map((_,idx)=>`<option value="${idx}">${idx}</option>`).join("")}
+        </select></div>`;
+    });
+  }
+  else if(g.type==="tfng"){
+    g.items.forEach((item, i)=>{
+      inner += `<div class="q-item" style="flex-direction:column;margin-bottom:10px;">
+        <div><span class="num">${g.qStart+i}.</span> ${item.q}</div>
+        <div class="opt-row" style="flex-direction:row;gap:12px;margin-top:4px;">
+          <label><input type="radio" name="p${passageId}-tfng-${i}" data-rq="p${passageId}-tfng-${i}" value="TRUE"> TRUE</label>
+          <label><input type="radio" name="p${passageId}-tfng-${i}" data-rq="p${passageId}-tfng-${i}" value="FALSE"> FALSE</label>
+          <label><input type="radio" name="p${passageId}-tfng-${i}" data-rq="p${passageId}-tfng-${i}" value="NOT GIVEN"> NOT GIVEN</label>
+        </div>
+      </div>`;
+    });
+  }
+  else if(g.type==="matchinfo"){
+    inner += `<div style="font-size:12.5px;color:var(--slate);margin-bottom:8px;">Available letters: ${g.letters.join(", ")}</div>`;
+    g.items.forEach((item, i)=>{
+      inner += `<div class="q-item"><span class="num">${g.qStart+i}.</span> <span style="flex:1;">${item.q}</span>
+        <input type="text" style="min-width:40px;max-width:50px;text-align:center;" data-rq="p${passageId}-match-${i}"></div>`;
+    });
+  }
+  else if(g.type==="mc"){
+    g.items.forEach((item, i)=>{
+      inner += `<div class="q-item" style="flex-direction:column;margin-bottom:12px;">
+        <div><span class="num">${g.qStart+i}.</span> ${item.q}</div>
+        <div class="opt-row" style="margin-top:4px;">
+          ${item.options.map((opt,oidx)=>`<label><input type="radio" name="p${passageId}-mc-${i}" data-rq="p${passageId}-mc-${i}" value="${oidx}"> ${opt}</label>`).join("")}
+        </div>
+      </div>`;
+    });
+  }
+  else if(g.type==="completion"){
+    if(g.summaryIntro) inner += `<p style="font-size:13.5px;background:#fff;padding:12px;border:1px solid var(--line);border-radius:8px;line-height:1.7;">${g.summaryIntro}</p>`;
+    g.items.forEach((item, i)=>{
+      inner += `<div class="q-item"><span class="num">${g.qStart+i}.</span> <span>${item.q}</span> 
+        <input type="text" data-rq="p${passageId}-comp-${i}"></div>`;
+    });
+  }
+
+  div.innerHTML = inner;
+  return div;
+}
+
+function gradeReading(){
+  const R = state.reading;
+  let correct = 0, total = 0;
+  const lines = [];
+
+  READING_PASSAGES.forEach(p=>{
+    p.groups.forEach(g=>{
+      if(g.type==="heading"){
+        Object.entries(g.key).forEach(([pname, targetIdx])=>{
+          total++;
+          const ans = R.answers[`p${p.id}-heading-${pname}`];
+          const ok = ans!==undefined && parseInt(ans)===targetIdx;
+          if(ok) correct++;
+          lines.push({n:`Para ${pname}`, ok, correct: targetIdx});
+        });
+      } else if(g.type==="tfng"){
+        g.items.forEach((item,i)=>{
+          total++;
+          const ans = R.answers[`p${p.id}-tfng-${i}`];
+          const ok = ans && ans.trim().toUpperCase() === item.a.trim().toUpperCase();
+          if(ok) correct++;
+          lines.push({n:g.qStart+i, ok, correct:item.a});
+        });
+      } else if(g.type==="completion"){
+        g.items.forEach((item,i)=>{
+          total++;
+          const ans = R.answers[`p${p.id}-comp-${i}`];
+          const ok = checkGap(ans, item.a);
+          if(ok) correct++;
+          lines.push({n:g.qStart+i, ok, correct:item.a[0]});
+        });
+      } else if(g.type==="matchinfo"){
+        g.items.forEach((item,i)=>{
+          total++;
+          const _mv = R.answers[`p${p.id}-match-${i}`];
+          const ok = _mv!==undefined && String(_mv).trim().toUpperCase()===String(item.a).trim().toUpperCase();
+          if(ok) correct++;
+          lines.push({n:g.qStart+i, ok, correct:item.a});
+        });
+      } else if(g.type==="mc"){
+        g.items.forEach((item,i)=>{
+          total++;
+          const v = R.answers[`p${p.id}-mc-${i}`];
+          const ok = v!==undefined && parseInt(v)===item.a;
+          if(ok) correct++;
+          lines.push({n:g.qStart+i, ok, correct:item.options[item.a]});
+        });
+      }
+    });
+  });
+  return {correct,total,lines};
+}
+
+function submitReading(){
+  state.reading.submitted = true;
+  const {correct,total} = gradeReading();
+  const band = rawToBandListening(correct);
+  recordScore("reading", band, `${correct}/${total} correct`);
+  renderReading();
+}
+
+function showReadingResult(){
+  const {correct,total,lines} = gradeReading();
+  const box = document.getElementById("readingResult");
+  const rows = lines.map(l=>`<div class="key-line"><span class="${l.ok?'ok':'bad'}">${l.ok?'✓':'✗'}</span> Q${l.n}: <span class="correct-answer">${l.correct}</span></div>`).join("");
+  box.innerHTML = `<div class="key-box" style="margin-top:20px;"><h4>Score: ${correct} / ${total} → Band ${rawToBandListening(correct).toFixed(1)}<span class="cefr-tag">${bandToCEFR(rawToBandListening(correct))}</span></h4><div style="columns:2;column-gap:24px;">${rows}</div></div>`;
+}
+
+/* =========================================================================
+   WRITING
+   ========================================================================= */
+
+let task1Chart=null;
+let chart3D=null;
+function renderWriting(){
+  // Re-rendering the panel (e.g. switching Task 1/2) discards the old canvas;
+  // release any live 3D context first so its RAF loop doesn't keep drawing.
+  if(chart3D){ chart3D.dispose(); chart3D = null; }
+  const W = state.writing;
+  const task = W.activeTask;
+  const geminiOn = !!state.settings.geminiKey;
+
+  panel.innerHTML = `
+    <p class="section-title">Writing</p>
+    <p class="section-sub">Draft each task, request a coaching hint at any time, then submit for an AI-estimated band score against the four official criteria.</p>
+    
+    <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+        <div>
+          <b>AI Writing Generator (Replaces existing tasks)</b>
+          <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Generate a completely fresh simulated exam context for Task 1 and Task 2." : "Add a Gemini API key to enable live prompt generation."}</p>
+        </div>
+        <button id="generateWritingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate New Writing Exam</button>
+      </div>
+      <div class="gen-progress" id="writingGenBar" style="display:none;">
+        <div class="gen-progress-track"><div class="gen-progress-fill"></div></div>
+        <div class="gen-progress-label"></div>
+      </div>
+    </div>
+
+    <hr class="rule">
+    <div class="write-tabs">
+      <button data-wt="task1" class="${task==='task1'?'active':''}">Task 1 (Report)</button>
+      <button data-wt="task2" class="${task==='task2'?'active':''}">Task 2 (Essay)</button>
+    </div>
+
+    <div class="prompt-card">
+      <span class="task-tag">${WRITING[task].tag}</span>
+      <p style="margin:0 0 14px; font-size:15px; font-weight:500; line-height:1.6;">${WRITING[task].prompt}</p>
+      
+      ${task==='task1' ? `
+        <div class="chart-box" style="background:#fff;max-width:680px;margin:0 auto 10px;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;">
+            <button class="btn secondary small chart-type-btn threed" data-charttype="bars3d">◆ 3D Bars</button>
+            <button class="btn secondary small chart-type-btn threed" data-charttype="trend3d">◆ 3D Trend</button>
+            <button class="btn secondary small chart-type-btn" data-charttype="line">Line</button>
+            <button class="btn secondary small chart-type-btn" data-charttype="bar">Bar</button>
+            <button class="btn secondary small chart-type-btn" data-charttype="pie">Pie</button>
+            <button class="btn secondary small chart-type-btn" data-charttype="mindmap">Mind map</button>
+          </div>
+          <div id="task1VisualHost"><canvas id="task1Canvas" height="240"></canvas></div>
+        </div>
+      `: ""}
+    </div>
+
+    <textarea class="essay" id="essayInput" placeholder="Type your academic response here..."></textarea>
+    
+    <div class="essay-footer">
+      <div class="wordcount" id="wcLabel">0 words</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn secondary small" id="hintBtn">Get a hint</button>
+        <button class="btn secondary small" id="paraFeedbackBtn">Paragraph feedback</button>
+        <button class="btn small" id="scoreBtn">Score this response</button>
+      </div>
+    </div>
+
+    <div id="hintArea"></div>
+    <div id="paraFeedbackArea"></div>
+    <div id="reportArea"></div>
+    ${rubricPanel("writing")}
+  `;
+
+  panel.querySelectorAll("[data-wt]").forEach(b=>b.addEventListener("click", ()=>{
+    W.activeTask = b.dataset.wt;
+    renderWriting();
+  }));
+
+  if(geminiOn) {
+    document.getElementById("generateWritingBtn").addEventListener("click", generateNewWritingWithAI);
+  }
+
+  const area = document.getElementById("essayInput");
+  area.value = W.drafts[task] || "";
+  updateWcLabel(area.value, task);
+  
+  area.addEventListener("input", ()=>{
+    W.drafts[task] = area.value;
+    updateWcLabel(area.value, task);
+  });
+
+  if(task==="task1" && WRITING.task1.chartData) {
+    renderTask1Visual();
+    panel.querySelectorAll(".chart-type-btn").forEach(b=>{
+      b.classList.toggle("active", b.dataset.charttype === (state.writing.chartType||"bars3d"));
+      b.addEventListener("click", ()=>{
+        state.writing.chartType = b.dataset.charttype;
+        renderTask1Visual();
+        panel.querySelectorAll(".chart-type-btn").forEach(x=>x.classList.toggle("active", x===b));
+      });
+    });
+  }
+
+  document.getElementById("hintBtn").addEventListener("click", ()=>requestWritingHint(task));
+  document.getElementById("paraFeedbackBtn").addEventListener("click", ()=>requestParagraphFeedback(task));
+  document.getElementById("scoreBtn").addEventListener("click", ()=>requestWritingScore(task));
+
+  if(W.hints[task]) showHint(task, W.hints[task]);
+  if(W.paraFeedback[task]) showParagraphFeedback(task);
+  if(W.reports[task]) showWritingReport(task, W.reports[task]);
+}
+
+async function generateNewWritingWithAI() {
+  const btn = document.getElementById("generateWritingBtn");
+  const originalText = btn.textContent;
+  btn.textContent = "Generating Prompt...";
+  btn.disabled = true;
+  genProgressShow("writingGen", "Writing a new Task 1 + Task 2 exam context…");
+
+  const prompt = `Create a completely new IELTS Academic Writing exam containing both Task 1 and Task 2. 
+You must return a raw JSON object matching this exact schema shape:
+{
+  "task1": {
+    "tag": "Writing Task 1 · 20 minutes · at least 150 words",
+    "prompt": "The bar/line chart below shows...",
+    "chartData": {
+      "labels": ["2010", "2012", "2014", "2016"],
+      "series": [
+        {"label": "Group A", "data": [10, 20, 30, 40], "color": "#2f6f62"},
+        {"label": "Group B", "data": [15, 25, 35, 45], "color": "#c9a227"}
+      ]
+    }
+  },
+  "task2": {
+    "tag": "Writing Task 2 · 40 minutes · at least 250 words",
+    "prompt": "Detailed Task 2 prompt opinion/discussion statement..."
+  }
+}
+The chartData drives an interactive 3D visualisation, so keep it clean: use 3-6 labels (time points or categories) and 2-4 series, give every series a distinct hex "color", and make sure every series has exactly one number per label. Return ONLY raw JSON.`;
+
+  try {
+    const rawText = await callGemini("You output raw JSON models for application prompts.", prompt, null, null);
+    const parsedObj = parseJSON(rawText);
+    if(parsedObj.task1 && parsedObj.task2) {
+      WRITING = parsedObj;
+      genProgressDone("writingGen", "Done — new Task 1 and Task 2 ready.");
+      alert("✨ Success! Writing Task 1 and Task 2 prompts re-generated successfully.");
+      state.writing.drafts = {task1:"", task2:""};
+      state.writing.hints = {task1:null, task2:null};
+      state.writing.reports = {task1:null, task2:null};
+      renderWriting();
+    } else {
+      throw new Error("Missing required structure layers.");
+    }
+  } catch (error) {
+    console.error(error);
+    genProgressHide("writingGen");
+    alert("Failed to generate writing tasks: " + error.message);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+function disposeTask1Chart3D(){
+  if(chart3D){ chart3D.dispose(); chart3D = null; }
+}
+function disposeTask1ChartJS(){
+  if(task1Chart){ task1Chart.destroy(); task1Chart = null; }
+}
+
+function renderTask1Visual(){
+  const cd = WRITING.task1.chartData;
+  const host = document.getElementById("task1VisualHost");
+  if(!host || !cd) return;
+  const type = state.writing.chartType || "bars3d";
+
+  // Tear down whichever renderer is currently mounted.
+  disposeTask1Chart3D();
+  disposeTask1ChartJS();
+
+  // ---- Three.js 3D modes ----
+  if(type === "bars3d" || type === "trend3d"){
+    host.innerHTML = "";
+    if(typeof THREE === "undefined"){
+      // Graceful fallback if the Three.js CDN is unavailable.
+      host.innerHTML = `<canvas id="task1Canvas" height="240"></canvas>`;
+      drawTask1Chart(cd, "line");
+      return;
+    }
+    try{
+      chart3D = createChart3D(host, cd, type === "trend3d" ? "trend" : "bars");
+    }catch(err){
+      console.error("3D chart failed, falling back to 2D:", err);
+      disposeTask1Chart3D();
+      host.innerHTML = `<canvas id="task1Canvas" height="240"></canvas>`;
+      drawTask1Chart(cd, "line");
+    }
+    return;
+  }
+
+  // ---- SVG mind map ----
+  if(type === "mindmap"){
+    host.innerHTML = buildMindMapSVG(cd, WRITING.task1.prompt);
+    return;
+  }
+
+  // ---- Chart.js 2D modes ----
+  host.innerHTML = `<canvas id="task1Canvas" height="240"></canvas>`;
+  drawTask1Chart(cd, type);
+}
+
+function drawTask1Chart(cd, type){
+  type = type || "line";
+  const ctx = document.getElementById("task1Canvas");
+  if(!ctx) return;
+  if(task1Chart) task1Chart.destroy();
+
+  if(type === "pie"){
+    // Pie has no time axis, so it summarises the LATEST value of each series.
+    task1Chart = new Chart(ctx, {
+      type:"pie",
+      data:{
+        labels: cd.series.map(s=>s.label),
+        datasets: [{
+          data: cd.series.map(s=>s.data[s.data.length-1]),
+          backgroundColor: cd.series.map(s=>s.color || "#131b2e")
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},
+          title:{display:true,text:`Latest value (${cd.labels[cd.labels.length-1]})`,font:{size:11}}
+        }
+      }
+    });
+    return;
+  }
+
+  task1Chart = new Chart(ctx, {
+    type: type === "bar" ? "bar" : "line",
+    data:{
+      labels: cd.labels,
+      datasets: cd.series.map(s=>({
+        label: s.label,
+        data: s.data,
+        borderColor: s.color || "#131b2e",
+        backgroundColor: s.color ? (type==="bar" ? s.color : s.color+"22") : "#131b2e22",
+        tension: 0.15,
+        fill: type !== "bar"
+      }))
+    },
+    options:{
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}}}
+    }
+  });
+}
+
+/* =========================================================================
+   3D CHART ENGINE (Three.js)
+   A self-contained renderer for IELTS Writing Task 1 data. It turns the same
+   {labels, series:[{label,data,color}]} structure used by Chart.js into a lit,
+   shadowed, animated 3D scene — either grouped bars or a "mountain range" of
+   trend ribbons — with drag-to-orbit + gentle auto-rotation. Returns a handle
+   exposing dispose() so the caller can release the WebGL context cleanly.
+   ========================================================================= */
+
+const C3D_PALETTE = ["#2f6f62","#c9a227","#c1443c","#3567a6","#7a5ea8","#d17a2a","#2f8f83"];
+function c3d_clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function c3d_easeOut(t){ return 1 - Math.pow(1 - c3d_clamp(t,0,1), 3); }
+function c3d_fmt(v){
+  const r = Math.round(v*10)/10;
+  return (Math.abs(r - Math.round(r)) < 0.05) ? String(Math.round(r)) : r.toFixed(1);
+}
+function c3d_color(input, i){
+  const c = new THREE.Color();
+  try{ c.set(input); return c; }catch(e){ return new THREE.Color(C3D_PALETTE[i % C3D_PALETTE.length]); }
+}
+function c3d_roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function c3d_textSprite(text, opts){
+  opts = opts || {};
+  const color = opts.color || "#ffffff";
+  const weight = opts.weight || 600;
+  const px = opts.px || 46;
+  const pad = opts.pad != null ? opts.pad : 12;
+  const bg = opts.bg || null;
+  const cvs = document.createElement("canvas");
+  const ctx = cvs.getContext("2d");
+  const font = `${weight} ${px}px 'IBM Plex Mono', monospace`;
+  ctx.font = font;
+  const w = Math.ceil(ctx.measureText(text).width) + pad*2;
+  const h = px + pad*2;
+  cvs.width = w; cvs.height = h;
+  ctx.font = font;
+  if(bg){ ctx.fillStyle = bg; c3d_roundRect(ctx,0,0,w,h,Math.min(18,h/2)); ctx.fill(); }
+  ctx.fillStyle = color;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(text, w/2, h/2);
+  const tex = new THREE.CanvasTexture(cvs);
+  tex.minFilter = THREE.LinearFilter;
+  tex.anisotropy = 4;
+  const mat = new THREE.SpriteMaterial({ map:tex, transparent:true, depthTest:false, depthWrite:false });
+  const sp = new THREE.Sprite(mat);
+  const s = 0.0075;
+  sp.scale.set(w*s, h*s, 1);
+  sp.renderOrder = 10;
+  sp.userData._c3d = { tex, mat };
+  return sp;
+}
+
+function createChart3D(host, chartData, mode){
+  // ---- normalise + validate ----
+  const labels = (chartData.labels || []).map(String);
+  const series = (chartData.series || [])
+    .filter(s => s && Array.isArray(s.data))
+    .map((s,i) => ({ label: s.label || ("Series "+(i+1)), data: s.data.map(v => Number(v)||0), color: c3d_color(s.color, i) }));
+  if(!labels.length || !series.length) throw new Error("empty chart data");
+
+  const nCat = labels.length, nSer = series.length;
+  let maxVal = 0;
+  series.forEach(s => s.data.forEach(v => { if(v > maxVal) maxVal = v; }));
+  maxVal = Math.max(1, maxVal);
+
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---- layout constants (world units) ----
+  const cellX = 1.5, cellZ = 1.9, maxH = 6;
+  const gridW = (nCat - 1) * cellX;
+  const gridD = (nSer - 1) * cellZ;
+  const xStart = -gridW/2, zStart = -gridD/2;
+  const xAt = j => xStart + j*cellX;
+  const zAt = i => zStart + i*cellZ;
+  const hAt = v => (v / maxVal) * maxH;
+
+  host.classList.add("viz3d-host");
+  host.innerHTML = "";
+
+  // ---- renderer ----
+  const W0 = host.clientWidth || 640, H0 = host.clientHeight || 360;
+  const renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(W0, H0, false);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  if("outputEncoding" in renderer) renderer.outputEncoding = THREE.sRGBEncoding;
+  host.appendChild(renderer.domElement);
+
+  // ---- scene + gradient backdrop ----
+  const scene = new THREE.Scene();
+  const bgCanvas = document.createElement("canvas");
+  bgCanvas.width = 16; bgCanvas.height = 256;
+  const bgc = bgCanvas.getContext("2d");
+  const grad = bgc.createLinearGradient(0,0,0,256);
+  grad.addColorStop(0, "#22344f"); grad.addColorStop(0.55, "#16223c"); grad.addColorStop(1, "#0d1424");
+  bgc.fillStyle = grad; bgc.fillRect(0,0,16,256);
+  const bgTex = new THREE.CanvasTexture(bgCanvas);
+  scene.background = bgTex;
+  scene.fog = new THREE.Fog(0x0d1424, Math.max(gridW,gridD)+14, Math.max(gridW,gridD)+44);
+
+  // ---- camera ----
+  const R0 = Math.max(gridW, gridD, 6) + 12;
+  const camera = new THREE.PerspectiveCamera(45, W0/H0, 0.1, 200);
+  const target = new THREE.Vector3(0, maxH*0.34, 0);
+  let radius = R0, theta = 0.78, phi = 1.02;
+  const minR = R0*0.55, maxR = R0*1.9;
+  function updateCamera(){
+    const sp = Math.sin(phi);
+    camera.position.set(
+      target.x + radius*sp*Math.sin(theta),
+      target.y + radius*Math.cos(phi),
+      target.z + radius*sp*Math.cos(theta)
+    );
+    camera.lookAt(target);
+  }
+
+  // ---- lights ----
+  scene.add(new THREE.HemisphereLight(0xbcd2ff, 0x1a2338, 0.62));
+  const key = new THREE.DirectionalLight(0xfff3d6, 1.15);
+  key.position.set(gridW*0.5 + 6, maxH + 12, gridD*0.5 + 8);
+  key.castShadow = true;
+  const span = Math.max(gridW, gridD)/2 + 4;
+  key.shadow.camera.left = -span; key.shadow.camera.right = span;
+  key.shadow.camera.top = span; key.shadow.camera.bottom = -span;
+  key.shadow.camera.near = 1; key.shadow.camera.far = 60;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.bias = -0.0009;
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xffcf6b, 0.4);
+  rim.position.set(-gridW*0.5 - 8, maxH*0.7 + 4, -gridD*0.5 - 6);
+  scene.add(rim);
+
+  // ---- floor + grid ----
+  const floorSize = Math.max(gridW, gridD) + 8;
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(floorSize, floorSize),
+    new THREE.MeshStandardMaterial({ color:0x111c33, roughness:0.96, metalness:0.05 })
+  );
+  floor.rotation.x = -Math.PI/2;
+  floor.position.y = -0.01;
+  floor.receiveShadow = true;
+  scene.add(floor);
+  const gridDiv = Math.max(6, nCat + 2);
+  const grid = new THREE.GridHelper(floorSize, gridDiv, 0x3a4b6b, 0x223052);
+  grid.position.y = 0.0;
+  grid.material.opacity = 0.5; grid.material.transparent = true;
+  scene.add(grid);
+
+  // ---- track disposables ----
+  const geos = [], mats = [], texes = [ bgTex ];
+  const track = obj => {
+    if(obj.geometry) geos.push(obj.geometry);
+    if(obj.material) mats.push(obj.material);
+    return obj;
+  };
+
+  const dataGroup = new THREE.Group();
+  scene.add(dataGroup);
+  const bars = [];          // for "bars" grow animation
+  const fadeIns = [];       // sprites/objects that fade in after the grow
+
+  // ---- build geometry ----
+  if(mode === "bars"){
+    const barW = Math.min(cellX*0.56, 0.95);
+    const barD = Math.min((gridD>0 ? cellZ*0.5 : 1.0), 0.95);
+    const box = new THREE.BoxGeometry(barW, 1, barD);
+    box.translate(0, 0.5, 0);   // base sits on the floor; scale.y grows upward
+    geos.push(box);
+    series.forEach((s, i) => {
+      const emissive = s.color.clone().multiplyScalar(0.16);
+      s.data.forEach((v, j) => {
+        const mat = new THREE.MeshStandardMaterial({ color:s.color, roughness:0.42, metalness:0.22, emissive });
+        mats.push(mat);
+        const bar = new THREE.Mesh(box, mat);
+        bar.position.set(xAt(j), 0, zAt(i));
+        bar.scale.y = 0.001;
+        bar.castShadow = true; bar.receiveShadow = true;
+        dataGroup.add(bar);
+        const targetH = Math.max(hAt(v), 0.02);
+        const vs = c3d_textSprite(c3d_fmt(v), { color:"#f6f3ea", px:40, weight:700 });
+        vs.position.set(xAt(j), targetH + 0.5, zAt(i));
+        vs.material.opacity = 0;
+        dataGroup.add(vs);
+        bars.push({ mesh:bar, targetH, delay:(j*0.05 + i*0.12), valueSprite:vs });
+      });
+    });
+  } else {
+    // trend: a line + area ribbon + point spheres per series, spaced along Z
+    const sphereGeo = new THREE.SphereGeometry(0.13, 18, 14);
+    geos.push(sphereGeo);
+    series.forEach((s, i) => {
+      const z = zAt(i);
+      const pts = s.data.map((v,j) => new THREE.Vector3(xAt(j), Math.max(hAt(v),0.02), z));
+      // area ribbon (curtain under the line)
+      const pos = [], idx = [];
+      s.data.forEach((v,j) => {
+        pos.push(xAt(j), 0, z);
+        pos.push(xAt(j), Math.max(hAt(v),0.02), z);
+      });
+      for(let j=0;j<nCat-1;j++){
+        const b0=j*2, t0=j*2+1, b1=j*2+2, t1=j*2+3;
+        idx.push(b0,t0,t1, b0,t1,b1);
+      }
+      const areaGeo = new THREE.BufferGeometry();
+      areaGeo.setAttribute("position", new THREE.Float32BufferAttribute(pos,3));
+      areaGeo.setIndex(idx); areaGeo.computeVertexNormals();
+      geos.push(areaGeo);
+      const areaMat = new THREE.MeshStandardMaterial({ color:s.color, transparent:true, opacity:0.34, side:THREE.DoubleSide, roughness:0.7, metalness:0.0, emissive:s.color.clone().multiplyScalar(0.12) });
+      mats.push(areaMat);
+      dataGroup.add(new THREE.Mesh(areaGeo, areaMat));
+      // line tube on top
+      if(nCat >= 2){
+        const curve = new THREE.CatmullRomCurve3(pts, false, "catmullrom", 0.4);
+        const tubeGeo = new THREE.TubeGeometry(curve, Math.max(16, nCat*10), 0.07, 10, false);
+        geos.push(tubeGeo);
+        const tubeMat = new THREE.MeshStandardMaterial({ color:s.color, roughness:0.3, metalness:0.35, emissive:s.color.clone().multiplyScalar(0.3) });
+        mats.push(tubeMat);
+        const tube = new THREE.Mesh(tubeGeo, tubeMat); tube.castShadow = true;
+        dataGroup.add(tube);
+      }
+      // point spheres
+      const sphMat = new THREE.MeshStandardMaterial({ color:s.color, roughness:0.25, metalness:0.4, emissive:s.color.clone().multiplyScalar(0.35) });
+      mats.push(sphMat);
+      pts.forEach(p => {
+        const sph = new THREE.Mesh(sphereGeo, sphMat);
+        sph.position.copy(p); sph.castShadow = true;
+        dataGroup.add(sph);
+      });
+      // endpoint value callout (outside dataGroup so it isn't squashed by the grow)
+      const last = s.data[nCat-1];
+      const vs = c3d_textSprite(c3d_fmt(last), { color:"#0f1729", bg:"#"+s.color.getHexString(), px:38, weight:700 });
+      vs.position.set(xAt(nCat-1) + 0.55, Math.max(hAt(last),0.02) + 0.35, z);
+      vs.material.opacity = 0;
+      scene.add(vs);
+      fadeIns.push(vs);
+    });
+    dataGroup.scale.y = 0.001;
+  }
+
+  // ---- axis labels ----
+  const labelObjs = [];
+  labels.forEach((lb, j) => {
+    const sp = c3d_textSprite(lb, { color:"#cfe0ff", px:38, weight:600 });
+    sp.position.set(xAt(j), 0.2, zAt(nSer-1) + cellZ*0.7);
+    scene.add(sp); labelObjs.push(sp);
+  });
+  series.forEach((s, i) => {
+    const sp = c3d_textSprite(s.label, { color:"#"+s.color.getHexString(), px:36, weight:700, bg:"rgba(13,20,36,0.6)" });
+    sp.position.set(xStart - cellX*0.9, 0.5, zAt(i));
+    scene.add(sp); labelObjs.push(sp);
+  });
+
+  // ---- HTML overlays (legend + hint) ----
+  const legend = document.createElement("div");
+  legend.className = "viz3d-legend";
+  legend.innerHTML = series.map(s => `<span class="chip"><i style="background:#${s.color.getHexString()}"></i>${escapeXml(s.label)}</span>`).join("");
+  host.appendChild(legend);
+  const hint = document.createElement("div");
+  hint.className = "viz3d-hint";
+  hint.innerHTML = `<span class="dot"></span> Drag to rotate · scroll to zoom`;
+  host.appendChild(hint);
+
+  // ---- interaction (custom orbit) ----
+  const el = renderer.domElement;
+  let dragging = false, autoRotate = !reduceMotion, lastX = 0, lastY = 0, resumeTimer = null;
+  function onDown(e){
+    dragging = true; autoRotate = false;
+    lastX = e.clientX; lastY = e.clientY;
+    if(resumeTimer){ clearTimeout(resumeTimer); resumeTimer = null; }
+    if(el.setPointerCapture){ try{ el.setPointerCapture(e.pointerId); }catch(_){} }
+  }
+  function onMove(e){
+    if(!dragging) return;
+    theta -= (e.clientX - lastX) * 0.006;
+    phi = c3d_clamp(phi - (e.clientY - lastY) * 0.006, 0.16, 1.46);
+    lastX = e.clientX; lastY = e.clientY;
+  }
+  function onUp(){
+    if(!dragging) return;
+    dragging = false;
+    if(!reduceMotion) resumeTimer = setTimeout(() => { autoRotate = true; }, 3500);
+  }
+  function onWheel(e){
+    e.preventDefault();
+    radius = c3d_clamp(radius * (e.deltaY > 0 ? 1.08 : 0.92), minR, maxR);
+  }
+  el.addEventListener("pointerdown", onDown);
+  el.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  el.addEventListener("wheel", onWheel, { passive:false });
+
+  // ---- resize ----
+  const ro = new ResizeObserver(() => {
+    const w = host.clientWidth, h = host.clientHeight;
+    if(w && h){ renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix(); }
+  });
+  ro.observe(host);
+
+  // ---- animation loop ----
+  const clock = new THREE.Clock();
+  const growDur = 1.1;
+  let elapsed = 0, raf = 0, alive = true;
+  function frame(){
+    if(!alive) return;
+    raf = requestAnimationFrame(frame);
+    elapsed += clock.getDelta();
+    if(mode === "bars"){
+      bars.forEach(b => {
+        const t = reduceMotion ? 1 : c3d_clamp((elapsed - b.delay) / growDur, 0, 1);
+        const h = Math.max(0.001, c3d_easeOut(t) * b.targetH);
+        b.mesh.scale.y = h;
+        if(b.valueSprite){
+          b.valueSprite.position.y = h + 0.5;
+          b.valueSprite.material.opacity = c3d_clamp((t - 0.6) / 0.4, 0, 1);
+        }
+      });
+    } else {
+      const t = reduceMotion ? 1 : c3d_clamp(elapsed / growDur, 0, 1);
+      dataGroup.scale.y = Math.max(0.001, c3d_easeOut(t));
+      const fo = c3d_clamp((t - 0.75) / 0.25, 0, 1);
+      fadeIns.forEach(o => { o.material.opacity = fo; });
+    }
+    if(autoRotate && !dragging) theta += 0.0026;
+    updateCamera();
+    renderer.render(scene, camera);
+  }
+  updateCamera();
+  frame();
+
+  // ---- handle ----
+  return {
+    dispose(){
+      alive = false;
+      if(raf) cancelAnimationFrame(raf);
+      if(resumeTimer) clearTimeout(resumeTimer);
+      try{ ro.disconnect(); }catch(_){}
+      el.removeEventListener("pointerdown", onDown);
+      el.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      el.removeEventListener("wheel", onWheel);
+      scene.traverse(o => { if(o.userData && o.userData._c3d){ o.userData._c3d.tex.dispose(); o.userData._c3d.mat.dispose(); } });
+      geos.forEach(g => { try{ g.dispose(); }catch(_){} });
+      mats.forEach(m => { try{ m.dispose(); }catch(_){} });
+      texes.forEach(t => { try{ t.dispose(); }catch(_){} });
+      try{ renderer.dispose(); }catch(_){}
+      try{ renderer.forceContextLoss && renderer.forceContextLoss(); }catch(_){}
+      if(el && el.parentNode) el.parentNode.removeChild(el);
+      host.classList.remove("viz3d-host");
+      host.innerHTML = "";
+    }
+  };
+}
+
+function buildMindMapSVG(cd, promptText){
+  const W = 620, H = 340, cx = W/2, cy = H/2;
+  const n = cd.series.length;
+  const radius = 130;
+  const topicShort = (promptText||"Task 1 topic").split(".")[0].slice(0,60);
+
+  let branches = "";
+  cd.series.forEach((s, i)=>{
+    const angle = (Math.PI*2 * i / n) - Math.PI/2;
+    const nx = cx + radius*Math.cos(angle);
+    const ny = cy + radius*Math.sin(angle);
+    const color = s.color || "#131b2e";
+    const first = s.data[0], last = s.data[s.data.length-1];
+    const trend = last>first ? "↑" : (last<first ? "↓" : "→");
+    branches += `
+      <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${color}" stroke-width="2" opacity="0.55"/>
+      <circle cx="${nx}" cy="${ny}" r="46" fill="${color}22" stroke="${color}" stroke-width="2"/>
+      <text x="${nx}" y="${ny-6}" text-anchor="middle" font-size="11" font-weight="600" fill="#131b2e" font-family="Fraunces, serif">${escapeXml(s.label)}</text>
+      <text x="${nx}" y="${ny+12}" text-anchor="middle" font-size="11" fill="${color}" font-family="IBM Plex Mono, monospace">${first} ${trend} ${last}</text>
+    `;
+  });
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" width="100%" height="300" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="${cx}" cy="${cy}" r="70" fill="#131b2e" />
+      <foreignObject x="${cx-62}" y="${cy-42}" width="124" height="84">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="color:#fff;font-family:Fraunces, serif;font-size:11px;line-height:1.3;text-align:center;padding:2px;">
+          ${escapeXml(topicShort)}
+        </div>
+      </foreignObject>
+      ${branches}
+    </svg>
+  `;
+}
+
+function escapeXml(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function updateWcLabel(v, task){
+  const c = v.trim() ? v.trim().split(/\s+/).length : 0;
+  const target = task==="task1" ? 150 : 250;
+  const lbl = document.getElementById("wcLabel");
+  if(!lbl) return;
+  lbl.textContent = `${c} words`;
+  lbl.classList.toggle("low", c < target);
+}
+
+async function requestWritingHint(task){
+  const W = state.writing;
+  const draft = W.drafts[task];
+  if(!draft.trim()){
+    alert("Please write something first before asking for suggestions.");
+    return;
+  }
+  const btn = document.getElementById("hintBtn");
+  btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
+  btn.disabled = true;
+  try{
+    const sys = `You are a supportive IELTS Writing coach. Never rewrite the student's sentences for them. Give exactly 3 short, specific, actionable tips to raise the band score of the current draft, tied to concrete moments in their text where possible. Respond ONLY with raw JSON: {"tips":["","",""]}`;
+    const user = `Task prompt: ${WRITING[task].prompt}\n\nStudent draft:\n${draft}`;
+    const text = await callGemini(sys, user, null, null);
+    const json = parseJSON(text);
+    W.hints[task] = json.tips;
+    showHint(task, json.tips);
+  }catch(e){
+    document.getElementById("hintArea").innerHTML = `<div class="hint-box" style="border-color:var(--coral);">Couldn't reach the AI coach right now. Please try again.</div>`;
+  }
+  btn.innerHTML = "Get a hint";
+  btn.disabled = false;
+}
+
+function showHint(task, tips){
+  document.getElementById("hintArea").innerHTML = `
+    <div class="hint-box">
+      <b>Coaching tips</b>
+      <ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul>
+    </div>`;
+}
+
+function splitParagraphs(text){
+  let paras = text.split(/\n{2,}/).map(p=>p.trim()).filter(p=>p.length>0);
+  if(paras.length <= 1){
+    const byLine = text.split(/\n+/).map(p=>p.trim()).filter(p=>p.length>0);
+    if(byLine.length > 1) paras = byLine;
+  }
+  return paras.length ? paras : [text.trim()];
+}
+
+async function requestParagraphFeedback(task){
+  const W = state.writing;
+  const draft = W.drafts[task];
+  if(!draft || !draft.trim()){
+    alert("Please write something first before requesting paragraph feedback.");
+    return;
+  }
+  if(!state.settings.geminiKey){
+    alert("Add a Gemini API key in AI engine settings first.");
+    return;
+  }
+  const paras = splitParagraphs(draft);
+  const btn = document.getElementById("paraFeedbackBtn");
+  const original = btn.textContent;
+  btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
+  btn.disabled = true;
+  try{
+    const numbered = paras.map((p,i)=>`Paragraph ${i+1}:\n${p}`).join("\n\n");
+    const user = `Task prompt: ${WRITING[task].prompt}\n\n${numbered}`;
+    const text = await callGemini(WRITING_PARAGRAPH_RUBRIC, user, null, null);
+    const json = parseJSON(text);
+    W.paraFeedback[task] = { paragraphs: paras, feedback: json.paragraphs || [] };
+    showParagraphFeedback(task);
+  }catch(e){
+    console.error(e);
+    document.getElementById("paraFeedbackArea").innerHTML = `<div class="hint-box" style="border-color:var(--coral);">Couldn't reach the AI coach for paragraph feedback: ${e.message}</div>`;
+  }
+  btn.textContent = original;
+  btn.disabled = false;
+}
+
+function showParagraphFeedback(task){
+  const data = state.writing.paraFeedback[task];
+  const area = document.getElementById("paraFeedbackArea");
+  if(!area) return;
+  if(!data){ area.innerHTML = ""; return; }
+  area.innerHTML = `
+    <div class="para-feedback">
+      <b>Paragraph-by-paragraph feedback</b>
+      ${data.paragraphs.map((p,i)=>{
+        const fb = data.feedback[i] || {comment:"", issues:[]};
+        const issues = fb.issues || [];
+        return `
+          <div class="para-fb-block">
+            <div class="para-fb-num">Paragraph ${i+1}</div>
+            <div class="para-fb-original">${escapeXml(p)}</div>
+            ${fb.comment ? `<div class="para-fb-comment">${escapeXml(fb.comment)}</div>` : ""}
+            ${issues.length ? `
+              <ul class="para-fb-issues">
+                ${issues.map(iss=>`
+                  <li>
+                    <span class="bad-phrase">${escapeXml(iss.original||"")}</span>
+                    <span class="arrow">→</span>
+                    <span class="good-phrase">${escapeXml(iss.suggestion||"")}</span>
+                    ${iss.why ? `<div class="why">${escapeXml(iss.why)}</div>` : ""}
+                  </li>
+                `).join("")}
+              </ul>
+            ` : `<div class="no-issues">No major issues found in this paragraph.</div>`}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+async function requestWritingScore(task){
+  const W = state.writing;
+  const draft = W.drafts[task];
+  const minWords = task==="task1" ? 150 : 250;
+  const wc = draft.trim() ? draft.trim().split(/\s+/).length : 0;
+  if(wc < 40){
+    alert("Write more of your response before requesting a band score.");
+    return;
+  }
+  const btn = document.getElementById("scoreBtn");
+  const original = btn.textContent;
+  btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
+  btn.disabled = true;
+  try{
+    const user = `Task prompt: ${WRITING[task].prompt}\n\nWord count: ${wc} (minimum required: ${minWords})\n\nStudent response:\n${draft}`;
+    if(!state.settings.geminiKey){
+      alert("Add a Gemini API key in AI engine settings first.");
+      btn.textContent = original; btn.disabled = false; return;
+    }
+    const text = await callGemini(WRITING_RUBRIC, user, null, null);
+    const json = parseJSON(text);
+    json.overall_band = officialRound([json.task_achievement.band, json.coherence_cohesion.band, json.lexical_resource.band, json.grammar.band].map(Number).reduce((a,b)=>a+b,0)/4);
+    W.reports[task] = json;
+    showWritingReport(task, json);
+
+    const other = task==="task1" ? W.reports.task2 : W.reports.task1;
+    const combined = other ? (json.overall_band * 2 + other.overall_band)/3 : json.overall_band;
+    let finalBand = Math.floor(combined);
+    const rem = combined - finalBand;
+    if(rem>=0.75) finalBand += 1.0;
+    else if(rem>=0.25) finalBand += 0.5;
+
+    recordScore("writing", finalBand, `Task 1/2 weighted breakdown estimation`);
+  }catch(e){
+    console.error(e);
+    alert("Scoring failed: " + e.message + "\n\nCheck your Gemini API key in AI engine settings and try again.");
+  }
+  btn.textContent = original;
+  btn.disabled = false;
+}
+
+function showWritingReport(task, r){
+  const rows = [
+    [task==="task1"?"Task Achievement":"Task Response", r.task_achievement],
+    ["Coherence & Cohesion", r.coherence_cohesion],
+    ["Lexical Resource", r.lexical_resource],
+    ["Grammatical Range & Accuracy", r.grammar]
+  ].filter(([,c])=>c);
+  document.getElementById("reportArea").innerHTML = `
+    <div class="score-report">
+      <div class="overall-row">
+        <div class="seal"><span class="band-num">${fmtBand(r.overall_band)}</span><span class="band-lbl">Band</span></div>
+        <div class="seal seal-cefr"><span class="band-num" style="font-size:26px;">${bandToCEFR(r.overall_band)}</span><span class="band-lbl">CEFR</span></div>
+        <div class="overall-text"><p class="big">${r.summary || ""}</p></div>
+      </div>
+      <div class="feedback-label">Feedback by criterion</div>
+      ${rows.map(([name,c])=>`
+        <div class="criterion-row">
+          <div><div class="name">${name}</div><div class="comment">${c.comment || ""}</div></div>
+          <div class="band">${fmtBand(c.band)}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+/* =========================================================================
+   SPEAKING
+   ========================================================================= */
+
+let mediaRecorder=null, mediaChunks=[], recStartTime=null, recognizer=null, speechFirstTs=null, speechLastTs=null;
+function renderSpeaking(){
+  const S = state.speaking;
+  const geminiOn = !!state.settings.geminiKey;
+  panel.innerHTML = `
+    <p class="section-title">Speaking</p>
+    <p class="section-sub">Simulate a fully structured IELTS speaking assessment. Record your response, preview the speech playback stream, and finalize metrics.</p>
+
+    <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+        <div>
+          <b>🎙 New Speaking Question Set Generator</b>
+          <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Generate a brand-new, thematically-linked Part 1, 2 and 3 (a fresh cue card plus matching interview questions)." : "Add a Gemini API key in ⚙ AI engine to enable live generation."}</p>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="speakingTopic" style="border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px;" ${!geminiOn ? "disabled" : ""}>
+            <option value="random">Random Topic</option>
+            <option value="Home, Neighbourhood & Daily Life">Home & Daily Life</option>
+            <option value="Work, Study & Career">Work & Study</option>
+            <option value="Travel & Transport">Travel & Transport</option>
+            <option value="Technology & Media">Technology & Media</option>
+            <option value="Environment & Nature">Environment & Nature</option>
+            <option value="Food & Health">Food & Health</option>
+            <option value="Hobbies, Sport & Free Time">Hobbies & Free Time</option>
+            <option value="Culture & Traditions">Culture & Traditions</option>
+          </select>
+          <button id="generateSpeakingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate New Speaking Questions</button>
+        </div>
+      </div>
+      <div class="gen-progress" id="speakingGenBar" style="display:none;">
+        <div class="gen-progress-track"><div class="gen-progress-fill"></div></div>
+        <div class="gen-progress-label"></div>
+      </div>
+    </div>
+
+    <div class="part-nav">
+      <button data-sp="part1" class="${S.part==='part1'?'active':''}">Part 1</button>
+      <button data-sp="part2" class="${S.part==='part2'?'active':''}">Part 2</button>
+      <button data-sp="part3" class="${S.part==='part3'?'active':''}">Part 3</button>
+    </div>
+    <div id="speakingBody"></div>
+  `;
+
+  panel.querySelectorAll("[data-sp]").forEach(b=>b.addEventListener("click", ()=>{
+    S.part=b.dataset.sp;
+    renderSpeaking();
+  }));
+
+  if(geminiOn){
+    document.getElementById("generateSpeakingBtn").addEventListener("click", generateNewSpeakingWithAI);
+  }
+
+  renderSpeakingPart(S.part);
+}
+
+async function generateNewSpeakingWithAI(){
+  const btn = document.getElementById("generateSpeakingBtn");
+  const topicSel = document.getElementById("speakingTopic");
+  const topic = topicSel ? topicSel.value : "random";
+  const originalText = btn.textContent;
+  btn.textContent = "Generating...";
+  btn.disabled = true;
+  genProgressShow("speakingGen", "Writing a new Part 1, 2 and 3 set…");
+
+  const prompt = `Create a completely new IELTS Speaking test based on the theme: "${topic}". Part 1 questions, the Part 2 cue card, and Part 3 questions should feel thematically connected (Part 3 broadens and abstracts the Part 2 topic), exactly like a real IELTS interview. Return a raw JSON object matching this exact schema shape:
+{
+  "part1": {
+    "title": "Part 1 — Introduction & Interview",
+    "note": "The examiner asks general questions about yourself, your home, work or studies. Answer each one naturally, giving 2-4 sentences.",
+    "questions": ["question 1", "question 2", "question 3", "question 4", "question 5"]
+  },
+  "part2": {
+    "title": "Part 2 — Individual Long Turn (Cue Card)",
+    "note": "You have 1 minute to prepare a talk on this topic. You should speak for 1 to 2 minutes.",
+    "cue": {
+      "title": "Describe a/an ...",
+      "points": ["point 1", "point 2", "point 3", "and explain how/why point 4."]
+    }
+  },
+  "part3": {
+    "title": "Part 3 — Two-Way Discussion",
+    "note": "The examiner asks broader, abstract questions linked to the Part 2 topic. Aim for extended, well-argued answers.",
+    "questions": ["broader question 1", "broader question 2", "broader question 3", "broader question 4"]
+  }
+}
+Return ONLY raw JSON, no markdown, no commentary.`;
+
+  try {
+    const rawText = await callGemini("You output raw JSON models for IELTS Speaking test content — natural, exam-realistic questions.", prompt, null, null);
+    const parsedObj = parseJSON(rawText);
+    if(parsedObj.part1 && Array.isArray(parsedObj.part1.questions) && parsedObj.part2 && parsedObj.part2.cue && Array.isArray(parsedObj.part2.cue.points) && parsedObj.part3 && Array.isArray(parsedObj.part3.questions)){
+      SPEAKING = parsedObj;
+      genProgressDone("speakingGen", "Done — new Part 1, 2 and 3 ready.");
+      alert("✨ Success! A new Speaking question set has been generated for all three parts.");
+      state.speaking.transcripts = {};
+      state.speaking.metrics = {};
+      state.speaking.report = null;
+      state.speaking.audioB64 = {};
+      state.speaking.audioMime = {};
+      renderSpeaking();
+    } else {
+      throw new Error("Missing required structure layers (part1/part2/part3).");
+    }
+  } catch (error) {
+    console.error(error);
+    genProgressHide("speakingGen");
+    alert("Failed to generate speaking questions: " + error.message);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+function renderSpeakingPart(part){
+  const S = state.speaking;
+  const body = document.getElementById("speakingBody");
+  const data = SPEAKING[part];
+  const transcript = S.transcripts[part] || "";
+  let promptHtml = "";
+
+  if(part==="part1" || part==="part3"){
+    promptHtml = `<div class="prompt-card"><span class="task-tag">${data.title}</span><p style="margin:0 0 8px;color:var(--slate);font-size:13px;">${data.note}</p> <ol style="padding-left:18px;line-height:2;">${data.questions.map(q=>`<li>${q}</li>`).join("")}</ol></div>`;
+  } else {
+    promptHtml = `<div class="prompt-card"><span class="task-tag">${data.title}</span><p style="margin:0 0 10px;color:var(--slate);font-size:13px;">${data.note}</p> <div class="cue-card"><b>${data.cue.title}</b><ul>${data.cue.points.map(p=>`<li>${p}</li>`).join("")}</ul></div></div>`;
+  }
+
+  const geminiOn = !!state.settings.geminiKey;
+  body.innerHTML = `
+    <div style="margin-bottom:14px;">
+      <span class="engine-badge ${geminiOn?'on':''}"><span class="engine-dot"></span> ${geminiOn ? "Gemini is listening to your real audio" : "Transcript-based scoring (add a Gemini key for real audio analysis)"}</span>
+    </div>
+    ${promptHtml}
+    <div class="rec-controls">
+      <button class="btn coral small" id="recBtn"><span class="rec-dot" id="recDot"></span> Record live</button>
+      <button class="btn ghost small" id="stopBtn" disabled>Stop</button>
+      <span class="mono" id="recTimer" style="font-size:13px;color:var(--slate);">00:00</span>
+      <div style="flex:1;"></div>
+      <button class="btn small" id="speakScoreBtn" ${S.loading?"disabled":""}>Evaluate Part</button>
+    </div>
+
+    <div class="upload-row">
+      <span style="font-size:12px;color:var(--slate);">Or upload pre-recorded audio file:</span>
+      <input type="file" id="audioUpload" accept="audio/*" style="font-size:12px;color:var(--slate);">
+    </div>
+
+    <div id="audioPlayback"></div>
+
+    <div style="margin-top:14px;">
+      <label style="font-size:12px;font-weight:600;color:var(--slate);display:block;margin-bottom:4px;">Speech Transcript Framework</label>
+      <div class="transcript-box" id="transcriptDisplay">${transcript || "(Your spoken text profile will render here dynamically during audio recording runtime...)"}</div>
+    </div>
+
+    <div class="metrics-row">
+      <div class="metric">Duration<b><span id="mDuration">${S.metrics[part]?.duration||"0"}</span>s</b></div>
+      <div class="metric">Words<b><span id="mWords">${S.metrics[part]?.words||"0"}</span></b></div>
+      <div class="metric">Pace<b><span id="mPace">${S.metrics[part]?.pace||"0"}</span> wpm</b></div>
+    </div>
+
+    <div id="speakReportArea"></div>
+    ${rubricPanel("speaking")}
+  `;
+
+  document.getElementById("recBtn").addEventListener("click", startRecording);
+  document.getElementById("stopBtn").addEventListener("click", stopRecording);
+  document.getElementById("speakScoreBtn").addEventListener("click", ()=>scoreSpeaking(part));
+  
+  const fileInp = document.getElementById("audioUpload");
+  fileInp.addEventListener("change", async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    document.getElementById("audioPlayback").innerHTML = `<audio controls src="${url}" style="width:100%;margin-bottom:10px;"></audio>`;
+    try{
+      const b64 = await blobToBase64(file);
+      S.audioB64[S.part] = b64;
+      S.audioMime[S.part] = file.type || "audio/mpeg";
+    }catch(err){
+      console.error(err);
+    }
+  });
+
+  if(S.report && S.report.part === part) showSpeakingReport(S.report.data, geminiOn);
+}
+
+let recTimerInterval=null;
+function startRecording(){
+  const S = state.speaking;
+  navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+    mediaChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e=>mediaChunks.push(e.data);
+    mediaRecorder.onstop = async ()=>{
+      const blob = new Blob(mediaChunks, {type:"audio/webm"});
+      const url = URL.createObjectURL(blob);
+      document.getElementById("audioPlayback").innerHTML = `<audio controls src="${url}" style="width:100%;margin-bottom:10px;"></audio>`;
+      stream.getTracks().forEach(t=>t.stop());
+      try{
+        const b64 = await blobToBase64(blob);
+        state.speaking.audioB64[state.speaking.part] = b64;
+        state.speaking.audioMime[state.speaking.part] = "audio/webm";
+      }catch(err){
+        console.error(err);
+      }
+    };
+
+    mediaRecorder.start();
+    recStartTime = Date.now();
+    speechFirstTs = null;
+    speechLastTs = null;
+    document.getElementById("recDot").classList.add("live");
+    document.getElementById("recBtn").disabled = true;
+    document.getElementById("stopBtn").disabled = false;
+
+    recTimerInterval = setInterval(()=>{
+      const s = Math.floor((Date.now()-recStartTime)/1000);
+      document.getElementById("recTimer").textContent = `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+    }, 500);
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(SR){
+      recognizer = new SR();
+      recognizer.continuous = true;
+      recognizer.interimResults = true;
+      recognizer.lang = "en-US";
+      let finalTrans = "";
+      recognizer.onresult = e=>{
+        const now = Date.now();
+        if(speechFirstTs===null) speechFirstTs = now;   // first detected speech, not the record click
+        speechLastTs = now;                              // last detected speech, excludes trailing silence
+        let interim = "";
+        for(let i=e.resultIndex; i<e.results.length; ++i){
+          if(e.results[i].isFinal) finalTrans += e.results[i][0].transcript + " ";
+          else interim += e.results[i][0].transcript;
+        }
+        const full = finalTrans + interim;
+        document.getElementById("transcriptDisplay").textContent = full;
+        S.transcripts[S.part] = full;
+
+        const wCount = full.trim() ? full.trim().split(/\s+/).length : 0;
+        const dSec = Math.max(1, Math.floor((now-recStartTime)/1000));
+        // WPM over actual speaking span (first→last detected speech), not total
+        // elapsed time, so pauses before speaking / after finishing no longer
+        // drag the figure down. For very short spans (<5 s) fall back to elapsed
+        // time so a single burst doesn't spike to an absurd number.
+        const spanSec = (speechLastTs - speechFirstTs)/1000;
+        const effectiveSec = spanSec >= 5 ? spanSec : Math.max(1,(now-recStartTime)/1000);
+        const pace = Math.round((wCount / effectiveSec) * 60);
+
+        document.getElementById("mWords").textContent = wCount;
+        document.getElementById("mDuration").textContent = dSec;
+        document.getElementById("mPace").textContent = pace;
+
+        S.metrics[S.part] = { words:wCount, duration:dSec, pace, speakingSec: Math.round(spanSec) };
+      };
+      recognizer.start();
+    }
+  }).catch(err=>{
+    alert("Could not access microphone feed profile.");
+  });
+}
+
+function stopRecording(){
+  if(mediaRecorder && mediaRecorder.state!=="inactive") mediaRecorder.stop();
+  if(recognizer) recognizer.stop();
+  clearInterval(recTimerInterval);
+  document.getElementById("recDot").classList.remove("live");
+  document.getElementById("recBtn").disabled = false;
+  document.getElementById("stopBtn").disabled = true;
+
+  // Finalise metrics against the true speaking span (excludes trailing silence
+  // between the last word and pressing Stop).
+  const S = state.speaking;
+  const m = S.metrics[S.part];
+  if(m && speechFirstTs!==null && speechLastTs!==null){
+    const spanSec = Math.max(1,(speechLastTs - speechFirstTs)/1000);
+    if(spanSec >= 5){
+      m.pace = Math.round((m.words / spanSec) * 60);
+      m.speakingSec = Math.round(spanSec);
+      const el = document.getElementById("mPace");
+      if(el) el.textContent = m.pace;
+    }
+  }
+}
+
+async function scoreSpeaking(part){
+  const S = state.speaking;
+  const transcript = S.transcripts[part] || "";
+  const geminiOn = !!state.settings.geminiKey;
+  
+  const btn = document.getElementById("speakScoreBtn");
+  const original = btn.textContent;
+  btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
+  btn.disabled = true;
+
+  try{
+    const promptText = part==="part2" ? SPEAKING.part2.cue.title : SPEAKING[part].questions.join(" / ");
+    let json;
+
+    if(geminiOn){
+      const user = `Speaking part: ${part}\nPrompt(s): ${promptText}\nTranscript reference: ${transcript || "(none)"}`;
+      const text = await callGemini(SPEAKING_RUBRIC_AUDIO, user, S.audioB64[part], S.audioMime[part]);
+      json = parseJSON(text);
+      json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].map(Number).reduce((a,b)=>a+b,0)/4);
+    } else {
+      if(!transcript.trim()){
+        alert("Please record or provide text context first.");
+        btn.textContent = original; btn.disabled = false; return;
+      }
+      const user = `Speaking prompt context: ${promptText}\nCandidate text string: ${transcript}`;
+      const text = await callGemini(SPEAKING_RUBRIC_TRANSCRIPT, user, null, null);
+      json = parseJSON(text);
+      json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].map(Number).reduce((a,b)=>a+b,0)/4);
+    }
+
+    S.report = { part, data: json };
+    showSpeakingReport(json, geminiOn);
+    recordScore("speaking", json.overall_band, `Part simulation calculation index`);
+  }catch(e){
+    console.error(e);
+    document.getElementById("speakReportArea").innerHTML = `<div class="hint-box" style="border-color:var(--coral);">Couldn't reach the AI examiner right now.</div>`;
+  }
+  btn.textContent = original;
+  btn.disabled = false;
+}
+
+function fmtBand(v){ const n = Number(v); return isFinite(n) ? n.toFixed(1) : "—"; }
+
+function showSpeakingReport(r, geminiOn){
+  const rows = [
+    ["Fluency & Coherence", r.fluency_coherence],
+    ["Lexical Resource", r.lexical_resource],
+    ["Grammatical Range & Accuracy", r.grammar],
+    [geminiOn ? "Pronunciation (from audio)" : "Pronunciation (estimated)", r.pronunciation]
+  ].filter(([,c])=>c);
+  const S = state.speaking;
+  const m = S.metrics[S.part];
+  let paceNote = "";
+  if(m && m.pace){
+    const w = m.words || 0;
+    const spoken = m.speakingSec || m.duration || 0;
+    let verdict = "a natural, comfortable IELTS pace";
+    if(m.pace < 100) verdict = "a little slow — aim for smoother, more connected delivery";
+    else if(m.pace > 170) verdict = "quite fast — make sure clarity isn't sacrificed for speed";
+    paceNote = `<div class="pace-note"><b>Delivery:</b> ${w} words over about ${spoken}s of speaking ≈ <b>${m.pace} wpm</b> — ${verdict}. <span style="opacity:.75;">(Pace is a study aid, not an official band criterion.)</span></div>`;
+  }
+  const heard = r.heard_transcript ? `
+    <div class="heard-box">
+      <b>What the examiner heard</b>
+      <p>${escapeXml(r.heard_transcript)}</p>
+    </div>` : "";
+  document.getElementById("speakReportArea").innerHTML = `
+    <div class="score-report">
+      <div class="overall-row">
+        <div class="seal"><span class="band-num">${fmtBand(r.overall_band)}</span><span class="band-lbl">Band</span></div>
+        <div class="seal seal-cefr"><span class="band-num" style="font-size:26px;">${bandToCEFR(r.overall_band)}</span><span class="band-lbl">CEFR</span></div>
+        <div class="overall-text"><p class="big">${r.summary || ""}</p></div>
+      </div>
+      ${paceNote}
+      <div class="feedback-label">Feedback by criterion</div>
+      ${rows.map(([name,c])=>`
+        <div class="criterion-row">
+          <div><div class="name">${name}</div><div class="comment">${c.comment || ""}</div></div>
+          <div class="band">${fmtBand(c.band)}</div>
+        </div>
+      `).join("")}
+      ${heard}
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
