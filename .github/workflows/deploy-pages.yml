@@ -7,8 +7,8 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Permissions the deploy needs. `pages: write` lets the workflow both enable
-# Pages (see configure-pages `enablement: true`) and publish to it.
+# Permissions the deploy needs. `pages: write` lets the build job enable Pages
+# (configure-pages `enablement: true`) and lets the deploy job publish to it.
 permissions:
   contents: read
   pages: write
@@ -20,11 +20,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  # Build runs with no environment so, on the very first run, it can enable
+  # Pages and create the github-pages environment BEFORE the deploy job (which
+  # is gated on that environment) starts. Combining them in one job deadlocks
+  # the first deploy.
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,6 +41,13 @@ jobs:
           # Publish the whole repo root; index.html is the entry point.
           path: '.'
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
