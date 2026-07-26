@@ -2580,9 +2580,29 @@ function renderWriting(){
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
         <div>
           <b>AI Writing Generator (Replaces existing tasks)</b>
-          <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Generate a completely fresh simulated exam context for Task 1 and Task 2." : "Add a Gemini API key to enable live prompt generation."}</p>
+          <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Generate a completely fresh simulated exam context for Task 1 and Task 2 — pick a topic or leave it random." : "Add a Gemini API key to enable live prompt generation."}</p>
         </div>
-        <button id="generateWritingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate New Writing Exam</button>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <select id="writingTopic" style="border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px;" ${!geminiOn ? "disabled" : ""}>
+            <option value="random">Random Topic</option>
+            <option value="Education & Learning">Education & Learning</option>
+            <option value="Technology & the Internet">Technology & the Internet</option>
+            <option value="Environment & Climate Change">Environment & Climate</option>
+            <option value="Health, Diet & Lifestyle">Health & Lifestyle</option>
+            <option value="Work, Employment & Careers">Work & Employment</option>
+            <option value="Urbanisation, Housing & Transport">Cities & Transport</option>
+            <option value="Tourism & Travel">Tourism & Travel</option>
+            <option value="Society, Culture & Traditions">Society & Culture</option>
+            <option value="Economy & Consumer Spending">Economy & Spending</option>
+            <option value="Media, Advertising & Communication">Media & Communication</option>
+            <option value="Government & Public Policy">Government & Policy</option>
+            <option value="Crime, Law & Justice">Crime & Law</option>
+            <option value="Family & Relationships">Family & Relationships</option>
+            <option value="Energy & Natural Resources">Energy & Resources</option>
+            <option value="Globalisation & International Affairs">Globalisation</option>
+          </select>
+          <button id="generateWritingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate New Writing Exam</button>
+        </div>
       </div>
       <div class="gen-progress" id="writingGenBar" style="display:none;">
         <div class="gen-progress-track"><div class="gen-progress-fill"></div></div>
@@ -2681,9 +2701,17 @@ async function generateNewWritingWithAI() {
   const originalText = btn.textContent;
   btn.textContent = "Generating Prompt...";
   btn.disabled = true;
-  genProgressShow("writingGen", "Writing a new Task 1 + Task 2 exam context…");
+  const topicSel = document.getElementById("writingTopic");
+  const topic = topicSel ? topicSel.value : "random";
+  const themed = topic && topic !== "random";
+  genProgressShow("writingGen", themed ? `Writing a new "${topic}" exam…` : "Writing a new Task 1 + Task 2 exam context…");
 
-  const prompt = `Create a completely new IELTS Academic Writing exam containing both Task 1 and Task 2. 
+  const themeLine = themed
+    ? `Both tasks must be based on the theme: "${topic}". The Task 1 chart/data set and the Task 2 discussion statement should each clearly relate to this theme (they need not use identical data).`
+    : `Choose any appropriate, realistic academic theme.`;
+
+  const prompt = `Create a completely new IELTS Academic Writing exam containing both Task 1 and Task 2.
+${themeLine}
 You must return a raw JSON object matching this exact schema shape:
 {
   "task1": {
