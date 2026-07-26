@@ -529,13 +529,13 @@ textarea.essay{
       <button id="closeSettings" class="btn ghost small">Close</button>
     </div>
     <p style="font-size:13px;color:var(--slate);line-height:1.6;margin:0 0 18px;">
-      Writing hints/scoring, paragraph feedback, and Speaking scoring all run on <b>Gemini 3.6 Flash-Lite</b> using the key below. To score Speaking from the <b>actual audio</b> (real pronunciation and intonation, not just the transcript), Gemini listens to the audio directly. Paste your key once and it is saved in this browser only — get a free key at
+      Writing hints/scoring, paragraph feedback, and Speaking scoring all run on <b>Gemini 3.5 Flash-Lite</b> using the key below. To score Speaking from the <b>actual audio</b> (real pronunciation and intonation, not just the transcript), Gemini listens to the audio directly. Paste your key once and it is saved in this browser only — get a free key at
       <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
     </p>
     <label style="font-size:12px;font-weight:600;color:var(--slate);">Gemini API key (stored only in this browser)</label>
     <input type="password" id="geminiKeyInput" placeholder="AIza..." style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
     <label style="font-size:12px;font-weight:600;color:var(--slate);">Text model (hints, scoring, paragraph feedback)</label>
-    <input type="text" id="geminiModelInput" value="gemini-3.6-flash-lite" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
+    <input type="text" id="geminiModelInput" value="gemini-3.5-flash-lite" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
     <div class="disclaimer" style="margin-top:0;">
       ⚠️ Important: this key is used directly from your browser and is visible to anyone who inspects this page's network traffic. That's fine for your own personal use, but <b>never share this exported HTML file with your key already saved in it</b> — if you want students to use Speaking scoring too, each of them should add their own key, or you should route requests through a small server you control that holds the key instead.
     </div>
@@ -943,7 +943,7 @@ const state = {
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
   speaking: { part:"part1", transcripts:{}, metrics:{}, report:null, loading:false, recording:false, audioB64:{}, audioMime:{}, language:{}, hesitation:{}, bandVersions:{} },
-  settings: { geminiKey:"", geminiModel:"gemini-3.6-flash-lite" }
+  settings: { geminiKey:"", geminiModel:"gemini-3.5-flash-lite" }
 };
 
 /* =========================================================================
@@ -1008,12 +1008,12 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   // Migrate older stored model defaults to the current one. The API key is
   // intentionally NOT hard-coded in this file — it comes from config.local.js or
   // the "⚙ AI engine" panel, so it never lands in the repo.
-  const OLD_MODELS = ["gemini-3.1-flash-lite","gemini-2.5-flash-lite","gemini-1.5-flash-latest",""];
+  const OLD_MODELS = ["gemini-3.6-flash-lite","gemini-3.1-flash-lite","gemini-2.5-flash-lite","gemini-1.5-flash-latest",""];
   if(!state.settings.geminiModel || OLD_MODELS.includes(state.settings.geminiModel)){
-    state.settings.geminiModel = cfgModel || "gemini-3.6-flash-lite";
+    state.settings.geminiModel = cfgModel || "gemini-3.5-flash-lite";
   }
   document.getElementById("geminiKeyInput").value = state.settings.geminiKey || "";
-  document.getElementById("geminiModelInput").value = state.settings.geminiModel || "gemini-3.6-flash-lite";
+  document.getElementById("geminiModelInput").value = state.settings.geminiModel || "gemini-3.5-flash-lite";
   await loadHistory();
   render();
 });
@@ -1052,7 +1052,7 @@ function friendlyGeminiError(status, bodyText){
 
 async function callGemini(systemPrompt, userText, audioBase64, audioMime){
   const key = (state.settings.geminiKey || "").trim();
-  const model = (state.settings.geminiModel || "gemini-3.6-flash-lite").trim();
+  const model = (state.settings.geminiModel || "gemini-3.5-flash-lite").trim();
   if(!key){
     throw new Error("No API key set. Open “⚙ AI engine”, paste your Gemini key, and Save (or add it to config.local.js).");
   }
@@ -1352,7 +1352,7 @@ document.getElementById("settingsBtn").addEventListener("click", ()=>sOverlay.st
 document.getElementById("closeSettings").addEventListener("click", ()=>sOverlay.style.display="none");
 document.getElementById("saveSettings").addEventListener("click", async ()=>{
   state.settings.geminiKey = document.getElementById("geminiKeyInput").value.trim();
-  state.settings.geminiModel = document.getElementById("geminiModelInput").value.trim() || "gemini-3.6-flash-lite";
+  state.settings.geminiModel = document.getElementById("geminiModelInput").value.trim() || "gemini-3.5-flash-lite";
   try{
     await window.storage.set("ielts-settings", JSON.stringify(state.settings), false);
   }catch(e){}

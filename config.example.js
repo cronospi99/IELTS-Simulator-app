@@ -23,5 +23,5 @@
 
 window.GEMINI_CONFIG = {
   key: "PASTE_YOUR_GEMINI_API_KEY_HERE",
-  model: "gemini-3.6-flash-lite"
+  model: "gemini-3.5-flash-lite"
 };
