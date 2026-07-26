@@ -421,6 +421,29 @@ textarea.essay{
 .g-type{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#8a6c11;background:#fbf4de;border-radius:999px;padding:2px 8px;margin-left:8px;vertical-align:middle;}
 .g-none{font-size:13px;color:var(--teal);}
 
+.transcript-box[contenteditable]:empty:before{content:attr(data-placeholder);color:var(--slate);opacity:.7;}
+.transcript-box[contenteditable]:focus{outline:2px solid var(--brass-2);outline-offset:1px;}
+
+/* ---------- hesitation analysis ---------- */
+.hes-box{background:#fff;border:1px solid var(--line);border-left:3px solid var(--azure);border-radius:0 10px 10px 0;padding:16px 18px;margin-top:14px;}
+.hes-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.hes-head b{font-size:13.5px;color:var(--ink);}
+.hes-level{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border:1px solid;border-radius:999px;padding:3px 10px;}
+.hes-meter{height:9px;border-radius:99px;background:var(--paper-2);border:1px solid var(--line);overflow:hidden;}
+.hes-meter-fill{height:100%;border-radius:99px;transition:width .5s ease;}
+.hes-scale{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);margin-top:4px;}
+.hes-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;}
+@media(max-width:640px){.hes-grid{grid-template-columns:repeat(2,1fr);}}
+.hes-stat{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:10px 12px;}
+.hes-stat span{display:block;font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;}
+.hes-stat b{display:block;font-family:'Fraunces',serif;font-size:22px;color:var(--ink);line-height:1.2;margin:2px 0;}
+.hes-stat i{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--slate);font-style:normal;}
+.hes-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.hes-chip{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);border:1px solid var(--line);border-radius:999px;padding:3px 10px;}
+.hes-chip b{color:var(--ink);}
+.hes-advice{font-size:13px;line-height:1.65;color:#1f4238;background:#eef4f2;border-radius:8px;padding:11px 14px;margin-top:12px;}
+.hes-foot{font-size:11px;color:var(--slate);line-height:1.5;margin:10px 0 0;}
+
 /* ---------- band-score model versions ---------- */
 .band-versions{background:linear-gradient(180deg,#fbf9f2,#f2eddd);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:20px;}
 .band-versions h3{font-family:'Fraunces',serif;font-size:18px;margin:0 0 4px;color:var(--ink);}
@@ -919,7 +942,7 @@ const state = {
   listening: { answers:{}, submitted:false, playedParts:{}, customAudio:{} },
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
-  speaking: { part:"part1", transcripts:{}, metrics:{}, report:null, loading:false, recording:false, audioB64:{}, audioMime:{} },
+  speaking: { part:"part1", transcripts:{}, metrics:{}, report:null, loading:false, recording:false, audioB64:{}, audioMime:{}, language:{}, hesitation:{}, bandVersions:{} },
   settings: { geminiKey:"", geminiModel:"gemini-3.6-flash-lite" }
 };
 
@@ -1409,6 +1432,9 @@ function collectSessionData(){
       transcripts: state.speaking.transcripts,
       metrics: state.speaking.metrics,
       report: state.speaking.report,
+      language: state.speaking.language || {},
+      hesitation: state.speaking.hesitation || {},
+      bandVersions: state.speaking.bandVersions || {},
       questions: SPEAKING
     }
   };
@@ -1452,6 +1478,9 @@ function applySessionData(data){
     state.speaking.transcripts = data.speaking.transcripts || {};
     state.speaking.metrics = data.speaking.metrics || {};
     state.speaking.report = data.speaking.report || null;
+    state.speaking.language = data.speaking.language || {};
+    state.speaking.hesitation = data.speaking.hesitation || {};
+    state.speaking.bandVersions = data.speaking.bandVersions || {};
     if(data.speaking.questions && data.speaking.questions.part1 && data.speaking.questions.part2 && data.speaking.questions.part3){
       SPEAKING = data.speaking.questions;
     }
@@ -3694,7 +3723,7 @@ function showBandVersionBody(task, band){
    SPEAKING
    ========================================================================= */
 
-let mediaRecorder=null, mediaChunks=[], recStartTime=null, recognizer=null, speechFirstTs=null, speechLastTs=null;
+let mediaRecorder=null, mediaChunks=[], recStartTime=null, recognizer=null, speechFirstTs=null, speechLastTs=null, speechPauses=[];
 function renderSpeaking(){
   const S = state.speaking;
   const geminiOn = !!state.settings.geminiKey;
@@ -3793,6 +3822,9 @@ Return ONLY raw JSON, no markdown, no commentary.`;
       state.speaking.report = null;
       state.speaking.audioB64 = {};
       state.speaking.audioMime = {};
+      state.speaking.language = {};
+      state.speaking.hesitation = {};
+      state.speaking.bandVersions = {};
       renderSpeaking();
     } else {
       throw new Error("Missing required structure layers (part1/part2/part3).");
@@ -3842,23 +3874,49 @@ function renderSpeakingPart(part){
     <div id="audioPlayback"></div>
 
     <div style="margin-top:14px;">
-      <label style="font-size:12px;font-weight:600;color:var(--slate);display:block;margin-bottom:4px;">Speech Transcript Framework</label>
-      <div class="transcript-box" id="transcriptDisplay">${transcript || "(Your spoken text profile will render here dynamically during audio recording runtime...)"}</div>
+      <label style="font-size:12px;font-weight:600;color:var(--slate);display:block;margin-bottom:4px;">Speech Transcript Framework <span style="font-weight:400;">— fills in as you speak; you can also type or paste here</span></label>
+      <div class="transcript-box" id="transcriptDisplay" contenteditable="true" spellcheck="false" data-placeholder="(Your spoken text renders here while recording — or type/paste a transcript.)">${escapeXml(transcript)}</div>
     </div>
 
     <div class="metrics-row">
       <div class="metric">Duration<b><span id="mDuration">${S.metrics[part]?.duration||"0"}</span>s</b></div>
       <div class="metric">Words<b><span id="mWords">${S.metrics[part]?.words||"0"}</span></b></div>
       <div class="metric">Pace<b><span id="mPace">${S.metrics[part]?.pace||"0"}</span> wpm</b></div>
+      <div class="metric">Fillers<b><span id="mFillers">${S.metrics[part]?.fillers ?? "0"}</span></b></div>
+      <div class="metric">Long pauses<b><span id="mPauses">${S.metrics[part]?.longPauses ?? "0"}</span></b></div>
     </div>
 
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+      <button class="btn secondary small" id="speakLangBtn">Grammar &amp; language check</button>
+      <button class="btn secondary small" id="hesitationBtn">Hesitation analysis</button>
+    </div>
+
+    <div id="hesitationArea"></div>
+    <div id="speakLangArea"></div>
     <div id="speakReportArea"></div>
+    <div id="speakBandVersionsArea"></div>
     ${rubricPanel("speaking")}
   `;
 
   document.getElementById("recBtn").addEventListener("click", startRecording);
   document.getElementById("stopBtn").addEventListener("click", stopRecording);
   document.getElementById("speakScoreBtn").addEventListener("click", ()=>scoreSpeaking(part));
+  document.getElementById("speakLangBtn").addEventListener("click", ()=>requestSpeakingLanguageCheck(part));
+  document.getElementById("hesitationBtn").addEventListener("click", ()=>runHesitationAnalysis(part));
+
+  // Typed/pasted transcripts feed the same analysis as recorded speech, so the
+  // tools still work in browsers without SpeechRecognition or with uploaded audio.
+  const tBox = document.getElementById("transcriptDisplay");
+  tBox.addEventListener("input", ()=>{
+    const txt = tBox.textContent || "";
+    S.transcripts[part] = txt;
+    const words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+    const m = S.metrics[part] || (S.metrics[part] = {});
+    m.words = words;
+    m.fillers = countFillers(txt).total;
+    const wEl = document.getElementById("mWords"); if(wEl) wEl.textContent = words;
+    const fEl = document.getElementById("mFillers"); if(fEl) fEl.textContent = m.fillers;
+  });
   
   const fileInp = document.getElementById("audioUpload");
   fileInp.addEventListener("change", async (e)=>{
@@ -3875,6 +3933,8 @@ function renderSpeakingPart(part){
     }
   });
 
+  if(S.hesitation && S.hesitation[part]) showHesitation(part);
+  if(S.language && S.language[part]) showSpeakingLanguage(part);
   if(S.report && S.report.part === part) showSpeakingReport(S.report.data, geminiOn);
 }
 
@@ -3903,6 +3963,7 @@ function startRecording(){
     recStartTime = Date.now();
     speechFirstTs = null;
     speechLastTs = null;
+    speechPauses = [];   // silent gaps between detected speech, in seconds
     document.getElementById("recDot").classList.add("live");
     document.getElementById("recBtn").disabled = true;
     document.getElementById("stopBtn").disabled = false;
@@ -3922,6 +3983,13 @@ function startRecording(){
       recognizer.onresult = e=>{
         const now = Date.now();
         if(speechFirstTs===null) speechFirstTs = now;   // first detected speech, not the record click
+        // A gap between consecutive recognition events approximates a silent
+        // pause. Interim results fire continuously while speaking, so only real
+        // hesitations open a gap this large.
+        if(speechLastTs !== null){
+          const gap = (now - speechLastTs)/1000;
+          if(gap >= 0.9) speechPauses.push(Math.round(gap*10)/10);
+        }
         speechLastTs = now;                              // last detected speech, excludes trailing silence
         let interim = "";
         for(let i=e.resultIndex; i<e.results.length; ++i){
@@ -3942,11 +4010,16 @@ function startRecording(){
         const effectiveSec = spanSec >= 5 ? spanSec : Math.max(1,(now-recStartTime)/1000);
         const pace = Math.round((wCount / effectiveSec) * 60);
 
+        const fillerCount = countFillers(full).total;
+        const longPauses = speechPauses.filter(p=>p>=2).length;
         document.getElementById("mWords").textContent = wCount;
         document.getElementById("mDuration").textContent = dSec;
         document.getElementById("mPace").textContent = pace;
+        const fEl = document.getElementById("mFillers"); if(fEl) fEl.textContent = fillerCount;
+        const pEl = document.getElementById("mPauses"); if(pEl) pEl.textContent = longPauses;
 
-        S.metrics[S.part] = { words:wCount, duration:dSec, pace, speakingSec: Math.round(spanSec) };
+        S.metrics[S.part] = { words:wCount, duration:dSec, pace, speakingSec: Math.round(spanSec),
+                              fillers: fillerCount, longPauses, pauses: speechPauses.slice() };
       };
       recognizer.start();
     }
@@ -4008,6 +4081,19 @@ async function scoreSpeaking(part){
       json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].map(Number).reduce((a,b)=>a+b,0)/4);
     }
 
+    // With uploaded audio there is no live transcript; adopt the examiner's own
+    // transcription so the language check and hesitation tools have text to work on.
+    if(!transcript.trim() && json.heard_transcript){
+      S.transcripts[part] = json.heard_transcript;
+      const tBox = document.getElementById("transcriptDisplay");
+      if(tBox) tBox.textContent = json.heard_transcript;
+      const words = json.heard_transcript.trim().split(/\s+/).length;
+      const m = S.metrics[part] || (S.metrics[part] = {});
+      m.words = words; m.fillers = countFillers(json.heard_transcript).total;
+      const wEl = document.getElementById("mWords"); if(wEl) wEl.textContent = words;
+      const fEl = document.getElementById("mFillers"); if(fEl) fEl.textContent = m.fillers;
+    }
+
     S.report = { part, data: json };
     showSpeakingReport(json, geminiOn);
     recordScore("speaking", json.overall_band, `Part simulation calculation index`);
@@ -4062,6 +4148,341 @@ function showSpeakingReport(r, geminiOn){
       ${heard}
     </div>
   `;
+  // After assessment, offer model spoken answers at each band.
+  renderSpeakingBandVersions(state.speaking.part);
+}
+
+/* =========================================================================
+   SPEAKING — HESITATION ANALYSIS (runs locally, no API key needed)
+   ========================================================================= */
+
+/* Filler/discourse markers counted as hesitation signals. Single-word fillers
+   are unambiguous; the multi-word ones ("you know", "sort of") are typical
+   stalling phrases in IELTS speech. */
+const FILLER_PATTERNS = [
+  { label:"um / uh / er",      re:/\b(?:u+m+|u+h+|e+r+m?|a+h+|hm+|mm+)\b/gi },
+  { label:"like (filler)",     re:/\blike\b/gi },
+  { label:"you know",          re:/\byou know\b/gi },
+  { label:"I mean",            re:/\bi mean\b/gi },
+  { label:"sort of / kind of", re:/\b(?:sort of|kind of|kinda|sorta)\b/gi },
+  { label:"well (opener)",     re:/\bwell\b/gi },
+  { label:"basically / actually", re:/\b(?:basically|actually|literally)\b/gi }
+];
+
+function countFillers(text){
+  const t = String(text||"");
+  const breakdown = [];
+  let total = 0;
+  FILLER_PATTERNS.forEach(f=>{
+    const m = t.match(f.re);
+    const n = m ? m.length : 0;
+    if(n>0) breakdown.push({ label:f.label, count:n });
+    total += n;
+  });
+  return { total, breakdown };
+}
+
+/* Immediate word/phrase repetitions ("I I think", "the the") are a classic
+   sign of self-correction and stalling. */
+function countRepetitions(text){
+  const words = String(text||"").toLowerCase().replace(/[^a-z\s']/g," ").split(/\s+/).filter(Boolean);
+  let reps = 0;
+  const examples = [];
+  for(let i=1;i<words.length;i++){
+    // "I I think" and "the the" are both genuine spoken repetitions, so
+    // single-letter words count too.
+    if(words[i] === words[i-1]){
+      reps++;
+      if(examples.length<5) examples.push(words[i-1]+" "+words[i]);
+    }
+  }
+  return { reps, examples };
+}
+
+function runHesitationAnalysis(part){
+  const S = state.speaking;
+  const transcript = S.transcripts[part] || "";
+  const m = S.metrics[part] || {};
+  if(!transcript.trim()){
+    alert("Record (or type) a response first — hesitation analysis reads your transcript.");
+    return;
+  }
+  const words = transcript.trim().split(/\s+/).length;
+  const fillers = countFillers(transcript);
+  const { reps, examples } = countRepetitions(transcript);
+  const pauses = Array.isArray(m.pauses) ? m.pauses : [];
+  const longPauses = pauses.filter(p=>p>=2);
+  const spokenSec = m.speakingSec || m.duration || 0;
+  const perMin = spokenSec > 0 ? (60/spokenSec) : 0;
+
+  const fillerRate = words ? (fillers.total / words) * 100 : 0;          // per 100 words
+  const pauseRate  = spokenSec ? longPauses.length * perMin : 0;          // long pauses per minute
+  const longestPause = pauses.length ? Math.max(...pauses) : 0;
+
+  // Weighted 0-100 index: lower is smoother. Filler density and long-pause
+  // frequency dominate; repetitions add a smaller penalty. Weights are set so
+  // that ~2 fillers/100 words reads as low and ~12/100 reads as high, which
+  // roughly matches the spread between confident and struggling IELTS speakers.
+  const idx = Math.min(100, Math.round(fillerRate*5 + pauseRate*8 + (words? (reps/words)*100*4 : 0)));
+  let level, tone, advice;
+  if(idx < 18){ level="Low hesitation"; tone="good";
+    advice="Your delivery is smooth and sustained — this supports a strong Fluency & Coherence band."; }
+  else if(idx < 38){ level="Moderate hesitation"; tone="ok";
+    advice="Mostly fluent with some stalling. Reduce fillers by pausing silently to think instead of saying 'um' or 'like'."; }
+  else if(idx < 60){ level="Noticeable hesitation"; tone="warn";
+    advice="Hesitation is interrupting your flow. Practise speaking in longer chunks and prepare stock phrases to buy thinking time naturally."; }
+  else { level="High hesitation"; tone="bad";
+    advice="Frequent pauses and fillers are breaking up your answer. Try recording shorter answers first and building up length while keeping the flow."; }
+
+  S.hesitation[part] = {
+    words, fillers, reps, examples,
+    pauses, longPauses: longPauses.length, longestPause,
+    fillerRate: Math.round(fillerRate*10)/10,
+    pauseRate: Math.round(pauseRate*10)/10,
+    spokenSec, index: idx, level, tone, advice,
+    hadTiming: pauses.length > 0 || spokenSec > 0,
+    shortSample: words < 30
+  };
+  showHesitation(part);
+}
+
+function showHesitation(part){
+  const h = state.speaking.hesitation[part];
+  const area = document.getElementById("hesitationArea");
+  if(!area) return;
+  if(!h){ area.innerHTML = ""; return; }
+  const barColor = h.tone==="good" ? "var(--teal)" : h.tone==="ok" ? "var(--brass)" : h.tone==="warn" ? "#d17a2a" : "var(--coral)";
+  const chips = (h.fillers.breakdown||[]).map(b=>`<span class="hes-chip">${escapeXml(b.label)} <b>${b.count}</b></span>`).join("") || `<span class="hes-chip">no fillers detected</span>`;
+  area.innerHTML = `
+    <div class="hes-box">
+      <div class="hes-head">
+        <b>Hesitation analysis</b>
+        <span class="hes-level" style="color:${barColor};border-color:${barColor};">${escapeXml(h.level)}</span>
+      </div>
+      <div class="hes-meter"><div class="hes-meter-fill" style="width:${h.index}%;background:${barColor};"></div></div>
+      <div class="hes-scale"><span>smooth</span><span>hesitant</span></div>
+      <div class="hes-grid">
+        <div class="hes-stat"><span>Filler words</span><b>${h.fillers.total}</b><i>${h.fillerRate} per 100 words</i></div>
+        <div class="hes-stat"><span>Long pauses (2s+)</span><b>${h.longPauses}</b><i>${h.hadTiming ? h.pauseRate+" per minute" : "timing unavailable"}</i></div>
+        <div class="hes-stat"><span>Repetitions</span><b>${h.reps}</b><i>${h.examples.length ? escapeXml(h.examples.slice(0,3).join(", ")) : "none"}</i></div>
+        <div class="hes-stat"><span>Longest pause</span><b>${h.longestPause ? h.longestPause+"s" : "—"}</b><i>${h.spokenSec ? h.spokenSec+"s speaking" : "—"}</i></div>
+      </div>
+      <div class="hes-chips">${chips}</div>
+      <div class="hes-advice">${escapeXml(h.advice)}</div>
+      <p class="hes-foot">${h.shortSample ? "<b>Short sample</b> — under 30 words, so these rates are only indicative. " : ""}Pause timing is captured from live recording only (not uploaded files), and filler counts come from the transcript — treat these as a study aid, not an official measure.</p>
+    </div>`;
+}
+
+/* =========================================================================
+   SPEAKING — GRAMMAR & LANGUAGE CHECK
+   ========================================================================= */
+
+const SPEAKING_LANGUAGE_SYS = `You are an IELTS Speaking examiner giving corrective language feedback on a candidate's spoken answer (given as a transcript, so ignore missing punctuation and capitalisation unless it changes meaning).
+Correct grammar and usage as a speaking coach: verb tense/aspect, subject-verb agreement, articles, prepositions, plurals, word form, pronouns, word order, and clearly wrong word choice or collocation. Also flag overused basic vocabulary and suggest a stronger natural alternative.
+Do NOT rewrite the candidate's ideas, and do NOT invent content they did not say.
+Respond with ONLY raw JSON in this exact shape:
+{
+  "summary": "one short sentence, e.g. '7 issues: 3 verb tense, 2 articles, 2 word choice'",
+  "corrected": "the FULL answer rewritten with correct grammar and natural phrasing, keeping the candidate's own ideas and register",
+  "errors": [
+    { "original": "the exact phrase the candidate said", "correction": "the corrected phrase", "type": "verb tense | subject-verb agreement | article | preposition | plural | word form | pronoun | word order | word choice | collocation | other", "explanation": "one short reason" }
+  ],
+  "upgrades": [
+    { "original": "a basic word/phrase they used", "suggestion": "a higher-band natural alternative", "why": "one short reason" }
+  ]
+}
+If there are no issues, return empty arrays and set "corrected" to the original text.`;
+
+async function requestSpeakingLanguageCheck(part){
+  const S = state.speaking;
+  const transcript = S.transcripts[part] || "";
+  if(!transcript.trim()){
+    alert("Record (or type) a response first — the language check reads your transcript.");
+    return;
+  }
+  if(!state.settings.geminiKey){
+    alert("Add a Gemini API key in ⚙ AI engine settings first.");
+    return;
+  }
+  const btn = document.getElementById("speakLangBtn");
+  const original = btn.textContent;
+  btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
+  btn.disabled = true;
+  try{
+    const promptText = part==="part2" ? SPEAKING.part2.cue.title : SPEAKING[part].questions.join(" / ");
+    const user = `IELTS Speaking ${part.replace("part","Part ")}.\nExaminer prompt(s): ${promptText}\n\nCandidate's spoken answer (transcript):\n${transcript}`;
+    const text = await callGemini(SPEAKING_LANGUAGE_SYS, user, null, null);
+    const json = parseJSON(text);
+    S.language[part] = {
+      summary: json.summary || "",
+      corrected: json.corrected || transcript,
+      errors: Array.isArray(json.errors) ? json.errors : [],
+      upgrades: Array.isArray(json.upgrades) ? json.upgrades : []
+    };
+    showSpeakingLanguage(part);
+  }catch(e){
+    console.error(e);
+    document.getElementById("speakLangArea").innerHTML =
+      `<div class="hint-box" style="border-color:var(--coral);">Language check failed: ${escapeXml(e.message)}</div>`;
+  }
+  btn.textContent = original;
+  btn.disabled = false;
+}
+
+function showSpeakingLanguage(part){
+  const g = state.speaking.language[part];
+  const area = document.getElementById("speakLangArea");
+  if(!area) return;
+  if(!g){ area.innerHTML = ""; return; }
+  const errs = g.errors || [], ups = g.upgrades || [];
+  area.innerHTML = `
+    <div class="grammar-box">
+      <div class="g-head">
+        <b>Grammar &amp; language check</b>
+        <span class="grammar-summary">${escapeXml(g.summary || (errs.length ? errs.length+" issue(s)" : "No language issues found"))}</span>
+      </div>
+      <div class="grammar-corrected">${escapeXml(g.corrected || "")}</div>
+      <button class="btn ghost small" id="copySpeakLangBtn">Copy corrected answer</button>
+      ${errs.length ? `
+        <div class="feedback-label" style="margin-top:14px;">Corrections</div>
+        <ul class="grammar-list">
+          ${errs.map(e=>`
+            <li>
+              <span class="bad-phrase">${escapeXml(e.original||"")}</span>
+              <span class="arrow">→</span>
+              <span class="good-phrase">${escapeXml(e.correction||"")}</span>
+              ${e.type ? `<span class="g-type">${escapeXml(e.type)}</span>` : ""}
+              ${e.explanation ? `<div class="why">${escapeXml(e.explanation)}</div>` : ""}
+            </li>`).join("")}
+        </ul>` : `<div class="g-none" style="margin-top:12px;">✓ No grammar issues detected in this answer.</div>`}
+      ${ups.length ? `
+        <div class="feedback-label" style="margin-top:14px;">Vocabulary upgrades</div>
+        <ul class="grammar-list">
+          ${ups.map(u=>`
+            <li>
+              <span class="bad-phrase" style="text-decoration:none;color:var(--slate);">${escapeXml(u.original||"")}</span>
+              <span class="arrow">→</span>
+              <span class="good-phrase">${escapeXml(u.suggestion||"")}</span>
+              ${u.why ? `<div class="why">${escapeXml(u.why)}</div>` : ""}
+            </li>`).join("")}
+        </ul>` : ""}
+    </div>`;
+  const copyBtn = document.getElementById("copySpeakLangBtn");
+  if(copyBtn){
+    copyBtn.addEventListener("click", ()=>{
+      const text = (state.speaking.language[part]||{}).corrected || "";
+      const done = ()=>{ copyBtn.textContent="Copied ✓"; setTimeout(()=>copyBtn.textContent="Copy corrected answer",1500); };
+      if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(done);
+      else done();
+    });
+  }
+}
+
+/* =========================================================================
+   SPEAKING — MODEL ANSWERS BY BAND
+   ========================================================================= */
+
+const SPEAKING_BAND_NOTES = {
+  "4.5":"Band 4.5 — frequent pauses and fillers, very basic vocabulary, and errors that often make meaning hard to follow.",
+  "5.0":"Band 5.0 — usually keeps going but with noticeable hesitation and repetition; limited range and frequent grammar errors.",
+  "5.5":"Band 5.5 — reasonably sustained with some self-correction; simple linkers and a mix of simple and attempted complex forms.",
+  "6.0":"Band 6.0 — speaks at length with some hesitation; adequate vocabulary and a mix of structures, errors rarely block meaning.",
+  "6.5":"Band 6.5 — generally fluent with occasional hesitation; wider vocabulary, more accurate complex sentences and clearer organisation.",
+  "7.0":"Band 7.0 — speaks at length without noticeable effort, flexible vocabulary including some less common items, frequent error-free sentences.",
+  "7.5":"Band 7.5 — fluent and well-developed with natural cohesion, precise and idiomatic word choice, and strong grammatical control.",
+  "8.0":"Band 8.0 — effortless, fully extended answers, wide and precise lexis used naturally, with only very occasional slips.",
+  "9.0":"Band 9.0 — completely natural and effortless, fully coherent, idiomatic and precise, with total grammatical accuracy."
+};
+
+function speakingBandPrompt(part, band){
+  const data = SPEAKING[part];
+  let ask;
+  if(part === "part2"){
+    ask = `IELTS Speaking Part 2 (individual long turn). Cue card: "${data.cue.title}" with points: ${data.cue.points.join("; ")}. Write a spoken monologue of roughly 200-260 words (about 1.5-2 minutes of speech).`;
+  }else{
+    const qs = data.questions.slice(0, part==="part1" ? 3 : 2);
+    ask = `IELTS Speaking ${part==="part1"?"Part 1 (interview)":"Part 3 (two-way discussion)"}. Answer these examiner questions in order, each as a spoken answer: ${qs.map((q,i)=>`(${i+1}) ${q}`).join(" ")}. Label each answer with the question number only.`;
+  }
+  return `${ask}
+Write it as a model answer that would be awarded EXACTLY IELTS band ${band}.
+Requirements:
+- Calibrate fluency, vocabulary, grammar and coherence so they are genuinely characteristic of band ${band} against the official IELTS Speaking descriptors. For lower bands include realistic hesitation markers (um, er), repetition, simple vocabulary and real grammar errors; for the highest bands use natural, idiomatic, error-free speech.
+- Make it sound like spoken English, not a written essay.
+- Return ONLY the spoken answer text. No preamble, no band label, no markdown.`;
+}
+
+function renderSpeakingBandVersions(part){
+  const area = document.getElementById("speakBandVersionsArea");
+  if(!area) return;
+  const all = state.speaking.bandVersions || (state.speaking.bandVersions = {});
+  const store = all[part] || (all[part] = {});
+  const active = store.__active || null;
+  area.innerHTML = `
+    <div class="band-versions">
+      <h3>Model spoken answers by band score</h3>
+      <p class="bv-intro">Hear how this same part sounds at each IELTS band. Pick a band — the model answer is generated on demand and then saved here.</p>
+      <div class="band-tabs">
+        ${BAND_TARGETS.map(b=>`
+          <button class="band-tab ${b===active?"active":""} ${store[b]?"ready":""}" data-band="${b}">
+            ${b}<span class="lbl">${store[b]?"ready":"band"}</span>
+          </button>`).join("")}
+      </div>
+      <div id="speakBandVersionBody"></div>
+    </div>`;
+  area.querySelectorAll(".band-tab").forEach(btn=>{
+    btn.addEventListener("click", ()=>selectSpeakingBandVersion(part, btn.dataset.band));
+  });
+  if(active && store[active]) showSpeakingBandBody(part, active);
+}
+
+async function selectSpeakingBandVersion(part, band){
+  const all = state.speaking.bandVersions || (state.speaking.bandVersions = {});
+  const store = all[part] || (all[part] = {});
+  store.__active = band;
+  const area = document.getElementById("speakBandVersionsArea");
+  if(area) area.querySelectorAll(".band-tab").forEach(b=>b.classList.toggle("active", b.dataset.band===band));
+
+  if(store[band]){ showSpeakingBandBody(part, band); return; }
+
+  const body = document.getElementById("speakBandVersionBody");
+  if(!state.settings.geminiKey){
+    body.innerHTML = `<div class="band-version-note" style="border-color:var(--coral);color:var(--coral);background:#fdecea;">Add a Gemini API key in ⚙ AI engine settings to generate model answers.</div>`;
+    return;
+  }
+  body.innerHTML = `<div class="band-version-note">${escapeXml(SPEAKING_BAND_NOTES[band]||("Band "+band))}</div>
+    <div class="band-version-box"><span class="loader"><span></span><span></span><span></span></span> Writing a band ${escapeXml(band)} model answer…</div>`;
+  try{
+    const text = await callGemini("You are an expert IELTS Speaking examiner who writes calibrated model spoken answers at a requested band.", speakingBandPrompt(part, band), null, null);
+    store[band] = stripFences(text);
+    showSpeakingBandBody(part, band);
+    if(area){ const t = area.querySelector(`.band-tab[data-band="${band}"]`); if(t) t.classList.add("ready"); }
+  }catch(e){
+    console.error(e);
+    body.innerHTML = `<div class="band-version-note" style="border-color:var(--coral);color:var(--coral);background:#fdecea;">Couldn't generate the band ${escapeXml(band)} version: ${escapeXml(e.message)}</div>`;
+  }
+}
+
+function showSpeakingBandBody(part, band){
+  const body = document.getElementById("speakBandVersionBody");
+  const text = ((state.speaking.bandVersions||{})[part]||{})[band];
+  if(!body || text == null) return;
+  const wc = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const approxSec = Math.round((wc/140)*60);
+  body.innerHTML = `
+    <div class="band-version-note">${escapeXml(SPEAKING_BAND_NOTES[band]||("Band "+band))}</div>
+    <div class="band-version-box">${escapeXml(text)}</div>
+    <div class="band-version-meta">
+      <span class="wc">${wc} words · ≈${approxSec}s spoken · Band ${escapeXml(band)} model</span>
+      <button class="btn ghost small" id="copySpeakBandBtn">Copy</button>
+    </div>`;
+  const copyBtn = document.getElementById("copySpeakBandBtn");
+  if(copyBtn){
+    copyBtn.addEventListener("click", ()=>{
+      const done = ()=>{ copyBtn.textContent="Copied ✓"; setTimeout(()=>copyBtn.textContent="Copy",1500); };
+      if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(done);
+      else done();
+    });
+  }
 }
 </script>
 </body>
