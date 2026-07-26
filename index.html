@@ -247,7 +247,6 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
   border:1px solid var(--line);background:#fff;color:var(--slate);padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;
 }
 .write-tabs button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
-.chart-type-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .prompt-card{
   background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px;
   font-size:14.5px;line-height:1.7;
@@ -437,6 +436,16 @@ textarea.essay{
 .band-version-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;}
 .band-version-meta .wc{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);}
 
+/* ---------- Task 1 data table ---------- */
+.t1-table-wrap{overflow-x:auto;}
+.t1-table{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;}
+.t1-table th,.t1-table td{border:1px solid var(--line);padding:9px 12px;text-align:center;}
+.t1-table thead th,.t1-table tr:first-child th{background:var(--ink);color:var(--paper);font-weight:600;}
+.t1-table th[scope=row]{text-align:left;font-weight:600;color:var(--ink);white-space:nowrap;}
+.t1-table tbody tr:nth-child(even) td,.t1-table tr:nth-child(even) td{background:#faf8f1;}
+.t1-swatch{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px;vertical-align:middle;}
+.t1-type-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--slate);border:1px solid var(--line);border-radius:999px;padding:3px 10px;}
+
 /* ---------- 3D chart (Three.js) ---------- */
 .viz3d-host{
   position:relative;width:100%;height:360px;border-radius:14px;overflow:hidden;
@@ -470,8 +479,6 @@ textarea.essay{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;
   color:rgba(246,243,234,0.8);font-size:12.5px;padding:24px;line-height:1.6;
 }
-.chart-type-btn.threed{border-color:var(--azure);color:var(--azure);font-weight:700;}
-.chart-type-btn.threed.active{background:var(--azure);border-color:var(--azure);color:#fff;}
 </style>
 </head>
 <body>
@@ -2572,6 +2579,16 @@ function renderWriting(){
   const task = W.activeTask;
   const geminiOn = !!state.settings.geminiKey;
 
+  // Task 1 graph type is chosen up-front in the generator (and also switches
+  // the current chart live). Keep this list in sync with renderTask1Visual().
+  const GRAPH_TYPES = [
+    ["bars3d","3D Bar Chart"], ["trend3d","3D Trend / Area"],
+    ["line","Line Graph"], ["bar","Bar Chart"], ["pie","Pie Chart"],
+    ["table","Table"], ["mindmap","Mind Map"]
+  ];
+  const gtype = state.writing.chartType || "bars3d";
+  const graphOptions = GRAPH_TYPES.map(([v,l])=>`<option value="${v}" ${v===gtype?"selected":""}>${l}</option>`).join("");
+
   panel.innerHTML = `
     <p class="section-title">Writing</p>
     <p class="section-sub">Draft each task, request a coaching hint at any time, then submit for an AI-estimated band score against the four official criteria.</p>
@@ -2580,9 +2597,10 @@ function renderWriting(){
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
         <div>
           <b>AI Writing Generator (Replaces existing tasks)</b>
-          <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Generate a completely fresh simulated exam context for Task 1 and Task 2 — pick a topic or leave it random." : "Add a Gemini API key to enable live prompt generation."}</p>
+          <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Pick a topic and a Task 1 graph type, then generate a fresh Task 1 + Task 2 exam." : "Add a Gemini API key to enable live prompt generation."}</p>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <select id="writingGraphType" title="Task 1 graph type" style="border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px;">${graphOptions}</select>
           <select id="writingTopic" style="border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px;" ${!geminiOn ? "disabled" : ""}>
             <option value="random">Random Topic</option>
             <option value="Education & Learning">Education & Learning</option>
@@ -2622,13 +2640,8 @@ function renderWriting(){
       
       ${task==='task1' ? `
         <div class="chart-box" style="background:#fff;max-width:680px;margin:0 auto 10px;">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;">
-            <button class="btn secondary small chart-type-btn threed" data-charttype="bars3d">◆ 3D Bars</button>
-            <button class="btn secondary small chart-type-btn threed" data-charttype="trend3d">◆ 3D Trend</button>
-            <button class="btn secondary small chart-type-btn" data-charttype="line">Line</button>
-            <button class="btn secondary small chart-type-btn" data-charttype="bar">Bar</button>
-            <button class="btn secondary small chart-type-btn" data-charttype="pie">Pie</button>
-            <button class="btn secondary small chart-type-btn" data-charttype="mindmap">Mind map</button>
+          <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+            <span class="t1-type-tag" id="task1TypeTag">${(GRAPH_TYPES.find(g=>g[0]===gtype)||["","chart"])[1]}</span>
           </div>
           <div id="task1VisualHost"><canvas id="task1Canvas" height="240"></canvas></div>
         </div>
@@ -2675,13 +2688,18 @@ function renderWriting(){
 
   if(task==="task1" && WRITING.task1.chartData) {
     renderTask1Visual();
-    panel.querySelectorAll(".chart-type-btn").forEach(b=>{
-      b.classList.toggle("active", b.dataset.charttype === (state.writing.chartType||"bars3d"));
-      b.addEventListener("click", ()=>{
-        state.writing.chartType = b.dataset.charttype;
-        renderTask1Visual();
-        panel.querySelectorAll(".chart-type-btn").forEach(x=>x.classList.toggle("active", x===b));
-      });
+  }
+
+  // The graph-type dropdown lives in the generator header. It sets the type
+  // used when generating a new Task 1, and also re-renders the current chart
+  // live so it doubles as the (removed) switcher buttons.
+  const gtSel = document.getElementById("writingGraphType");
+  if(gtSel){
+    gtSel.addEventListener("change", ()=>{
+      state.writing.chartType = gtSel.value;
+      const tag = document.getElementById("task1TypeTag");
+      if(tag){ const m = GRAPH_TYPES.find(g=>g[0]===gtSel.value); tag.textContent = m ? m[1] : ""; }
+      if(state.writing.activeTask === "task1" && WRITING.task1.chartData) renderTask1Visual();
     });
   }
 
@@ -2704,14 +2722,31 @@ async function generateNewWritingWithAI() {
   const topicSel = document.getElementById("writingTopic");
   const topic = topicSel ? topicSel.value : "random";
   const themed = topic && topic !== "random";
+  const graphSel = document.getElementById("writingGraphType");
+  const graphType = graphSel ? graphSel.value : (state.writing.chartType || "bars3d");
+  // Render the generated Task 1 in exactly the chosen graph type.
+  state.writing.chartType = graphType;
   genProgressShow("writingGen", themed ? `Writing a new "${topic}" exam…` : "Writing a new Task 1 + Task 2 exam context…");
 
   const themeLine = themed
     ? `Both tasks must be based on the theme: "${topic}". The Task 1 chart/data set and the Task 2 discussion statement should each clearly relate to this theme (they need not use identical data).`
     : `Choose any appropriate, realistic academic theme.`;
 
+  // Tailor the Task 1 data + wording to the visual the student chose.
+  const GRAPH_DATA_HINTS = {
+    bars3d:  `The Task 1 visual is a BAR chart. Use 3-6 labels (categories or years) and 2-4 series to be compared. Word the task1 prompt like "The bar chart below shows…".`,
+    bar:     `The Task 1 visual is a BAR chart. Use 3-6 labels (categories or years) and 2-4 series to be compared. Word the task1 prompt like "The bar chart below shows…".`,
+    trend3d: `The Task 1 visual is a LINE/area chart over time. Use 4-6 sequential years as labels and 2-4 series showing clear trends. Word the task1 prompt like "The line graph below shows…".`,
+    line:    `The Task 1 visual is a LINE graph over time. Use 4-6 sequential years as labels and 2-4 series showing clear trends. Word the task1 prompt like "The line graph below shows…".`,
+    pie:     `The Task 1 visual is a PIE chart. Provide 3-5 series that are parts of a single whole; the LAST value of each series must be a percentage and the last values must sum to about 100. Use a single time point (one or two labels). Word the task1 prompt like "The pie chart below shows the proportion of…".`,
+    table:   `The Task 1 visual is a TABLE of figures. Use 3-6 labels (columns) and 2-4 series (rows) with clear, comparable numbers. Word the task1 prompt like "The table below shows…".`,
+    mindmap: `The Task 1 visual is a summary diagram. Use 3-5 series, each with a clear starting and ending value so trends are visible. Word the task1 prompt like "The diagram below shows…".`
+  };
+  const graphHint = GRAPH_DATA_HINTS[graphType] || GRAPH_DATA_HINTS.bar;
+
   const prompt = `Create a completely new IELTS Academic Writing exam containing both Task 1 and Task 2.
 ${themeLine}
+${graphHint}
 You must return a raw JSON object matching this exact schema shape:
 {
   "task1": {
@@ -2730,7 +2765,7 @@ You must return a raw JSON object matching this exact schema shape:
     "prompt": "Detailed Task 2 prompt opinion/discussion statement..."
   }
 }
-The chartData drives an interactive 3D visualisation, so keep it clean: use 3-6 labels (time points or categories) and 2-4 series, give every series a distinct hex "color", and make sure every series has exactly one number per label. Return ONLY raw JSON.`;
+Follow the graph-type guidance above when populating chartData. Give every series a distinct hex "color", and make sure every series has exactly one number per label. Return ONLY raw JSON.`;
 
   try {
     const rawText = await callGemini("You output raw JSON models for application prompts.", prompt, null, null);
@@ -2801,9 +2836,27 @@ function renderTask1Visual(){
     return;
   }
 
+  // ---- data table ----
+  if(type === "table"){
+    host.innerHTML = buildTaskTable(cd);
+    return;
+  }
+
   // ---- Chart.js 2D modes ----
   host.innerHTML = `<canvas id="task1Canvas" height="240"></canvas>`;
   drawTask1Chart(cd, type);
+}
+
+function buildTaskTable(cd){
+  const labels = cd.labels || [];
+  const series = cd.series || [];
+  const head = `<tr><th>Category</th>${labels.map(l=>`<th>${escapeXml(String(l))}</th>`).join("")}</tr>`;
+  const rows = series.map(s=>{
+    const color = s.color || "#131b2e";
+    const cells = (s.data||[]).map(v=>`<td>${escapeXml(String(v))}</td>`).join("");
+    return `<tr><th scope="row"><span class="t1-swatch" style="background:${escapeXml(color)}"></span>${escapeXml(s.label||"")}</th>${cells}</tr>`;
+  }).join("");
+  return `<div class="t1-table-wrap"><table class="t1-table">${head}${rows}</table></div>`;
 }
 
 function drawTask1Chart(cd, type){
