@@ -4679,7 +4679,13 @@ async function doSignIn(email, password){
 async function doSignUp(email, password, fullName, role, classCode){
   const { data, error } = await AUTH.client.auth.signUp({
     email, password,
-    options:{ data:{ full_name: fullName, role } }
+    options:{
+      data:{ full_name: fullName, role },
+      // Without this, a confirmation email points at Supabase's default Site URL
+      // (localhost:3000), which is dead for a hosted copy. Send people back to
+      // wherever this page is actually running instead.
+      emailRedirectTo: window.location.origin + window.location.pathname
+    }
   });
   if(error) throw error;
   // Projects with "Confirm email" enabled return no session until the link is clicked.
