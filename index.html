@@ -12,6 +12,10 @@
      and put your Gemini key there so it auto-loads without touching Git. A missing
      file here is harmless (it just logs a 404) and the app still runs. -->
 <script src="config.local.js" onerror="window.__noLocalConfig=true"></script>
+<!-- Optional teacher/student accounts. Both are harmless when unconfigured:
+     the app falls back to offline mode and keeps working exactly as before. -->
+<script src="supabase-config.js" onerror="window.__noSupabaseConfig=true"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --ink:#131b2e;
@@ -424,6 +428,50 @@ textarea.essay{
 .transcript-box[contenteditable]:empty:before{content:attr(data-placeholder);color:var(--slate);opacity:.7;}
 .transcript-box[contenteditable]:focus{outline:2px solid var(--brass-2);outline-offset:1px;}
 
+/* ---------- accounts / auth ---------- */
+.auth-label{font-size:12px;font-weight:600;color:var(--slate);display:block;margin-bottom:4px;}
+.auth-input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;font-family:inherit;margin:0 0 14px;color:var(--ink);background:#fff;}
+.auth-input.mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.08em;}
+.role-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.auth-who{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;}
+.auth-avatar{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--brass-2),var(--brass) 70%);color:var(--ink);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:20px;font-weight:700;flex-shrink:0;}
+.auth-who b{font-size:15px;color:var(--ink);}
+.auth-who-email{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--slate);margin-top:2px;}
+.auth-role-tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.07em;background:var(--azure);color:#fff;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;}
+.auth-role-tag.teacher{background:var(--teal);}
+.auth-foot{font-size:11.5px;color:var(--slate);line-height:1.55;margin:16px 0 0;border-top:1px solid var(--line);padding-top:12px;}
+.class-code-box{background:#fbf4de;border:1px dashed var(--brass);border-radius:10px;padding:12px 14px;margin-top:14px;}
+.class-code-box .lbl{font-size:11.5px;color:#8a6c11;text-transform:uppercase;letter-spacing:.06em;font-family:'IBM Plex Mono',monospace;}
+.class-code-box .code{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;color:var(--ink);letter-spacing:.16em;margin-top:4px;}
+.acct-chip{display:inline-flex;align-items:center;gap:6px;}
+.acct-dot{width:6px;height:6px;border-radius:50%;background:var(--brass-2);}
+
+/* ---------- feedback inbox (student) ---------- */
+.fb-inbox{margin-top:22px;}
+.fb-msg{background:#fff;border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:13px 16px;margin-top:10px;}
+.fb-msg.unread{background:#eef4f2;border-left-color:var(--brass);}
+.fb-meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.fb-body{font-size:13.5px;line-height:1.7;color:#2a3145;white-space:pre-wrap;}
+.tab-badge{display:inline-block;min-width:17px;height:17px;line-height:17px;border-radius:999px;background:var(--coral);color:#fff;font-size:10.5px;font-weight:700;text-align:center;padding:0 5px;margin-left:6px;font-family:'IBM Plex Mono',monospace;}
+
+/* ---------- teacher dashboard ---------- */
+.roster{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff;margin-top:6px;}
+.roster th,.roster td{border-bottom:1px solid var(--line);padding:11px 12px;text-align:left;}
+.roster th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);font-weight:600;}
+.roster td.band{font-family:'Fraunces',serif;font-size:17px;font-weight:600;text-align:center;}
+.roster th.band{text-align:center;}
+.roster tr.clickable:hover td{background:#faf8f1;cursor:pointer;}
+.roster .stu-name{font-weight:600;color:var(--ink);}
+.roster .stu-mail{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);}
+.dash-empty{text-align:center;color:var(--slate);font-size:13.5px;padding:28px 10px;line-height:1.6;}
+.stu-detail{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:18px;}
+.stu-detail h4{margin:0 0 2px;font-family:'Fraunces',serif;font-size:17px;}
+.sub-card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:10px;background:var(--paper);}
+.sub-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px;}
+.sub-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--brass);font-weight:700;}
+.sub-body{font-size:13px;line-height:1.65;color:#2a3145;white-space:pre-wrap;max-height:180px;overflow-y:auto;}
+.fb-send{width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:13.5px;line-height:1.6;resize:vertical;margin-top:8px;color:var(--ink);background:#fff;}
+
 /* ---------- hesitation analysis ---------- */
 .hes-box{background:#fff;border:1px solid var(--line);border-left:3px solid var(--azure);border-radius:0 10px 10px 0;padding:16px 18px;margin-top:14px;}
 .hes-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
@@ -517,6 +565,7 @@ textarea.essay{
       Test date: <b id="testDate">—</b><br>
       Module: <b id="modLabel">Dashboard</b>
     </div>
+    <button id="accountBtn" class="btn ghost small" style="border-color:var(--paper-line);color:var(--paper);display:none;">👤 Sign in</button>
     <button id="sessionBtn" class="btn ghost small" style="border-color:var(--paper-line);color:var(--paper);">💾 Session</button>
     <button id="settingsBtn" class="btn ghost small" style="border-color:var(--paper-line);color:var(--paper);">⚙ AI engine</button>
   </div>
@@ -548,6 +597,71 @@ textarea.essay{
       Tip: “Test connection” checks your key against Google and lists the model IDs it can actually use — the fastest way to fix “no content” errors.
     </p>
     <p id="settingsStatus" style="font-size:12px;color:var(--teal);margin-top:8px;line-height:1.5;"></p>
+  </div>
+</div>
+
+<div id="authOverlay" class="settings-overlay" style="display:none;">
+  <div class="settings-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <h3 style="font-family:'Fraunces',serif;margin:0;font-size:19px;" id="authTitle">Sign in</h3>
+      <button id="closeAuth" class="btn ghost small">Close</button>
+    </div>
+
+    <div id="authSignedOut">
+      <div class="write-tabs" style="margin:10px 0 16px;">
+        <button data-authtab="signin" class="active">Sign in</button>
+        <button data-authtab="signup">Create account</button>
+      </div>
+
+      <div id="authFormArea">
+        <label class="auth-label">Email</label>
+        <input type="email" id="authEmail" class="auth-input" placeholder="you@example.com" autocomplete="email">
+
+        <label class="auth-label">Password</label>
+        <input type="password" id="authPassword" class="auth-input" placeholder="At least 6 characters" autocomplete="current-password">
+
+        <div id="signupOnly" style="display:none;">
+          <label class="auth-label">Your name</label>
+          <input type="text" id="authName" class="auth-input" placeholder="e.g. Maria Gómez">
+
+          <label class="auth-label">I am a…</label>
+          <div style="display:flex;gap:8px;margin:6px 0 14px;">
+            <button type="button" class="btn secondary small role-btn active" data-role="student">Student</button>
+            <button type="button" class="btn secondary small role-btn" data-role="teacher">Teacher</button>
+          </div>
+
+          <div id="classCodeWrap">
+            <label class="auth-label">Class code from your teacher</label>
+            <input type="text" id="authClassCode" class="auth-input mono" placeholder="e.g. 7KQ4XZ" style="text-transform:uppercase;">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn brass small" id="authSubmit" style="width:100%;margin-top:4px;">Sign in</button>
+      <p id="authStatus" style="font-size:12.5px;margin-top:10px;line-height:1.5;"></p>
+    </div>
+
+    <div id="authSignedIn" style="display:none;">
+      <div class="auth-who">
+        <div class="auth-avatar" id="authAvatar">–</div>
+        <div>
+          <b id="authWhoName">—</b>
+          <span id="authWhoRole" class="auth-role-tag">student</span>
+          <div id="authWhoEmail" class="auth-who-email">—</div>
+        </div>
+      </div>
+      <div id="authClassInfo"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+        <button class="btn ghost small" id="authSignOut">Sign out</button>
+      </div>
+      <p id="authStatus2" style="font-size:12.5px;color:var(--teal);margin-top:10px;"></p>
+    </div>
+
+    <p class="auth-foot" id="authOfflineNote" style="display:none;">
+      Accounts are not switched on for this copy. Add your Supabase URL and anon key to
+      <span class="mono">supabase-config.js</span> to enable teacher and student logins.
+      Everything else works offline.
+    </p>
   </div>
 </div>
 
@@ -975,6 +1089,8 @@ function recordScore(module, band, detail){
   state.history.unshift({date:new Date().toISOString(), module, band, detail: detail||""});
   state.history = state.history.slice(0,30);
   saveHistory();
+  // Mirror to the cloud when signed in as a student so the teacher sees it.
+  if(typeof pushProgress === "function") pushProgress();
 }
 
 function renderDashboardIfActive(){
@@ -1016,6 +1132,9 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   document.getElementById("geminiModelInput").value = state.settings.geminiModel || "gemini-3.5-flash-lite";
   await loadHistory();
   render();
+  // Accounts are optional; this no-ops when supabase-config.js is unset.
+  try{ await initAuth(); }catch(e){ console.error("auth init", e); }
+  if(AUTH.enabled && AUTH.profile) render();
 });
 
 /* =========================================================================
@@ -1325,8 +1444,8 @@ document.getElementById("tabs").addEventListener("click", (e)=>{
 function setModule(mod){
   state.mod = mod;
   document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.mod===mod));
-  const labels = {dashboard:"Dashboard", listening:"Listening", reading:"Reading", writing:"Writing", speaking:"Speaking"};
-  document.getElementById("modLabel").textContent = labels[mod];
+  const labels = {dashboard:"Dashboard", listening:"Listening", reading:"Reading", writing:"Writing", speaking:"Speaking", class:"My class"};
+  document.getElementById("modLabel").textContent = labels[mod] || mod;
   render();
   window.scrollTo({top:0, behavior:"smooth"});
 }
@@ -1336,6 +1455,7 @@ function render(){
   // Tear the 3D chart down explicitly so its animation loop and GPU resources
   // are released before we render the next module.
   if(typeof chart3D !== "undefined" && chart3D){ chart3D.dispose(); chart3D = null; }
+  if(state.mod==="class") return renderClassDashboard();
   if(state.mod==="dashboard") return renderDashboard();
   if(state.mod==="listening") return renderListening();
   if(state.mod==="reading") return renderReading();
@@ -1682,6 +1802,27 @@ function renderDashboard(){
 
   panel.querySelectorAll("[data-mod]").forEach(b=>b.addEventListener("click", ()=>setModule(b.dataset.mod)));
   drawDashCharts();
+  renderFeedbackInbox();
+}
+
+/* Messages the teacher has sent, shown at the top of a student's dashboard. */
+function renderFeedbackInbox(){
+  if(typeof isStudent !== "function" || !isStudent() || !AUTH.feedback.length) return;
+  const host = document.createElement("div");
+  host.className = "fb-inbox";
+  const unread = unreadFeedbackCount();
+  host.innerHTML = `
+    <hr class="rule">
+    <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);margin-bottom:4px;">
+      Feedback from your teacher${unread?`<span class="tab-badge">${unread}</span>`:""}
+    </h3>
+    ${AUTH.feedback.slice(0,10).map(f=>`
+      <div class="fb-msg ${f.read_at?"":"unread"}">
+        <div class="fb-meta">${new Date(f.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}${f.read_at?"":" · new"}</div>
+        <div class="fb-body">${escapeXml(f.message)}</div>
+      </div>`).join("")}`;
+  panel.appendChild(host);
+  if(unread) markFeedbackRead();
 }
 
 function drawDashCharts(){
@@ -3484,6 +3625,7 @@ async function requestWritingScore(task){
     else if(rem>=0.25) finalBand += 0.5;
 
     recordScore("writing", finalBand, `Task 1/2 weighted breakdown estimation`);
+    saveSubmission("writing", task, WRITING[task].prompt, draft, json.overall_band, json);
   }catch(e){
     console.error(e);
     alert("Scoring failed: " + e.message + "\n\nCheck your Gemini API key in AI engine settings and try again.");
@@ -4097,6 +4239,7 @@ async function scoreSpeaking(part){
     S.report = { part, data: json };
     showSpeakingReport(json, geminiOn);
     recordScore("speaking", json.overall_band, `Part simulation calculation index`);
+    saveSubmission("speaking", part, promptText, S.transcripts[part] || json.heard_transcript || "", json.overall_band, json);
   }catch(e){
     console.error(e);
     document.getElementById("speakReportArea").innerHTML = `<div class="hint-box" style="border-color:var(--coral);">Couldn't reach the AI examiner right now.</div>`;
@@ -4460,6 +4603,483 @@ async function selectSpeakingBandVersion(part, band){
     console.error(e);
     body.innerHTML = `<div class="band-version-note" style="border-color:var(--coral);color:var(--coral);background:#fdecea;">Couldn't generate the band ${escapeXml(band)} version: ${escapeXml(e.message)}</div>`;
   }
+}
+
+/* =========================================================================
+   ACCOUNTS — teacher / student login, progress sync, feedback  (Supabase)
+   Everything here is optional: when supabase-config.js still holds the
+   placeholders, AUTH.enabled stays false and the app behaves exactly as the
+   offline version, with the account button hidden.
+   ========================================================================= */
+
+const AUTH = { client:null, enabled:false, user:null, profile:null, feedback:[], students:[], authMode:"signin", signupRole:"student" };
+
+function supabaseConfigured(){
+  const c = window.SUPABASE_CONFIG || {};
+  const bad = v => !v || /^YOUR_/.test(String(v));
+  return !bad(c.url) && !bad(c.anonKey);
+}
+
+async function initAuth(){
+  const btn = document.getElementById("accountBtn");
+  if(!supabaseConfigured() || typeof window.supabase === "undefined" || !window.supabase.createClient){
+    // Offline mode — keep the button visible only as an explainer if the
+    // library loaded but no project is configured.
+    if(supabaseConfigured()) console.warn("Supabase library failed to load; accounts disabled.");
+    if(btn) btn.style.display = "none";
+    return;
+  }
+  try{
+    AUTH.client = window.supabase.createClient(window.SUPABASE_CONFIG.url, window.SUPABASE_CONFIG.anonKey);
+    AUTH.enabled = true;
+    if(btn) btn.style.display = "";
+    const { data } = await AUTH.client.auth.getSession();
+    if(data && data.session){ await adoptSession(data.session); }
+    AUTH.client.auth.onAuthStateChange((_e, session)=>{
+      if(!session){ AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.students=[]; refreshAccountUI(); }
+    });
+  }catch(e){
+    console.error("Supabase init failed", e);
+    AUTH.enabled = false;
+    if(btn) btn.style.display = "none";
+  }
+  refreshAccountUI();
+}
+
+async function adoptSession(session){
+  AUTH.user = session.user;
+  await loadProfile();
+  if(AUTH.profile){
+    if(AUTH.profile.role === "student"){
+      await pullProgress();
+      await loadFeedback();
+    }else{
+      await loadStudents();
+    }
+  }
+  refreshAccountUI();
+}
+
+async function loadProfile(){
+  try{
+    const { data, error } = await AUTH.client.from("profiles").select("*").eq("id", AUTH.user.id).single();
+    if(error) throw error;
+    AUTH.profile = data;
+  }catch(e){ console.error("profile load failed", e); AUTH.profile = null; }
+}
+
+/* ---- sign in / up / out ---- */
+async function doSignIn(email, password){
+  const { error } = await AUTH.client.auth.signInWithPassword({ email, password });
+  if(error) throw error;
+  const { data } = await AUTH.client.auth.getSession();
+  if(data && data.session) await adoptSession(data.session);
+}
+
+async function doSignUp(email, password, fullName, role, classCode){
+  const { data, error } = await AUTH.client.auth.signUp({
+    email, password,
+    options:{ data:{ full_name: fullName, role } }
+  });
+  if(error) throw error;
+  // Projects with "Confirm email" enabled return no session until the link is clicked.
+  if(!data.session){
+    return { needsConfirm:true };
+  }
+  await adoptSession(data.session);
+  if(role === "student" && classCode){
+    await joinClass(classCode);
+  }
+  return { needsConfirm:false };
+}
+
+async function joinClass(code){
+  const { data, error } = await AUTH.client.rpc("join_class", { p_code: code });
+  if(error) throw error;
+  await loadProfile();
+  refreshAccountUI();
+  return data;
+}
+
+async function doSignOut(){
+  try{ await AUTH.client.auth.signOut(); }catch(e){}
+  AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.students=[];
+  if(state.mod === "class") state.mod = "dashboard";
+  refreshAccountUI();
+  render();
+}
+
+/* ---- cloud sync (students) ---- */
+function isStudent(){ return AUTH.enabled && AUTH.profile && AUTH.profile.role === "student"; }
+function isTeacher(){ return AUTH.enabled && AUTH.profile && AUTH.profile.role === "teacher"; }
+
+async function pushProgress(){
+  if(!isStudent()) return;
+  try{
+    await AUTH.client.from("progress").upsert({
+      student_id: AUTH.profile.id,
+      scores: state.scores,
+      history: state.history.slice(0,30),
+      updated_at: new Date().toISOString()
+    });
+  }catch(e){ console.error("progress sync failed", e); }
+}
+
+async function pullProgress(){
+  if(!isStudent()) return;
+  try{
+    const { data, error } = await AUTH.client.from("progress").select("*").eq("student_id", AUTH.profile.id).maybeSingle();
+    if(error) throw error;
+    if(data){
+      // Cloud is the source of truth on sign-in, so a student picks up where
+      // they left off on any device.
+      if(data.scores) state.scores = Object.assign({}, state.scores, data.scores);
+      if(Array.isArray(data.history) && data.history.length) state.history = data.history;
+      saveHistory();
+    }
+  }catch(e){ console.error("progress pull failed", e); }
+}
+
+async function saveSubmission(moduleName, task, prompt, content, band, report){
+  if(!isStudent()) return;
+  try{
+    await AUTH.client.from("submissions").insert({
+      student_id: AUTH.profile.id,
+      module: moduleName, task: task || null,
+      prompt: (prompt||"").slice(0,2000),
+      content: (content||"").slice(0,20000),
+      band: (band==null ? null : Number(band)),
+      report: report || null
+    });
+  }catch(e){ console.error("submission save failed", e); }
+}
+
+/* ---- feedback ---- */
+async function loadFeedback(){
+  if(!isStudent()) return;
+  try{
+    const { data, error } = await AUTH.client.from("feedback")
+      .select("*").eq("student_id", AUTH.profile.id).order("created_at", { ascending:false }).limit(50);
+    if(error) throw error;
+    AUTH.feedback = data || [];
+  }catch(e){ console.error("feedback load failed", e); AUTH.feedback = []; }
+}
+
+function unreadFeedbackCount(){ return AUTH.feedback.filter(f=>!f.read_at).length; }
+
+async function markFeedbackRead(){
+  if(!isStudent()) return;
+  const unread = AUTH.feedback.filter(f=>!f.read_at);
+  if(!unread.length) return;
+  const now = new Date().toISOString();
+  try{
+    await AUTH.client.from("feedback").update({ read_at: now }).in("id", unread.map(f=>f.id));
+    unread.forEach(f=>f.read_at = now);
+    refreshAccountUI();
+  }catch(e){ console.error("mark read failed", e); }
+}
+
+/* ---- teacher data ---- */
+async function loadStudents(){
+  if(!isTeacher()) return;
+  try{
+    const { data:profs, error } = await AUTH.client.from("profiles")
+      .select("id, full_name, email, created_at").eq("teacher_id", AUTH.profile.id).order("full_name");
+    if(error) throw error;
+    const students = profs || [];
+    if(students.length){
+      const { data:prog } = await AUTH.client.from("progress").select("*").in("student_id", students.map(s=>s.id));
+      const byId = {}; (prog||[]).forEach(p=>byId[p.student_id]=p);
+      students.forEach(s=>{ s.progress = byId[s.id] || null; });
+    }
+    AUTH.students = students;
+  }catch(e){ console.error("student list failed", e); AUTH.students = []; }
+}
+
+async function loadStudentDetail(studentId){
+  const { data, error } = await AUTH.client.from("submissions")
+    .select("*").eq("student_id", studentId).order("created_at", { ascending:false }).limit(20);
+  if(error) throw error;
+  return data || [];
+}
+
+async function sendFeedback(studentId, message){
+  const { error } = await AUTH.client.from("feedback").insert({
+    student_id: studentId, teacher_id: AUTH.profile.id, message
+  });
+  if(error) throw error;
+}
+
+/* ---- header + tabs ---- */
+function refreshAccountUI(){
+  const btn = document.getElementById("accountBtn");
+  if(btn && AUTH.enabled){
+    if(AUTH.profile){
+      const n = (AUTH.profile.full_name || AUTH.profile.email || "?").trim();
+      const unread = isStudent() ? unreadFeedbackCount() : 0;
+      btn.innerHTML = `<span class="acct-chip"><span class="acct-dot"></span>${escapeXml(n.split(" ")[0])}${unread?`<span class="tab-badge">${unread}</span>`:""}</span>`;
+    }else{
+      btn.textContent = "👤 Sign in";
+    }
+  }
+  // teacher-only Class tab
+  const tabs = document.getElementById("tabs");
+  let classTab = tabs.querySelector('button[data-mod="class"]');
+  if(isTeacher()){
+    if(!classTab){
+      classTab = document.createElement("button");
+      classTab.dataset.mod = "class";
+      classTab.textContent = "My class";
+      tabs.appendChild(classTab);
+    }
+  }else if(classTab){
+    classTab.remove();
+  }
+  // student feedback badge on the dashboard tab
+  const dashTab = tabs.querySelector('button[data-mod="dashboard"]');
+  if(dashTab){
+    const unread = isStudent() ? unreadFeedbackCount() : 0;
+    dashTab.innerHTML = "Dashboard" + (unread ? `<span class="tab-badge">${unread}</span>` : "");
+  }
+}
+
+/* ---- auth modal wiring ---- */
+const authOverlay = document.getElementById("authOverlay");
+document.getElementById("accountBtn").addEventListener("click", ()=>{
+  openAuthModal();
+});
+document.getElementById("closeAuth").addEventListener("click", ()=>authOverlay.style.display="none");
+
+function openAuthModal(){
+  const signedIn = !!(AUTH.enabled && AUTH.profile);
+  document.getElementById("authSignedOut").style.display = signedIn ? "none" : "";
+  document.getElementById("authSignedIn").style.display  = signedIn ? "" : "none";
+  document.getElementById("authOfflineNote").style.display = AUTH.enabled ? "none" : "";
+  document.getElementById("authTitle").textContent = signedIn ? "Your account" : "Sign in";
+  if(signedIn){
+    const p = AUTH.profile;
+    const name = p.full_name || p.email || "";
+    document.getElementById("authAvatar").textContent = (name.trim()[0] || "?").toUpperCase();
+    document.getElementById("authWhoName").textContent = name;
+    const roleTag = document.getElementById("authWhoRole");
+    roleTag.textContent = p.role;
+    roleTag.className = "auth-role-tag" + (p.role==="teacher" ? " teacher" : "");
+    document.getElementById("authWhoEmail").textContent = p.email || "";
+    const info = document.getElementById("authClassInfo");
+    if(p.role === "teacher"){
+      info.innerHTML = `<div class="class-code-box">
+          <span class="lbl">Your class code — give this to your students</span>
+          <div class="code">${escapeXml(p.class_code||"—")}</div>
+        </div>
+        <p style="font-size:12px;color:var(--slate);margin:10px 0 0;line-height:1.55;">Students enter this code when they create their account. They then appear in your <b>My class</b> tab.</p>`;
+    }else if(!p.teacher_id){
+      info.innerHTML = `<p style="font-size:12.5px;color:var(--slate);margin:14px 0 6px;line-height:1.55;">You are not linked to a teacher yet. Enter the class code they gave you:</p>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="joinCodeInput" class="auth-input mono" placeholder="e.g. 7KQ4XZ" style="margin:0;text-transform:uppercase;">
+          <button class="btn brass small" id="joinCodeBtn">Join</button>
+        </div>`;
+      const jb = document.getElementById("joinCodeBtn");
+      jb.addEventListener("click", async ()=>{
+        const code = document.getElementById("joinCodeInput").value.trim();
+        if(!code) return;
+        jb.disabled = true;
+        const st = document.getElementById("authStatus2");
+        try{
+          const teacher = await joinClass(code);
+          st.style.color = "var(--teal)";
+          st.textContent = `Joined ${teacher}'s class.`;
+          openAuthModal();
+        }catch(e){
+          st.style.color = "var(--coral)";
+          st.textContent = e.message || "Could not join that class.";
+        }
+        jb.disabled = false;
+      });
+    }else{
+      info.innerHTML = `<p style="font-size:12.5px;color:var(--teal);margin:14px 0 0;">✓ Linked to your teacher — your progress is shared with them.</p>`;
+    }
+  }
+  authOverlay.style.display = "flex";
+}
+
+document.querySelectorAll("[data-authtab]").forEach(b=>b.addEventListener("click", ()=>{
+  AUTH.authMode = b.dataset.authtab;
+  document.querySelectorAll("[data-authtab]").forEach(x=>x.classList.toggle("active", x===b));
+  const isUp = AUTH.authMode === "signup";
+  document.getElementById("signupOnly").style.display = isUp ? "" : "none";
+  document.getElementById("authSubmit").textContent = isUp ? "Create account" : "Sign in";
+  document.getElementById("authTitle").textContent = isUp ? "Create account" : "Sign in";
+  document.getElementById("authStatus").textContent = "";
+}));
+
+document.querySelectorAll(".role-btn").forEach(b=>b.addEventListener("click", ()=>{
+  AUTH.signupRole = b.dataset.role;
+  document.querySelectorAll(".role-btn").forEach(x=>x.classList.toggle("active", x===b));
+  document.getElementById("classCodeWrap").style.display = AUTH.signupRole === "student" ? "" : "none";
+}));
+
+document.getElementById("authSubmit").addEventListener("click", async ()=>{
+  const st = document.getElementById("authStatus");
+  const email = document.getElementById("authEmail").value.trim();
+  const pass  = document.getElementById("authPassword").value;
+  if(!AUTH.enabled){ st.style.color="var(--coral)"; st.textContent="Accounts are not configured for this copy."; return; }
+  if(!email || !pass){ st.style.color="var(--coral)"; st.textContent="Enter your email and password."; return; }
+  const btn = document.getElementById("authSubmit");
+  const label = btn.textContent;
+  btn.disabled = true; btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
+  st.style.color = "var(--slate)"; st.textContent = "";
+  try{
+    if(AUTH.authMode === "signup"){
+      const name = document.getElementById("authName").value.trim();
+      const code = document.getElementById("authClassCode").value.trim();
+      if(!name){ throw new Error("Please enter your name."); }
+      if(AUTH.signupRole === "student" && !code){ throw new Error("Enter the class code your teacher gave you."); }
+      const res = await doSignUp(email, pass, name, AUTH.signupRole, code);
+      if(res.needsConfirm){
+        st.style.color = "var(--teal)";
+        st.textContent = "Account created. Check your email to confirm it, then sign in.";
+      }else{
+        authOverlay.style.display = "none";
+        render();
+      }
+    }else{
+      await doSignIn(email, pass);
+      authOverlay.style.display = "none";
+      render();
+    }
+  }catch(e){
+    st.style.color = "var(--coral)";
+    st.textContent = e.message || "Something went wrong.";
+  }
+  btn.disabled = false; btn.textContent = label;
+});
+
+document.getElementById("authSignOut").addEventListener("click", async ()=>{
+  await doSignOut();
+  authOverlay.style.display = "none";
+});
+
+/* =========================================================================
+   TEACHER DASHBOARD
+   ========================================================================= */
+
+let classSelectedStudent = null;
+
+async function renderClassDashboard(){
+  if(!isTeacher()){ state.mod = "dashboard"; return renderDashboard(); }
+  panel.innerHTML = `
+    <p class="section-title">My class</p>
+    <p class="section-sub">Every student who joined with your class code, their latest band scores, and the work they have submitted. Select a student to read their responses and send feedback.</p>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
+      <div class="class-code-box" style="margin:0;flex:1;min-width:220px;">
+        <span class="lbl">Class code</span>
+        <div class="code">${escapeXml(AUTH.profile.class_code||"—")}</div>
+      </div>
+      <button class="btn secondary small" id="refreshClassBtn">Refresh</button>
+    </div>
+    <div id="rosterArea"><p class="dash-empty">Loading your class…</p></div>
+    <div id="studentDetailArea"></div>
+  `;
+  document.getElementById("refreshClassBtn").addEventListener("click", async ()=>{
+    await loadStudents();
+    drawRoster();
+  });
+  await loadStudents();
+  drawRoster();
+}
+
+function drawRoster(){
+  const area = document.getElementById("rosterArea");
+  if(!area) return;
+  if(!AUTH.students.length){
+    area.innerHTML = `<p class="dash-empty">No students yet.<br>Share your class code above — when they create an account with it, they appear here automatically.</p>`;
+    return;
+  }
+  area.innerHTML = `
+    <table class="roster">
+      <tr>
+        <th>Student</th><th class="band">Listening</th><th class="band">Reading</th>
+        <th class="band">Writing</th><th class="band">Speaking</th><th>Last activity</th>
+      </tr>
+      ${AUTH.students.map(s=>{
+        const sc = (s.progress && s.progress.scores) || {};
+        const cell = v => v==null ? `<td class="band" style="color:var(--slate);">—</td>` : `<td class="band">${fmtBand(v)}</td>`;
+        const when = s.progress && s.progress.updated_at ? new Date(s.progress.updated_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : "—";
+        return `<tr class="clickable" data-sid="${s.id}">
+          <td><span class="stu-name">${escapeXml(s.full_name||"(no name)")}</span><br><span class="stu-mail">${escapeXml(s.email||"")}</span></td>
+          ${cell(sc.listening)}${cell(sc.reading)}${cell(sc.writing)}${cell(sc.speaking)}
+          <td style="font-size:12px;color:var(--slate);">${when}</td>
+        </tr>`;
+      }).join("")}
+    </table>`;
+  area.querySelectorAll("tr.clickable").forEach(tr=>{
+    tr.addEventListener("click", ()=>openStudent(tr.dataset.sid));
+  });
+}
+
+async function openStudent(sid){
+  const s = AUTH.students.find(x=>x.id===sid);
+  if(!s) return;
+  classSelectedStudent = sid;
+  const area = document.getElementById("studentDetailArea");
+  area.innerHTML = `<div class="stu-detail"><p class="dash-empty">Loading ${escapeXml(s.full_name||"student")}…</p></div>`;
+  let subs = [];
+  try{ subs = await loadStudentDetail(sid); }
+  catch(e){ console.error(e); }
+  const sc = (s.progress && s.progress.scores) || {};
+  area.innerHTML = `
+    <div class="stu-detail">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h4>${escapeXml(s.full_name||"(no name)")}</h4>
+          <span class="stu-mail">${escapeXml(s.email||"")}</span>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;">
+          ${["listening","reading","writing","speaking"].map(m=>`
+            <div class="metric">${m[0].toUpperCase()+m.slice(1)}<b>${sc[m]!=null?fmtBand(sc[m]):"—"}</b></div>`).join("")}
+        </div>
+      </div>
+
+      <div class="feedback-label" style="margin-top:16px;">Recent submissions</div>
+      ${subs.length ? subs.map(x=>`
+        <div class="sub-card">
+          <div class="sub-head">
+            <span class="sub-tag">${escapeXml(x.module)}${x.task?" · "+escapeXml(x.task):""}</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);">
+              ${x.band!=null?`Band ${fmtBand(x.band)} · `:""}${new Date(x.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
+            </span>
+          </div>
+          ${x.prompt?`<div style="font-size:12px;color:var(--slate);margin-bottom:6px;font-style:italic;">${escapeXml(x.prompt.slice(0,200))}</div>`:""}
+          <div class="sub-body">${escapeXml(x.content||"(no text)")}</div>
+        </div>`).join("") : `<p class="dash-empty" style="padding:14px;">No submissions yet.</p>`}
+
+      <div class="feedback-label" style="margin-top:18px;">Send feedback &amp; tips</div>
+      <textarea class="fb-send" id="fbMessage" placeholder="Write a note for ${escapeXml((s.full_name||'this student').split(' ')[0])} — it appears on their dashboard next time they open the app."></textarea>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap;">
+        <button class="btn small" id="sendFbBtn">Send feedback</button>
+        <span id="fbStatus" style="font-size:12.5px;"></span>
+      </div>
+    </div>`;
+  document.getElementById("sendFbBtn").addEventListener("click", async ()=>{
+    const box = document.getElementById("fbMessage");
+    const msg = box.value.trim();
+    const st = document.getElementById("fbStatus");
+    if(!msg){ st.style.color="var(--coral)"; st.textContent="Write a message first."; return; }
+    const b = document.getElementById("sendFbBtn");
+    b.disabled = true;
+    try{
+      await sendFeedback(sid, msg);
+      box.value = "";
+      st.style.color = "var(--teal)";
+      st.textContent = "Sent ✓";
+      setTimeout(()=>{ st.textContent=""; }, 2500);
+    }catch(e){
+      st.style.color = "var(--coral)";
+      st.textContent = e.message || "Could not send.";
+    }
+    b.disabled = false;
+  });
+  area.scrollIntoView({ behavior:"smooth", block:"nearest" });
 }
 
 function showSpeakingBandBody(part, band){

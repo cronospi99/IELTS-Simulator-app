@@ -68,6 +68,45 @@ values win.
 > server or build step, and a browser can't read a `.env` file. `config.local.js`
 > is the browser-native equivalent — a gitignored file loaded via a `<script>` tag.
 
+## Teacher & student accounts (optional)
+
+With a free [Supabase](https://supabase.com) project you can turn the app into a
+small classroom: students sign in, their progress syncs automatically, and you
+see everything from a **My class** dashboard and send them feedback.
+
+**Leave it unconfigured and nothing changes** — the app runs exactly as before,
+fully offline, with the account button hidden.
+
+### Setup (about 5 minutes)
+
+1. Create a free project at <https://supabase.com>.
+2. Open **SQL Editor → New query**, paste all of [`supabase-schema.sql`](supabase-schema.sql), and click **Run**.
+   This creates the tables *and* the security rules.
+3. Go to **Settings → API** and copy your **Project URL** and **anon / public key**
+   into [`supabase-config.js`](supabase-config.js), then commit. The live site picks it up on the next deploy.
+4. *(Recommended for classrooms)* **Authentication → Providers → Email** and turn
+   **Confirm email** off, so students can sign in immediately without checking their inbox.
+
+### Using it
+
+- **You:** click **👤 Sign in → Create account**, choose **Teacher**. You get a
+  **class code** (shown in the account panel and on the My class tab).
+- **Students:** click **Create account**, choose **Student**, and enter your class code.
+- Their band scores and their Writing/Speaking submissions then appear in **My class**.
+  Click a student to read their actual responses and send feedback — it shows up on
+  their dashboard the next time they open the app.
+
+### Is committing the anon key safe?
+
+Yes — that's what it's for. The anon key only ever acts as the **logged-in user**,
+and the row-level security policies in the schema mean a student can read only
+their own rows and a teacher only their own students'. Never commit the
+**`service_role`** key, which bypasses those rules.
+
+> **Note on student data:** this stores student names, emails and their written
+> work on Supabase's servers. If your students are minors, check what your school
+> or institution allows before rolling it out.
+
 ## Troubleshooting "no content" / generation fails
 
 Open **⚙ AI engine** and click **Test connection**. It calls Google and tells
