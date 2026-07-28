@@ -2100,7 +2100,7 @@ function showListeningAnswerKey(){
   const rows = [];
   LISTENING.parts.forEach(part=>{
     part.questions.forEach(q=>{
-      const ans = q.type==="gap" ? q.answer.join(" OR ") : q.options[q.answer];
+      const ans = listeningAnswerText(q);
       rows.push(`<div class="key-line"><span class="key-num">Q${q.n}</span><span class="correct-answer">${ans}</span></div>`);
     });
   });
@@ -2113,10 +2113,9 @@ function showListeningAnswerKey(){
 }
 
 function renderListeningQ(q){
-  if(q.type==="gap"){
-    return `<div class="q-item"><span class="num">${q.n}.</span><span>${q.label}</span> <input type="text" data-q="${q.n}"></div>`;
-  }
-  if(q.type==="mc"){
+  // Anything with real options is multiple choice; everything else falls back to
+  // a text input so an unexpected type can never make the question disappear.
+  if(q.type==="mc" && Array.isArray(q.options) && q.options.length){
     return `<div class="q-item" style="flex-direction:column;">
       <div><span class="num">${q.n}.</span><span>${q.label}</span></div>
       <div class="opt-row">
@@ -2124,6 +2123,19 @@ function renderListeningQ(q){
       </div>
     </div>`;
   }
+  return `<div class="q-item"><span class="num">${q.n}.</span><span>${q.label}</span> <input type="text" data-q="${q.n}"></div>`;
+}
+
+/* The single place that turns a stored answer into display text, so a malformed
+   item shows an honest "—" instead of a misleading value like "0". */
+function listeningAnswerText(q){
+  if(q.type === "mc" && Array.isArray(q.options)){
+    const opt = q.options[q.answer];
+    return opt == null ? "—" : String(opt);
+  }
+  const arr = Array.isArray(q.answer) ? q.answer : (q.answer == null ? [] : [q.answer]);
+  const clean = arr.map(a=>String(a).trim()).filter(Boolean);
+  return clean.length ? clean.join(" OR ") : "—";
 }
 
 function checkGap(userVal, answers){
@@ -2138,10 +2150,10 @@ function submitListening(){
   LISTENING.parts.forEach(part=>part.questions.forEach(q=>{
     total++;
     const user = L.answers[q.n];
-    if(q.type==="gap"){
-      if(checkGap(user, q.answer)) correct++;
-    } else {
+    if(q.type==="mc" && Array.isArray(q.options)){
       if(user!==undefined && parseInt(user)===q.answer) correct++;
+    } else {
+      if(checkGap(user, Array.isArray(q.answer) ? q.answer : [])) correct++;
     }
   }));
   L.submitted = true;
@@ -2158,13 +2170,12 @@ function showListeningResult(){
     total++;
     const user = L.answers[q.n];
     let ok = false;
-    if(q.type==="gap"){
-      ok = checkGap(user, q.answer);
-      lines.push({n:q.n, ok, answer: q.answer.join(" OR ")});
-    } else {
+    if(q.type==="mc" && Array.isArray(q.options)){
       ok = (user!==undefined && parseInt(user)===q.answer);
-      lines.push({n:q.n, ok, answer: q.options[q.answer]});
+    }else{
+      ok = checkGap(user, Array.isArray(q.answer) ? q.answer : []);
     }
+    lines.push({n:q.n, ok, answer: listeningAnswerText(q)});
     if(ok) correct++;
   }));
 
@@ -2215,7 +2226,82 @@ function toggleListeningAudio(pid){
   renderListening();
 }
 
-const LISTENING_GEN_RUBRIC = `You are an experienced IELTS Listening test writer. You are given the REAL audio recording for ONE section of an IELTS Listening test. Listen to the audio carefully and do two things: (1) produce a faithful transcript of what is said; (2) write exactly 10 IELTS-style questions that can be answered ONLY from this audio. Use a natural mix of these two question types: "gap" (a sentence/form/note completion item; the "answer" field is an array of accepted answers, all lowercase, each NO MORE THAN TWO WORDS AND/OR A NUMBER, including reasonable spelling variants like "15"/"fifteen") and "mc" (multiple choice with exactly 3 options; the "answer" field is the 0-based index of the correct option). Questions must follow the order of the audio. Respond ONLY with raw JSON, no markdown, in this exact shape: {"title":"Section N — short descriptive title","context":"One sentence telling the candidate what they will hear and what to do.","transcript":"the full transcript","questions":[{"n":1,"type":"gap","label":"Sentence with a blank: ___","answer":["accepted","variants"]},{"n":2,"type":"mc","label":"Question text","options":["A","B","C"],"answer":0}]}`;
+const LISTENING_GEN_RUBRIC = `You are an experienced IELTS Listening test writer. You are given the REAL audio recording for ONE section of an IELTS Listening test. Listen to the audio carefully and do two things: (1) produce a faithful transcript of what is said; (2) write exactly 10 IELTS-style questions that can be answered ONLY from this audio. Use a natural mix of these two question types: "gap" (a sentence/form/note completion item; the "answer" field is an array of accepted answers, all lowercase, each NO MORE THAN TWO WORDS AND/OR A NUMBER, including reasonable spelling variants like "15"/"fifteen") and "mc" (multiple choice with exactly 3 options; the "answer" field is the 0-based index of the correct option). Questions must follow the order of the audio.
+CRITICAL ANSWER RULES — a broken answer makes the question impossible to mark:
+- For "gap": "answer" MUST be an array of one or more strings containing the ACTUAL WORDS OR NUMBER SPOKEN in the audio (e.g. ["walking tour"], ["15","fifteen"]). NEVER put an option index there, never a bare 0/1/2, and never leave it empty. A "gap" item must NOT have an "options" field.
+- For "mc": you MUST include an "options" array of exactly 3 strings, and "answer" MUST be the 0-based integer index of the correct option (0, 1 or 2) — not a letter, not the option text.
+Respond ONLY with raw JSON, no markdown, in this exact shape: {"title":"Section N — short descriptive title","context":"One sentence telling the candidate what they will hear and what to do.","transcript":"the full transcript","questions":[{"n":1,"type":"gap","label":"Sentence with a blank: ___","answer":["accepted","variants"]},{"n":2,"type":"mc","label":"Question text","options":["A","B","C"],"answer":0}]}`;
+
+/* Turn one AI-written listening item into the shape the app expects, repairing
+   the ways the model realistically gets it wrong. Returns false if the item has
+   no recoverable answer, so the caller can regenerate that section instead of
+   shipping a question nobody can answer.
+
+   The bug this replaces: `parseInt(answer) || 0` silently turned "B", or the
+   answer text, into index 0 — and a multiple-choice item mislabelled as "gap"
+   turned its index into the literal expected answer "0". */
+function normalizeListeningQuestion(q, n){
+  if(!q || typeof q !== "object") return false;
+  q.n = n;
+  q.label = String(q.label == null ? "" : q.label);
+
+  const options = Array.isArray(q.options)
+    ? q.options.map(o=>String(o == null ? "" : o).trim()).filter(o=>o.length)
+    : [];
+
+  // Trust the presence of real options over the declared type: the model
+  // sometimes writes a multiple-choice item but labels it "gap".
+  if(options.length >= 2){
+    q.type = "mc";
+    q.options = options;
+    q.answer = resolveMcAnswer(q.answer, options);
+    return q.answer >= 0;
+  }
+
+  // A bare numeric answer with no options is an orphaned multiple-choice index,
+  // not a real gap answer — that is exactly what surfaced as "0".
+  if(typeof q.answer === "number") return false;
+  if(Array.isArray(q.answer) && q.answer.length === 1 && typeof q.answer[0] === "number") return false;
+
+  q.type = "gap";
+  const raw = Array.isArray(q.answer) ? q.answer : [q.answer];
+  q.answer = raw
+    .map(a=>String(a == null ? "" : a).toLowerCase().trim())
+    .filter(a=>a.length && a !== "undefined" && a !== "null");
+  delete q.options;
+  return q.answer.length > 0;
+}
+
+/* Accepts an index (0), a numeric string ("0"), a letter ("B", "(c)"), or the
+   option text itself, and returns the option index — or -1 if unresolvable. */
+function resolveMcAnswer(raw, options){
+  if(typeof raw === "number" && Number.isInteger(raw) && raw >= 0 && raw < options.length) return raw;
+
+  const s = String(raw == null ? "" : raw).trim();
+  if(!s) return -1;
+
+  if(/^\d+$/.test(s)){
+    const i = parseInt(s, 10);
+    if(i >= 0 && i < options.length) return i;
+    if(i >= 1 && i <= options.length) return i - 1;   // 1-based index
+  }
+
+  const letters = s.replace(/[^a-zA-Z]/g, "");
+  if(letters.length === 1){
+    const i = letters.toUpperCase().charCodeAt(0) - 65;   // A→0, B→1, C→2
+    if(i >= 0 && i < options.length) return i;
+  }
+
+  const norm = t => String(t).toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+  const target = norm(s);
+  if(target){
+    let i = options.findIndex(o=>norm(o) === target);
+    if(i >= 0) return i;
+    i = options.findIndex(o=>{ const n2 = norm(o); return n2 && (n2.includes(target) || target.includes(n2)); });
+    if(i >= 0) return i;
+  }
+  return -1;
+}
 
 async function generateNewListeningWithAI(){
   const L = state.listening;
@@ -2234,22 +2320,40 @@ async function generateNewListeningWithAI(){
       if(status) status.textContent = `Generating questions for Section ${i} of 4 — this can take a minute per audio.`;
       const startN = (i-1)*10 + 1;
       const user = `This audio is Section ${i} of 4. Number the 10 questions from ${startN} to ${startN+9} (set "n" accordingly).`;
-      const text = await callGemini(LISTENING_GEN_RUBRIC, user, slot.b64, slot.mime);
-      const json = parseJSON(text);
-      if(!json || !Array.isArray(json.questions) || json.questions.length !== 10){
-        throw new Error("Section "+i+": the AI didn't return exactly 10 questions. Try again.");
-      }
-      json.questions.forEach((q, qi)=>{
-        q.n = startN + qi;
-        if(q.type === "gap"){
-          if(!Array.isArray(q.answer)) q.answer = [String(q.answer)];
-          q.answer = q.answer.map(a=>String(a).toLowerCase().trim());
-        } else {
-          q.type = "mc";
-          q.answer = parseInt(q.answer) || 0;
-          if(!Array.isArray(q.options) || q.options.length < 2) throw new Error("Section "+i+": malformed multiple-choice item.");
+
+      // Retry the section rather than shipping unanswerable questions: a single
+      // malformed item used to end up in the test as a blank/"0" answer.
+      const MAX_TRIES = 3;
+      let json = null, lastProblem = "";
+      for(let attempt=1; attempt<=MAX_TRIES; attempt++){
+        if(attempt > 1){
+          genProgressSet("listeningGen", ((i-1)/4)*100, `Section ${i} of 4 — retrying (${attempt}/${MAX_TRIES})…`);
         }
-      });
+        try{
+          const text = await callGemini(LISTENING_GEN_RUBRIC, user, slot.b64, slot.mime);
+          const parsed = parseJSON(text);
+          if(!parsed || !Array.isArray(parsed.questions) || parsed.questions.length !== 10){
+            lastProblem = "the AI didn't return exactly 10 questions";
+            continue;
+          }
+          const bad = [];
+          parsed.questions.forEach((q, qi)=>{
+            if(!normalizeListeningQuestion(q, startN + qi)) bad.push(startN + qi);
+          });
+          if(bad.length){
+            lastProblem = "question(s) " + bad.join(", ") + " had no usable answer";
+            continue;
+          }
+          json = parsed;
+          break;
+        }catch(err){
+          lastProblem = err.message || String(err);
+        }
+      }
+      if(!json){
+        throw new Error(`Section ${i} failed after ${MAX_TRIES} attempts — ${lastProblem}.`);
+      }
+
       newParts.push({
         id: i,
         title: json.title || `Section ${i}`,
