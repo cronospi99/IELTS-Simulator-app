@@ -19,6 +19,9 @@
    ============================================================================= */
 
 window.SUPABASE_CONFIG = {
-  url: "YOUR_SUPABASE_PROJECT_URL",
-  anonKey: "YOUR_SUPABASE_ANON_KEY"
+  url: "https://eecqfbxisquimaowhbmg.supabase.co",
+  // Newer Supabase projects call this the "Publishable key" (sb_publishable_…);
+  // older ones call it the "anon" key. Either goes here — both are safe in the
+  // browser. The "secret"/service_role key must never be put in this file.
+  anonKey: "sb_publishable_t3ojNz8SocY9YfllocR-6Q_tjTtmt8q"
 };
