@@ -87,6 +87,11 @@ nav.tabs button{
 }
 nav.tabs button.active{opacity:1;background:var(--paper);color:var(--ink);}
 nav.tabs button:hover{opacity:.9;}
+/* Reference tab — sits right after Speaking, tinted brass so it reads as a
+   reference rather than a fifth test module. */
+nav.tabs button.tab-ref{margin-left:14px;border-color:var(--brass);color:var(--brass-2);opacity:.8;}
+nav.tabs button.tab-ref:hover{opacity:1;}
+nav.tabs button.tab-ref.active{background:var(--paper);color:var(--ink);border-color:var(--paper);opacity:1;}
 
 main{padding-top:0;}
 .panel{
@@ -738,6 +743,7 @@ textarea.essay{
   <button data-mod="reading">Reading</button>
   <button data-mod="writing">Writing</button>
   <button data-mod="speaking">Speaking</button>
+  <button data-mod="descriptors" class="tab-ref">📋 Band descriptors</button>
 </nav>
 
 <div class="shell">
@@ -1803,7 +1809,7 @@ function conversionTableHTML(){
     <p class="bd-foot">One mark per correct answer, no half marks — spelling must be correct. Highlighted rows are where the two papers disagree: the same raw score is not the same band in Listening and Academic Reading, which is why they are converted with separate tables. Approximate conversions; the official table varies slightly by test version.</p>`;
 }
 
-function descriptorChartHTML(){
+function descriptorChartHTML(permanent){
   const tabs = BD_TABS.map(t=>
     `<button class="bd-tab ${t.id===bdActiveTab?"active":""}" data-bdtab="${t.id}">${t.label}</button>`
   ).join("");
@@ -1820,7 +1826,7 @@ function descriptorChartHTML(){
           <h3>${escapeXml(title)}</h3>
           <p>The exact wording your responses are marked against — the AI examiner is given this same table.</p>
         </div>
-        <button class="bd-launch" data-bdclose="1"><span class="bd-launch-ico">✕</span> Hide</button>
+        ${permanent ? "" : `<button class="bd-launch" data-bdclose="1"><span class="bd-launch-ico">✕</span> Hide</button>`}
       </div>
       <div class="bd-tabs">${tabs}</div>
       ${body}
@@ -1838,7 +1844,11 @@ document.addEventListener("click", e=>{
 
 function refreshDescriptorChart(){
   const host = document.getElementById("bdHost");
-  if(host) host.innerHTML = state.bdOpen ? descriptorChartHTML() : descriptorLaunchHTML();
+  if(!host) return;
+  // In the dedicated reference module the chart is always open, so switching
+  // sub-tabs must not collapse it back to the launcher.
+  if(state.mod === "descriptors"){ host.innerHTML = descriptorChartHTML(true); return; }
+  host.innerHTML = state.bdOpen ? descriptorChartHTML() : descriptorLaunchHTML();
 }
 
 function descriptorLaunchHTML(){
@@ -1890,7 +1900,7 @@ document.getElementById("tabs").addEventListener("click", (e)=>{
 function setModule(mod){
   state.mod = mod;
   document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.mod===mod));
-  const labels = {dashboard:"Dashboard", listening:"Listening", reading:"Reading", writing:"Writing", speaking:"Speaking", class:"My class"};
+  const labels = {dashboard:"Dashboard", listening:"Listening", reading:"Reading", writing:"Writing", speaking:"Speaking", class:"My class", descriptors:"Band descriptors"};
   document.getElementById("modLabel").textContent = labels[mod] || mod;
   render();
   window.scrollTo({top:0, behavior:"smooth"});
@@ -1907,6 +1917,17 @@ function render(){
   if(state.mod==="reading") return renderReading();
   if(state.mod==="writing") return renderWriting();
   if(state.mod==="speaking") return renderSpeaking();
+  if(state.mod==="descriptors") return renderDescriptors();
+}
+
+// Reference module: the official descriptors, always open (no launcher — the
+// nav tab is the entry point).
+function renderDescriptors(){
+  panel.innerHTML = `
+    <p class="section-title">Official band descriptors</p>
+    <p class="section-sub">The published IELTS criteria your work is marked against, reproduced in full. The AI examiner is given this exact table when it scores your Speaking and Writing, and the Listening &amp; Reading tab is generated from the app's own conversion functions — so what you read here is literally what the app applies.</p>
+    <div id="bdHost">${descriptorChartHTML(true)}</div>
+  `;
 }
 
 /* =========================================================================
