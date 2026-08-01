@@ -387,6 +387,45 @@ textarea.essay{
 .rubric-name{font-weight:700;font-size:13px;color:var(--ink);margin-bottom:4px;}
 .rubric-desc{font-size:12.5px;color:var(--slate);line-height:1.55;}
 .rubric-note{font-size:11.5px;color:var(--slate);font-style:italic;margin:14px 0 0;}
+
+/* ---------- official band descriptor chart ---------- */
+.bd-launch{display:inline-flex;align-items:center;gap:7px;background:var(--ink);color:var(--paper);border:1px solid var(--ink);
+  border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;line-height:1;}
+.bd-launch:hover{background:var(--ink-2);}
+.bd-launch .bd-launch-ico{font-size:13px;}
+.bd-panel{background:#fff;border:1px solid var(--line);border-radius:14px;margin:0 0 22px;overflow:hidden;box-shadow:0 12px 30px -22px rgba(19,27,46,.5);}
+.bd-panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:16px 20px;background:linear-gradient(180deg,#fbf9f2,#f2eddd);border-bottom:1px solid var(--line);}
+.bd-panel-head h3{font-family:'Fraunces',serif;font-size:17px;margin:0;color:var(--ink);}
+.bd-panel-head p{margin:3px 0 0;font-size:11.5px;color:var(--slate);}
+.bd-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px 0;}
+.bd-tab{border:1px solid var(--line);background:#fff;color:var(--slate);border-radius:999px;padding:6px 13px;
+  font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.bd-tab:hover{border-color:var(--azure-2);color:var(--ink);}
+.bd-tab.active{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+.bd-scroll{overflow-x:auto;padding:14px 20px 4px;}
+.bd-table{border-collapse:collapse;width:100%;min-width:860px;font-size:12px;}
+.bd-table th,.bd-table td{border:1px solid var(--line);vertical-align:top;padding:8px 10px;text-align:left;}
+.bd-table thead th{background:var(--ink);color:var(--paper);font-size:11px;letter-spacing:.05em;
+  text-transform:uppercase;font-family:'IBM Plex Mono',monospace;font-weight:600;position:sticky;top:0;}
+.bd-table thead th:first-child{width:52px;text-align:center;}
+.bd-table tbody tr:nth-child(even) td{background:#fbfaf6;}
+.bd-band{text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;color:var(--ink);
+  background:var(--paper-2)!important;width:52px;}
+.bd-table ul{margin:0;padding-left:15px;}
+.bd-table li{margin:0 0 3px;line-height:1.45;color:var(--slate);}
+.bd-table li:last-child{margin-bottom:0;}
+.bd-global td{font-style:italic;color:var(--slate);background:#fbfaf6!important;}
+.bd-foot{padding:6px 20px 16px;font-size:11px;color:var(--slate);font-style:italic;line-height:1.6;}
+.bd-conv{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:14px 20px 4px;}
+@media(max-width:640px){.bd-conv{grid-template-columns:1fr;}.bd-table{min-width:620px;}}
+.bd-conv h4{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  font-family:'IBM Plex Mono',monospace;color:var(--ink);}
+.bd-conv table{border-collapse:collapse;width:100%;font-size:12.5px;}
+.bd-conv td{border:1px solid var(--line);padding:5px 10px;}
+.bd-conv td:first-child{font-family:'IBM Plex Mono',monospace;color:var(--slate);}
+.bd-conv td:last-child{text-align:right;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--ink);width:64px;}
+.bd-conv tr.bd-diff td{background:#fdf6e3;}
 /* ---------- listening generator slots ---------- */
 .gen-slots{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 @media(max-width:640px){.gen-slots{grid-template-columns:1fr;}}
@@ -1053,6 +1092,7 @@ const state = {
   candNo: Math.floor(100000 + Math.random()*899999),
   scores: { listening:null, reading:null, writing:null, speaking:null },
   history: [],
+  bdOpen: false,   // official band descriptor chart expanded?
   listening: { answers:{}, submitted:false, playedParts:{}, customAudio:{} },
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
@@ -1355,61 +1395,183 @@ function parseJSON(text){
   return JSON.parse(clean);
 }
 
-// Task 1 and Task 2 are NOT scored on the same first criterion — Task 1 is
-// judged on Task Achievement (did the report select, highlight and illustrate
-// the key features of the data?) and Task 2 on Task Response (is there a clear,
-// developed, supported position on the actual question asked?). The old single
-// prompt collapsed them into "Task Achievement (or Task Response)", which let
-// the examiner apply whichever was easier to satisfy. These are the public
-// descriptors, split properly.
-const WRITING_TASK1_ACHIEVEMENT = `TASK ACHIEVEMENT (Task 1 — report on the visual)
-9: All requirements fully and appropriately satisfied; presents a fully developed response.
-8: Covers all requirements sufficiently; presents, highlights and illustrates key features clearly and appropriately.
-7: Covers the requirements of the task; presents a clear overview of main trends, differences or stages; key features are highlighted, but they could be more fully extended.
-6: Addresses the requirements of the task; presents an overview with information appropriately selected; key features are covered but may be inadequately highlighted, and there may be irrelevant detail.
-5: Generally addresses the task but the format may be inappropriate in places; recounts detail mechanically with NO clear overview; there may be no data to support the description.
-4: Attempts the task but does not cover all key features; the format may be inappropriate; confuses key features with detail; parts may be unclear, irrelevant, repetitive or inaccurate.
-3: Fails to address the task, which may have been misunderstood; presents limited ideas which may be largely irrelevant or repetitive.
-NOTE: a Task 1 response with no overview of the main trend cannot reach band 6 on this criterion, however well written it is. Do not credit invented data that is not in the visual.`;
+/* =========================================================================
+   OFFICIAL IELTS BAND DESCRIPTORS — SINGLE SOURCE OF TRUTH
+   -------------------------------------------------------------------------
+   Transcribed from the public-version descriptor documents published by the
+   British Council, IDP: IELTS Australia and Cambridge English Language
+   Assessment (Speaking; Writing Task 1; Writing Task 2).
 
-const WRITING_TASK2_RESPONSE = `TASK RESPONSE (Task 2 — argumentative essay)
-9: Fully addresses all parts of the task; presents a fully developed position with relevant, fully extended and well supported ideas.
-8: Sufficiently addresses all parts of the task; presents a well-developed response with relevant, extended and supported ideas.
-7: Addresses all parts of the task; presents a clear position throughout; presents, extends and supports main ideas, though there may be a tendency to over-generalise or supporting ideas may lack focus.
-6: Addresses all parts of the task although some parts may be more fully covered than others; presents a relevant position although conclusions may become unclear or repetitive; presents relevant main ideas but some may be inadequately developed or unclear.
-5: Addresses the task only partially; the format may be inappropriate in places; expresses a position but development is not always clear and there may be no conclusions drawn; main ideas are limited and insufficiently developed; there may be irrelevant detail.
-4: Responds minimally or tangentially; the format may be inappropriate; the position is unclear; main ideas are hard to identify and may be repetitive, irrelevant or unsupported.
-3: Does not adequately address any part of the task; no clear position; few ideas, largely undeveloped or irrelevant.
-NOTE: if the prompt has two parts (e.g. "discuss both views AND give your own opinion") and one part is missing or barely touched, the criterion cannot exceed band 5.`;
+   Everything downstream is derived from this one structure: the descriptor
+   chart shown in the app AND the prompts sent to the AI examiner. They cannot
+   drift apart, because there is only one copy of the wording.
 
-const WRITING_SHARED_CRITERIA = `COHERENCE & COHESION
-9: Uses cohesion in such a way that it attracts no attention; skilfully manages paragraphing.
-8: Sequences information and ideas logically; manages all aspects of cohesion well; paragraphing is sufficient and appropriate.
-7: Logically organises information with clear progression throughout; uses a range of cohesive devices appropriately, though with some under- or over-use; each paragraph has a clear central topic.
-6: Arranges information coherently with clear overall progression; uses cohesive devices effectively, but cohesion within or between sentences may be faulty or mechanical; referencing may not always be clear; paragraphing is used but not always logically.
-5: Some organisation but a lack of overall progression; cohesive devices are inadequate, inaccurate or over-used; repetitive through lack of referencing and substitution; paragraphing may be absent or inadequate.
-4: Ideas are not arranged coherently and there is no clear progression; basic cohesive devices used inaccurately or repetitively; paragraphing may be absent or confusing.
-3: Does not organise ideas logically; a very limited range of cohesive devices, which may not signal a logical relationship between ideas.
-NOTE: heavy signposting ("Firstly", "Moreover", "In conclusion") on top of weak underlying organisation is a band 5-6 feature, not a band 7 one. Judge the progression of ideas, not the count of linking words.
+   Notes on fidelity to the source documents:
+   - Task 1 uses the Academic (A) variants; the General Training (GT) bullets
+     are omitted because this app only sets Academic tasks.
+   - Coherence & Cohesion is NOT identical across Writing Task 1 and Task 2.
+     Task 2 carries three extra bullets (a clear central topic per paragraph at
+     7, paragraphing at 6 and 5, paragraph use at 4). They are stored
+     separately rather than shared.
+   - Lexical Resource and Grammatical Range & Accuracy ARE identical across
+     Task 1 and Task 2, so they are shared.
+   ========================================================================= */
 
-LEXICAL RESOURCE
-9: Wide range with very natural and sophisticated control; rare minor errors occur only as slips.
-8: Wide range used fluently and flexibly to convey precise meaning; skilful use of uncommon items with occasional inaccuracies in word choice and collocation; rare spelling or word-formation errors.
-7: Sufficient range to allow some flexibility and precision; uses less common items with some awareness of style and collocation; occasional errors in word choice, spelling or word formation.
-6: Adequate range for the task; attempts less common vocabulary with some inaccuracy; some spelling or word-formation errors that do not impede communication.
-5: Limited range, minimally adequate for the task; noticeable spelling or word-formation errors that may cause difficulty for the reader.
-4: Only basic vocabulary, used repetitively or inappropriately for the task; limited control of word formation and spelling; errors may strain the reader.
-3: A very limited range of words and expressions with very limited control; errors may severely distort the message.
-NOTE: memorised "high-level" phrases bolted onto otherwise ordinary writing do not raise this criterion. What counts is precision and collocation in the candidate's own sentences.
+const DESCRIPTOR_SOURCE = "Public-version band descriptors — British Council, IDP: IELTS Australia and Cambridge English Language Assessment.";
 
-GRAMMATICAL RANGE & ACCURACY
-9: Wide range used with full flexibility and accuracy; rare minor errors occur only as slips.
-8: Wide range of structures; the majority of sentences are error-free; only very occasional errors or inappropriacies.
-7: A variety of complex structures; produces frequent error-free sentences; good control of grammar and punctuation, though a few errors persist.
-6: A mix of simple and complex forms; some errors in grammar and punctuation, but they rarely reduce communication.
-5: Only a limited range of structures; complex sentences are attempted but tend to be less accurate than simple ones; frequent grammatical errors and faulty punctuation can cause difficulty for the reader.
-4: A very limited range with only rare subordinate clauses; some accurate structures but errors predominate; punctuation is often faulty.
-3: Attempts sentence forms but errors in grammar and punctuation predominate and distort meaning.`;
+const SPEAKING_CRITERIA_DESCRIPTORS = [
+  { key:"fluency_coherence", name:"Fluency and coherence", bands:{
+    9:["speaks fluently with only rare repetition or self-correction","any hesitation is content-related rather than to find words or grammar","speaks coherently with fully appropriate cohesive features","develops topics fully and appropriately"],
+    8:["speaks fluently with only occasional repetition or self-correction; hesitation is usually content-related and only rarely to search for language","develops topics coherently and appropriately"],
+    7:["speaks at length without noticeable effort or loss of coherence","may demonstrate language-related hesitation at times, or some repetition and/or self-correction","uses a range of connectives and discourse markers with some flexibility"],
+    6:["is willing to speak at length, though may lose coherence at times due to occasional repetition, self-correction or hesitation","uses a range of connectives and discourse markers but not always appropriately"],
+    5:["usually maintains flow of speech but uses repetition, self correction and/or slow speech to keep going","may over-use certain connectives and discourse markers","produces simple speech fluently, but more complex communication causes fluency problems"],
+    4:["cannot respond without noticeable pauses and may speak slowly, with frequent repetition and self-correction","links basic sentences but with repetitious use of simple connectives and some breakdowns in coherence"],
+    3:["speaks with long pauses","has limited ability to link simple sentences","gives only simple responses and is frequently unable to convey basic message"],
+    2:["pauses lengthily before most words","little communication possible"]
+  }},
+  { key:"lexical_resource", name:"Lexical resource", bands:{
+    9:["uses vocabulary with full flexibility and precision in all topics","uses idiomatic language naturally and accurately"],
+    8:["uses a wide vocabulary resource readily and flexibly to convey precise meaning","uses less common and idiomatic vocabulary skilfully, with occasional inaccuracies","uses paraphrase effectively as required"],
+    7:["uses vocabulary resource flexibly to discuss a variety of topics","uses some less common and idiomatic vocabulary and shows some awareness of style and collocation, with some inappropriate choices","uses paraphrase effectively"],
+    6:["has a wide enough vocabulary to discuss topics at length and make meaning clear in spite of inappropriacies","generally paraphrases successfully"],
+    5:["manages to talk about familiar and unfamiliar topics but uses vocabulary with limited flexibility","attempts to use paraphrase but with mixed success"],
+    4:["is able to talk about familiar topics but can only convey basic meaning on unfamiliar topics and makes frequent errors in word choice","rarely attempts paraphrase"],
+    3:["uses simple vocabulary to convey personal information","has insufficient vocabulary for less familiar topics"],
+    2:["only produces isolated words or memorised utterances"]
+  }},
+  { key:"grammar", name:"Grammatical range and accuracy", bands:{
+    9:["uses a full range of structures naturally and appropriately","produces consistently accurate structures apart from 'slips' characteristic of native speaker speech"],
+    8:["uses a wide range of structures flexibly","produces a majority of error-free sentences with only very occasional inappropriacies or basic/non-systematic errors"],
+    7:["uses a range of complex structures with some flexibility","frequently produces error-free sentences, though some grammatical mistakes persist"],
+    6:["uses a mix of simple and complex structures, but with limited flexibility","may make frequent mistakes with complex structures though these rarely cause comprehension problems"],
+    5:["produces basic sentence forms with reasonable accuracy","uses a limited range of more complex structures, but these usually contain errors and may cause some comprehension problems"],
+    4:["produces basic sentence forms and some correct simple sentences but subordinate structures are rare","errors are frequent and may lead to misunderstanding"],
+    3:["attempts basic sentence forms but with limited success, or relies on apparently memorised utterances","makes numerous errors except in memorised expressions"],
+    2:["cannot produce basic sentence forms"]
+  }},
+  { key:"pronunciation", name:"Pronunciation", bands:{
+    9:["uses a full range of pronunciation features with precision and subtlety","sustains flexible use of features throughout","is effortless to understand"],
+    8:["uses a wide range of pronunciation features","sustains flexible use of features, with only occasional lapses","is easy to understand throughout; L1 accent has minimal effect on intelligibility"],
+    7:["shows all the positive features of Band 6 and some, but not all, of the positive features of Band 8"],
+    6:["uses a range of pronunciation features with mixed control","shows some effective use of features but this is not sustained","can generally be understood throughout, though mispronunciation of individual words or sounds reduces clarity at times"],
+    5:["shows all the positive features of Band 4 and some, but not all, of the positive features of Band 6"],
+    4:["uses a limited range of pronunciation features","attempts to control features but lapses are frequent","mispronunciations are frequent and cause some difficulty for the listener"],
+    3:["shows some of the features of Band 2 and some, but not all, of the positive features of Band 4"],
+    2:["speech is often unintelligible"]
+  }}
+];
+
+// Lexical Resource and Grammatical Range are word-for-word identical across
+// Writing Task 1 and Task 2 in the official documents.
+const WRITING_LEXICAL_DESCRIPTOR = { key:"lexical_resource", name:"Lexical resource", bands:{
+  9:["uses a wide range of vocabulary with very natural and sophisticated control of lexical features; rare minor errors occur only as 'slips'"],
+  8:["uses a wide range of vocabulary fluently and flexibly to convey precise meanings","skilfully uses uncommon lexical items but there may be occasional inaccuracies in word choice and collocation","produces rare errors in spelling and/or word formation"],
+  7:["uses a sufficient range of vocabulary to allow some flexibility and precision","uses less common lexical items with some awareness of style and collocation","may produce occasional errors in word choice, spelling and/or word formation"],
+  6:["uses an adequate range of vocabulary for the task","attempts to use less common vocabulary but with some inaccuracy","makes some errors in spelling and/or word formation, but they do not impede communication"],
+  5:["uses a limited range of vocabulary, but this is minimally adequate for the task","may make noticeable errors in spelling and/or word formation that may cause some difficulty for the reader"],
+  4:["uses only basic vocabulary which may be used repetitively or which may be inappropriate for the task","has limited control of word formation and/or spelling; errors may cause strain for the reader"],
+  3:["uses only a very limited range of words and expressions with very limited control of word formation and/or spelling","errors may severely distort the message"],
+  2:["uses an extremely limited range of vocabulary; essentially no control of word formation and/or spelling"],
+  1:["can only use a few isolated words"]
+}};
+
+const WRITING_GRAMMAR_DESCRIPTOR = { key:"grammar", name:"Grammatical range and accuracy", bands:{
+  9:["uses a wide range of structures with full flexibility and accuracy; rare minor errors occur only as 'slips'"],
+  8:["uses a wide range of structures","the majority of sentences are error-free","makes only very occasional errors or inappropriacies"],
+  7:["uses a variety of complex structures","produces frequent error-free sentences","has good control of grammar and punctuation but may make a few errors"],
+  6:["uses a mix of simple and complex sentence forms","makes some errors in grammar and punctuation but they rarely reduce communication"],
+  5:["uses only a limited range of structures","attempts complex sentences but these tend to be less accurate than simple sentences","may make frequent grammatical errors and punctuation may be faulty; errors can cause some difficulty for the reader"],
+  4:["uses only a very limited range of structures with only rare use of subordinate clauses","some structures are accurate but errors predominate, and punctuation is often faulty"],
+  3:["attempts sentence forms but errors in grammar and punctuation predominate and distort the meaning"],
+  2:["cannot use sentence forms except in memorised phrases"],
+  1:["cannot use sentence forms at all"]
+}};
+
+const OFFICIAL_BAND_DESCRIPTORS = {
+  speaking: {
+    label:"Speaking",
+    title:"IELTS Speaking — Band Descriptors (public version)",
+    note:"All four criteria carry equal weight. The four criterion scores are averaged and the result is rounded to the nearest half band (a remainder of .25 rounds up to the half, .75 up to the whole).",
+    criteria: SPEAKING_CRITERIA_DESCRIPTORS,
+    globalRows: { 1:"no communication possible; no rateable language", 0:"does not attend" }
+  },
+  writing_task1: {
+    label:"Writing Task 1",
+    title:"IELTS Writing Task 1 — Band Descriptors (public version, Academic)",
+    note:"Task 1 requires a minimum of 150 words. An under-length response is penalised under Task Achievement. Task 1 contributes one third of the overall Writing band.",
+    criteria: [
+      { key:"task_achievement", name:"Task achievement", bands:{
+        9:["fully satisfies all the requirements of the task","clearly presents a fully developed response"],
+        8:["covers all requirements of the task sufficiently","presents, highlights and illustrates key features/bullet points clearly and appropriately"],
+        7:["covers the requirements of the task","presents a clear overview of main trends, differences or stages","clearly presents and highlights key features/bullet points but could be more fully extended"],
+        6:["addresses the requirements of the task","presents an overview with information appropriately selected","presents and adequately highlights key features/bullet points but details may be irrelevant, inappropriate or inaccurate"],
+        5:["generally addresses the task; the format may be inappropriate in places","recounts detail mechanically with no clear overview; there may be no data to support the description","presents, but inadequately covers, key features/bullet points; there may be a tendency to focus on details"],
+        4:["attempts to address the task but does not cover all key features/bullet points; the format may be inappropriate","may confuse key features/bullet points with detail; parts may be unclear, irrelevant, repetitive or inaccurate"],
+        3:["fails to address the task, which may have been completely misunderstood","presents limited ideas which may be largely irrelevant/repetitive"],
+        2:["answer is barely related to the task"],
+        1:["answer is completely unrelated to the task"]
+      }},
+      { key:"coherence_cohesion", name:"Coherence and cohesion", bands:{
+        9:["uses cohesion in such a way that it attracts no attention","skilfully manages paragraphing"],
+        8:["sequences information and ideas logically","manages all aspects of cohesion well","uses paragraphing sufficiently and appropriately"],
+        7:["logically organises information and ideas; there is clear progression throughout","uses a range of cohesive devices appropriately although there may be some under-/over-use"],
+        6:["arranges information and ideas coherently and there is a clear overall progression","uses cohesive devices effectively, but cohesion within and/or between sentences may be faulty or mechanical","may not always use referencing clearly or appropriately"],
+        5:["presents information with some organisation but there may be a lack of overall progression","makes inadequate, inaccurate or over-use of cohesive devices","may be repetitive because of lack of referencing and substitution"],
+        4:["presents information and ideas but these are not arranged coherently and there is no clear progression in the response","uses some basic cohesive devices but these may be inaccurate or repetitive"],
+        3:["does not organise ideas logically","may use a very limited range of cohesive devices, and those used may not indicate a logical relationship between ideas"],
+        2:["has very little control of organisational features"],
+        1:["fails to communicate any message"]
+      }},
+      WRITING_LEXICAL_DESCRIPTOR,
+      WRITING_GRAMMAR_DESCRIPTOR
+    ],
+    globalRows: { 0:"does not attend; does not attempt the task in any way; writes a totally memorised response" }
+  },
+  writing_task2: {
+    label:"Writing Task 2",
+    title:"IELTS Writing Task 2 — Band Descriptors (public version)",
+    note:"Task 2 requires a minimum of 250 words. An under-length response is penalised under Task Response. Task 2 is worth twice Task 1 in the overall Writing band.",
+    criteria: [
+      { key:"task_achievement", name:"Task response", bands:{
+        9:["fully addresses all parts of the task","presents a fully developed position in answer to the question with relevant, fully extended and well supported ideas"],
+        8:["sufficiently addresses all parts of the task","presents a well-developed response to the question with relevant, extended and supported ideas"],
+        7:["addresses all parts of the task","presents a clear position throughout the response","presents, extends and supports main ideas, but there may be a tendency to over-generalise and/or supporting ideas may lack focus"],
+        6:["addresses all parts of the task although some parts may be more fully covered than others","presents a relevant position although the conclusions may become unclear or repetitive","presents relevant main ideas but some may be inadequately developed/unclear"],
+        5:["addresses the task only partially; the format may be inappropriate in places","expresses a position but the development is not always clear and there may be no conclusions drawn","presents some main ideas but these are limited and not sufficiently developed; there may be irrelevant detail"],
+        4:["responds to the task only in a minimal way or the answer is tangential; the format may be inappropriate","presents a position but this is unclear","presents some main ideas but these are difficult to identify and may be repetitive, irrelevant or not well supported"],
+        3:["does not adequately address any part of the task","does not express a clear position","presents few ideas, which are largely undeveloped or irrelevant"],
+        2:["barely responds to the task","does not express a position","may attempt to present one or two ideas but there is no development"],
+        1:["answer is completely unrelated to the task"]
+      }},
+      { key:"coherence_cohesion", name:"Coherence and cohesion", bands:{
+        9:["uses cohesion in such a way that it attracts no attention","skilfully manages paragraphing"],
+        8:["sequences information and ideas logically","manages all aspects of cohesion well","uses paragraphing sufficiently and appropriately"],
+        7:["logically organises information and ideas; there is clear progression throughout","uses a range of cohesive devices appropriately although there may be some under-/over-use","presents a clear central topic within each paragraph"],
+        6:["arranges information and ideas coherently and there is a clear overall progression","uses cohesive devices effectively, but cohesion within and/or between sentences may be faulty or mechanical","may not always use referencing clearly or appropriately","uses paragraphing, but not always logically"],
+        5:["presents information with some organisation but there may be a lack of overall progression","makes inadequate, inaccurate or over-use of cohesive devices","may be repetitive because of lack of referencing and substitution","may not write in paragraphs, or paragraphing may be inadequate"],
+        4:["presents information and ideas but these are not arranged coherently and there is no clear progression in the response","uses some basic cohesive devices but these may be inaccurate or repetitive","may not write in paragraphs or their use may be confusing"],
+        3:["does not organise ideas logically","may use a very limited range of cohesive devices, and those used may not indicate a logical relationship between ideas"],
+        2:["has very little control of organisational features"],
+        1:["fails to communicate any message"]
+      }},
+      WRITING_LEXICAL_DESCRIPTOR,
+      WRITING_GRAMMAR_DESCRIPTOR
+    ],
+    globalRows: { 0:"does not attend; does not attempt the task in any way; writes a totally memorised response" }
+  }
+};
+
+// Builds the descriptor block embedded in an examiner prompt, straight from the
+// table above, so the AI is always marking against exactly what the app shows.
+function descriptorPromptBlock(setKey){
+  const set = OFFICIAL_BAND_DESCRIPTORS[setKey];
+  return set.criteria.map(c=>{
+    const lines = Object.keys(c.bands).map(Number).sort((a,b)=>b-a)
+      .map(b=>`${b}: ${c.bands[b].join("; ")}.`);
+    return c.name.toUpperCase() + "\n" + lines.join("\n");
+  }).join("\n\n");
+}
 
 const WRITING_SCORING_PROCEDURE = `HOW TO SCORE — for each of the four criteria separately:
 1. Gather the evidence in the response for that criterion, find the single descriptor whose wording it actually matches, and award that band.
@@ -1434,64 +1596,31 @@ WRITING THE FEEDBACK:
 
 function writingRubric(task){
   const isTask1 = task === "task1";
-  return `You are an experienced, calibrated IELTS Academic Writing examiner marking ${isTask1 ? "TASK 1 (a report describing a visual)" : "TASK 2 (an argumentative essay)"}. Score against the four official criteria: ${isTask1 ? "Task Achievement" : "Task Response"}, Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy.
+  const setKey = isTask1 ? "writing_task1" : "writing_task2";
+  const first = isTask1 ? "Task Achievement" : "Task Response";
+  return `You are an experienced, calibrated IELTS Academic Writing examiner marking ${isTask1 ? "TASK 1 (a report describing a visual)" : "TASK 2 (an argumentative essay)"}. Score against the four official criteria: ${first}, Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy.
 
 OFFICIAL BAND DESCRIPTORS — award the band whose wording actually matches the evidence.
 
-${isTask1 ? WRITING_TASK1_ACHIEVEMENT : WRITING_TASK2_RESPONSE}
-
-${WRITING_SHARED_CRITERIA}
+${descriptorPromptBlock(setKey)}
 
 ${WRITING_SCORING_PROCEDURE}
 
-Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":""}. The "task_achievement" key holds your ${isTask1 ? "Task Achievement" : "Task Response"} score regardless of its name.`;
+Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":""}. The "task_achievement" key holds your ${first} score regardless of its name.`;
 }
 
 const WRITING_PARAGRAPH_RUBRIC = `You are an IELTS Writing examiner giving developmental, paragraph-by-paragraph feedback — not a score. You will receive the student's essay already split into numbered paragraphs. For EACH paragraph, in order, find concrete mistakes or weak spots (grammar, word choice, cohesion, task relevance, clarity) and give a short corrected/improved version of each specific problem phrase, plus a one-line reason. If a paragraph has no notable issues, return an empty "issues" array and a positive one-line comment instead. Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"paragraphs":[{"comment":"one short sentence on this paragraph's main strength or weakness","issues":[{"original":"short exact phrase from the paragraph, under 12 words","suggestion":"the corrected or improved phrase","why":"brief reason, under 15 words"}]}]}. Return exactly one entry in "paragraphs" for every numbered paragraph given, in the same order — never merge, skip, or add paragraphs.`;
 
-// The public IELTS Speaking band descriptors, criterion by criterion. Both
-// speaking prompts embed these verbatim so the examiner matches observed
-// evidence against a descriptor instead of guessing a plausible-sounding
-// number. Previously the prompts only said "typical competent B2/C1 speech
-// lands between 5.5 and 7.5", which anchored every candidate into that range
-// and told the model that band 5.5 was B2 — the source of reports whose
-// commentary described B2 performance while awarding 5.5.
+// The speaking descriptor block is generated from OFFICIAL_BAND_DESCRIPTORS so
+// the examiner marks against exactly the chart the candidate can read in the
+// app. Previously the prompts only said "typical competent B2/C1 speech lands
+// between 5.5 and 7.5", which anchored every candidate into that range and
+// asserted that band 5.5 was B2 — the source of reports whose commentary
+// described B2 performance while awarding 5.5.
 const SPEAKING_BAND_DESCRIPTORS = `OFFICIAL BAND DESCRIPTORS — award the band whose wording actually matches the evidence.
 
-FLUENCY & COHERENCE
-9: Speaks fluently with only rare repetition or self-correction; any hesitation is content-related, never to search for words or grammar; topics fully and coherently developed.
-8: Fluent with only occasional repetition or self-correction; hesitation is usually content-related, only rarely language-related; develops topics coherently and appropriately.
-7: Speaks at length without noticeable effort or loss of coherence; some language-related hesitation, repetition or self-correction; uses a range of connectives and discourse markers with some flexibility.
-6: Willing to speak at length, though coherence is lost at times through repetition, self-correction or hesitation; uses connectives and discourse markers but not always appropriately.
-5: Usually maintains flow of speech but relies on repetition, self-correction or slow speech to keep going; over-uses certain connectives; simple speech is fluent but more complex communication breaks fluency down.
-4: Cannot respond without noticeable pauses, may speak slowly with frequent repetition and self-correction; links basic sentences with repetitious simple connectives and some breakdowns in coherence.
-3: Speaks with long pauses; limited ability to link simple sentences; gives only simple responses and is frequently unable to convey the basic message.
+${descriptorPromptBlock("speaking")}`;
 
-LEXICAL RESOURCE
-9: Full flexibility and precise use of vocabulary in all topics; idiomatic language used naturally and accurately.
-8: Wide resource used readily and flexibly to convey precise meaning; less common and idiomatic vocabulary used skilfully with occasional inaccuracies; effective paraphrase.
-7: Vocabulary used flexibly across a variety of topics; some less common and idiomatic items with some awareness of style and collocation, though with some inappropriate choices; paraphrases effectively.
-6: Vocabulary wide enough to discuss topics at length and make meaning clear in spite of inappropriacies; generally paraphrases successfully.
-5: Manages to talk about familiar and unfamiliar topics but with limited flexibility; attempts paraphrase with mixed success.
-4: Can talk about familiar topics but conveys only basic meaning on unfamiliar ones; frequent errors in word choice; rarely attempts paraphrase.
-3: Uses simple vocabulary to convey personal information; insufficient vocabulary for less familiar topics.
-
-GRAMMATICAL RANGE & ACCURACY
-9: Full range of structures used naturally and appropriately; consistently accurate apart from slips typical of native-speaker speech.
-8: Wide range of structures used flexibly; the majority of sentences are error-free; only occasional inappropriacies or non-systematic errors.
-7: A range of complex structures used with some flexibility; frequently produces error-free sentences, though some grammatical mistakes persist.
-6: A mix of simple and complex structures but with limited flexibility; frequent mistakes with complex structures, though these rarely impede comprehension.
-5: Basic sentence forms produced with reasonable accuracy; a limited range of more complex structures, which usually contain errors and may cause some comprehension problems.
-4: Basic sentence forms and some correct simple sentences; subordinate structures are rare; errors are frequent and may lead to misunderstanding.
-3: Attempts basic sentence forms with limited success, or relies on apparently memorised utterances; numerous errors except in memorised expressions.
-
-PRONUNCIATION
-9: Full range of pronunciation features used with precision and subtlety, sustained throughout; effortless to understand.
-8: Wide range of features sustained flexibly with only occasional lapses; easy to understand throughout; L1 accent has minimal effect on intelligibility.
-7: All the positive features of band 6 plus some, but not all, of the positive features of band 8.
-6: A range of pronunciation features used with mixed control; some effective use but it is not sustained; generally understandable throughout, though mispronunciation of individual words or sounds reduces clarity at times.
-5: All the positive features of band 4 plus some, but not all, of the positive features of band 6.
-4: A limited range of pronunciation features; control is attempted but lapses are frequent; frequent mispronunciations cause some difficulty for the listener.`;
 
 const SPEAKING_SCORING_PROCEDURE = `HOW TO SCORE — follow this procedure for each of the four criteria separately:
 1. Gather the evidence you actually observed for that criterion, then find the single descriptor whose wording it matches. Award that band.
@@ -1588,6 +1717,138 @@ const IELTS_RUBRICS = {
     note:"Pace (words per minute) is a study aid only, not an official criterion — natural fluency matters more than raw speed. A comfortable IELTS range is roughly 120–160 wpm."
   }
 };
+
+/* =========================================================================
+   OFFICIAL BAND DESCRIPTOR CHART
+   Renders OFFICIAL_BAND_DESCRIPTORS — the same table the AI examiner is
+   prompted with — so a candidate can read the exact wording their band was
+   matched against, plus the Listening/Academic Reading conversion tables
+   read straight out of the scoring functions.
+   ========================================================================= */
+
+const BD_TABS = [
+  { id:"speaking",      label:"Speaking" },
+  { id:"writing_task1", label:"Writing Task 1" },
+  { id:"writing_task2", label:"Writing Task 2" },
+  { id:"conversion",    label:"Listening & Reading" }
+];
+
+let bdActiveTab = "speaking";
+
+function descriptorTableHTML(setKey){
+  const set = OFFICIAL_BAND_DESCRIPTORS[setKey];
+  const bands = [];
+  for(let b=9;b>=0;b--) bands.push(b);
+  const rows = bands.map(b=>{
+    const global = set.globalRows && set.globalRows[b];
+    if(global){
+      return `<tr class="bd-global"><td class="bd-band">${b}</td><td colspan="${set.criteria.length}">${escapeXml(global)}</td></tr>`;
+    }
+    const cells = set.criteria.map(c=>{
+      const items = c.bands[b];
+      if(!items || !items.length) return `<td></td>`;
+      return `<td><ul>${items.map(t=>`<li>${escapeXml(t)}</li>`).join("")}</ul></td>`;
+    }).join("");
+    // Skip a band only when no criterion says anything about it at all.
+    const empty = set.criteria.every(c=>!c.bands[b] || !c.bands[b].length);
+    if(empty) return "";
+    return `<tr><td class="bd-band">${b}</td>${cells}</tr>`;
+  }).join("");
+  return `
+    <div class="bd-scroll">
+      <table class="bd-table">
+        <thead><tr><th>Band</th>${set.criteria.map(c=>`<th>${escapeXml(c.name)}</th>`).join("")}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="bd-foot">${escapeXml(set.note)}<br>${escapeXml(DESCRIPTOR_SOURCE)}</p>`;
+}
+
+// Built by walking the real scoring functions, so this table can never claim a
+// boundary the app does not actually apply.
+function conversionRows(fn){
+  const out = [];
+  for(let raw=40; raw>=0; raw--){
+    const band = fn(raw, 40);
+    if(out.length && out[out.length-1].band === band) out[out.length-1].lo = raw;
+    else out.push({ band, hi:raw, lo:raw });
+  }
+  return out;
+}
+
+function conversionTableHTML(){
+  const l = conversionRows(rawToBandListening);
+  const r = conversionRows(rawToBandReading);
+  const render = rows => rows.map(x=>{
+    // Highlight when ANY raw score in the range converts differently on the
+    // other paper — comparing only the top of the range would miss partial
+    // disagreements such as Listening 32-34 = 7.5 vs Reading 32 = 7.0.
+    const otherFn = rows === l ? rawToBandReading : rawToBandListening;
+    let differs = false;
+    for(let raw=x.lo; raw<=x.hi; raw++){ if(otherFn(raw, 40) !== x.band){ differs = true; break; } }
+    const range = x.lo === x.hi ? `${x.lo}` : `${x.lo}–${x.hi}`;
+    return `<tr class="${differs?"bd-diff":""}"><td>${range} / 40</td><td>${x.band.toFixed(1)}</td></tr>`;
+  }).join("");
+  return `
+    <div class="bd-conv">
+      <div>
+        <h4>Listening</h4>
+        <table><tbody>${render(l)}</tbody></table>
+      </div>
+      <div>
+        <h4>Academic Reading</h4>
+        <table><tbody>${render(r)}</tbody></table>
+      </div>
+    </div>
+    <p class="bd-foot">One mark per correct answer, no half marks — spelling must be correct. Highlighted rows are where the two papers disagree: the same raw score is not the same band in Listening and Academic Reading, which is why they are converted with separate tables. Approximate conversions; the official table varies slightly by test version.</p>`;
+}
+
+function descriptorChartHTML(){
+  const tabs = BD_TABS.map(t=>
+    `<button class="bd-tab ${t.id===bdActiveTab?"active":""}" data-bdtab="${t.id}">${t.label}</button>`
+  ).join("");
+  const body = bdActiveTab === "conversion"
+    ? conversionTableHTML()
+    : descriptorTableHTML(bdActiveTab);
+  const title = bdActiveTab === "conversion"
+    ? "Listening & Academic Reading — raw score to band"
+    : OFFICIAL_BAND_DESCRIPTORS[bdActiveTab].title;
+  return `
+    <div class="bd-panel" id="bdPanel">
+      <div class="bd-panel-head">
+        <div>
+          <h3>${escapeXml(title)}</h3>
+          <p>The exact wording your responses are marked against — the AI examiner is given this same table.</p>
+        </div>
+        <button class="bd-launch" data-bdclose="1"><span class="bd-launch-ico">✕</span> Hide</button>
+      </div>
+      <div class="bd-tabs">${tabs}</div>
+      ${body}
+    </div>`;
+}
+
+// Delegated once at the document level: the chart is re-rendered into different
+// module panels, so per-render listeners would leak.
+document.addEventListener("click", e=>{
+  const tab = e.target.closest("[data-bdtab]");
+  if(tab){ bdActiveTab = tab.getAttribute("data-bdtab"); refreshDescriptorChart(); return; }
+  if(e.target.closest("[data-bdclose]")){ state.bdOpen = false; refreshDescriptorChart(); return; }
+  if(e.target.closest("[data-bdopen]")){ state.bdOpen = true; refreshDescriptorChart(); }
+});
+
+function refreshDescriptorChart(){
+  const host = document.getElementById("bdHost");
+  if(host) host.innerHTML = state.bdOpen ? descriptorChartHTML() : descriptorLaunchHTML();
+}
+
+function descriptorLaunchHTML(){
+  return `<button class="bd-launch" data-bdopen="1"><span class="bd-launch-ico">📋</span> Official band descriptors</button>`;
+}
+
+// Drop-in for any module panel: renders the launcher, or the open chart.
+function descriptorChartSection(){
+  return `<div id="bdHost" style="margin:0 0 20px;">${state.bdOpen ? descriptorChartHTML() : descriptorLaunchHTML()}</div>`;
+}
 
 function rubricPanel(skill){
   const r = IELTS_RUBRICS[skill];
@@ -2391,6 +2652,12 @@ function showListeningResult(){
 // Both tables assume a 40-question paper; the generators enforce 4 sections x
 // 10 questions, but if a paper ever has a different total the raw score is
 // scaled to a 40-question equivalent first so the band still means something.
+//
+// One judgement call: the reference conversion chart lists Listening 6.5 as
+// "25-29" and Listening 6.0 as "23-25", which overlap at a raw score of 25.
+// Raw 25 is resolved here as 6.5, following the explicitly stated lower bound
+// of the 6.5 row. It affects exactly one raw score; flip the 6.5 threshold to
+// 26 if the intended reading was the other way round.
 function scaleRawTo40(correct, total){
   const c = Number(correct) || 0;
   const t = Number(total);
@@ -2401,8 +2668,8 @@ function scaleRawTo40(correct, total){
 function rawToBandListening(correct, total){
   const c = scaleRawTo40(correct, total);
   if(c>=39) return 9.0; if(c>=37) return 8.5; if(c>=35) return 8.0; if(c>=32) return 7.5;
-  if(c>=30) return 7.0; if(c>=26) return 6.5; if(c>=23) return 6.0; if(c>=18) return 5.5;
-  if(c>=16) return 5.0; if(c>=13) return 4.5; if(c>=11) return 4.0; if(c>=8) return 3.5;
+  if(c>=30) return 7.0; if(c>=25) return 6.5; if(c>=23) return 6.0; if(c>=18) return 5.5;
+  if(c>=16) return 5.0; if(c>=13) return 4.5; if(c>=10) return 4.0; if(c>=8) return 3.5;
   if(c>=6) return 3.0; if(c>=4) return 2.5; return 2.0;
 }
 
@@ -4202,6 +4469,8 @@ function renderSpeaking(){
   panel.innerHTML = `
     <p class="section-title">Speaking</p>
     <p class="section-sub">Simulate a fully structured IELTS speaking assessment. Record your response, preview the speech playback stream, and finalize metrics.</p>
+
+    ${descriptorChartSection()}
 
     <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:20px;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
