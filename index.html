@@ -1297,17 +1297,28 @@ function genProgressHide(id){
   if(bar) bar.style.display = "none";
 }
 
-// Approximate IELTS-to-CEFR equivalency, based on the published British
-// Council / Cambridge correspondence tables. The real mapping isn't
-// perfectly linear across all four skills, so treat this as a helpful
-// approximation for study purposes, not an official conversion.
+// Approximate IELTS-to-CEFR equivalency, using the CONSERVATIVE (threshold)
+// reading of the correspondence tables rather than the generous one.
+//
+// The permissive table that many sites reproduce puts B2 at 5.5-6.5 and C1 at
+// 7.0+. That treats a band 5.5 candidate — one who still relies on repetition
+// and self-correction to keep going, and whose complex structures usually
+// contain errors — as an independent B2 user, which does not match the CEFR
+// B2 descriptors and made this app's feedback read as inflated. A candidate is
+// only a genuine B2 once performance is consistently at IELTS band 6.5, so:
+//
+//   A1  below 3.0   |  A2  3.0-4.0  |  B1  4.5-6.0
+//   B2  6.5-7.0     |  C1  7.5-8.0  |  C2  8.5-9.0
+//
+// Still an approximation (the real mapping is not linear across all four
+// skills) and a study reference, not an official conversion.
 function bandToCEFR(band){
   const b = Number(band);
   if(!isFinite(b)) return "—";
   if(b >= 8.5) return "C2";
-  if(b >= 7.0) return "C1";
-  if(b >= 5.5) return "B2";
-  if(b >= 4.0) return "B1";
+  if(b >= 7.5) return "C1";
+  if(b >= 6.5) return "B2";
+  if(b >= 4.5) return "B1";
   if(b >= 3.0) return "A2";
   return "A1";
 }
@@ -1344,13 +1355,97 @@ function parseJSON(text){
   return JSON.parse(clean);
 }
 
-const WRITING_RUBRIC = `You are an experienced IELTS Academic Writing examiner. Score strictly against the four official criteria: Task Achievement (or Task Response), Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy. IMPORTANT ON PRECISION: each criterion MUST be scored on the full 0-9 scale in 0.5 steps — half-bands (5.5, 6.5, 7.5, etc.) are the norm, not the exception, because real writing rarely sits cleanly on a whole band. Only give a whole number when the performance is unambiguously and consistently at that exact level across the whole response; if it shows a mix of two adjacent levels (which is most responses), score the half-band between them. Do not default to whole numbers out of habit. Be a calibrated examiner: typical competent B2/C1 essays land between band 5.5 and 7.5. Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":""}`;
+const WRITING_RUBRIC = `You are an experienced IELTS Academic Writing examiner. Score strictly against the four official criteria: Task Achievement (or Task Response), Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy. IMPORTANT ON PRECISION: each criterion MUST be scored on the full 0-9 scale in 0.5 steps — half-bands (5.5, 6.5, 7.5, etc.) are the norm, not the exception, because real writing rarely sits cleanly on a whole band. Only give a whole number when the performance is unambiguously and consistently at that exact level across the whole response; if it shows a mix of two adjacent levels (which is most responses), score the half-band between them. Do not default to whole numbers out of habit. CALIBRATION: match each criterion to the official descriptor the evidence actually supports, and do not inflate. Band 6 is the competent user whose meaning is clear despite imprecision and frequent errors in complex structures; band 7 requires BOTH frequently error-free sentences AND flexible, less common vocabulary, and if either is missing it is not a 7; band 8+ should be rare. Never mention CEFR levels (A1-C2) in your output — you award IELTS bands only, and the app derives any CEFR label itself. Every comment must match the number you awarded: do not describe the response in terms belonging to a higher descriptor than the band you gave. Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":""}`;
 
 const WRITING_PARAGRAPH_RUBRIC = `You are an IELTS Writing examiner giving developmental, paragraph-by-paragraph feedback — not a score. You will receive the student's essay already split into numbered paragraphs. For EACH paragraph, in order, find concrete mistakes or weak spots (grammar, word choice, cohesion, task relevance, clarity) and give a short corrected/improved version of each specific problem phrase, plus a one-line reason. If a paragraph has no notable issues, return an empty "issues" array and a positive one-line comment instead. Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"paragraphs":[{"comment":"one short sentence on this paragraph's main strength or weakness","issues":[{"original":"short exact phrase from the paragraph, under 12 words","suggestion":"the corrected or improved phrase","why":"brief reason, under 15 words"}]}]}. Return exactly one entry in "paragraphs" for every numbered paragraph given, in the same order — never merge, skip, or add paragraphs.`;
 
-const SPEAKING_RUBRIC_TRANSCRIPT = `You are an experienced IELTS Speaking examiner. You are given only an un-timed text transcript of the speaker's answers. Score against the criteria: Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy. For Pronunciation, guess an estimate based on spelling anomalies or note that it is estimated. IMPORTANT ON PRECISION: use the full 0-9 scale in 0.5 steps for every criterion — half-bands (5.5, 6.5, 7.5, etc.) should be your default whenever performance sits between two levels, which is most of the time; reserve whole numbers for performance that is consistently and unambiguously at one exact level. Warning: remember that this is from a transcript, not from actual acoustic analysis, and should be verified by a teacher listening to the recording. Be a calibrated examiner: typical competent B2/C1 speech lands between band 5.5 and 7.5. Respond ONLY with raw JSON, no markdown, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":""}.`;
+// The public IELTS Speaking band descriptors, criterion by criterion. Both
+// speaking prompts embed these verbatim so the examiner matches observed
+// evidence against a descriptor instead of guessing a plausible-sounding
+// number. Previously the prompts only said "typical competent B2/C1 speech
+// lands between 5.5 and 7.5", which anchored every candidate into that range
+// and told the model that band 5.5 was B2 — the source of reports whose
+// commentary described B2 performance while awarding 5.5.
+const SPEAKING_BAND_DESCRIPTORS = `OFFICIAL BAND DESCRIPTORS — award the band whose wording actually matches the evidence.
 
-const SPEAKING_RUBRIC_AUDIO = `You are an experienced IELTS Speaking examiner. You have been given the candidate's actual audio recording — listen to it directly. Base your judgement on what you actually hear: real pronunciation (individual sounds, word stress, sentence stress, intonation, chunking/rhythm), true fluency (hesitation, self-correction, pace, natural connected speech), lexical resource and grammatical range as used in speech. Score against the four official IELTS Speaking criteria: Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy, Pronunciation. IMPORTANT ON PRECISION: use the full 0-9 scale in 0.5 steps for every criterion — half-bands (5.5, 6.5, 7.5, etc.) should be your default whenever performance sits between two levels, which is most of the time; reserve whole numbers for performance that is consistently and unambiguously at one exact level. Be a calibrated examiner: typical competent B2/C1 speech lands between band 5.5 and 7.5, reserve 8+ for genuinely native-like control. Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","heard_transcript":""}. In "heard_transcript", write your own transcription in English of what the candidate said.`;
+FLUENCY & COHERENCE
+9: Speaks fluently with only rare repetition or self-correction; any hesitation is content-related, never to search for words or grammar; topics fully and coherently developed.
+8: Fluent with only occasional repetition or self-correction; hesitation is usually content-related, only rarely language-related; develops topics coherently and appropriately.
+7: Speaks at length without noticeable effort or loss of coherence; some language-related hesitation, repetition or self-correction; uses a range of connectives and discourse markers with some flexibility.
+6: Willing to speak at length, though coherence is lost at times through repetition, self-correction or hesitation; uses connectives and discourse markers but not always appropriately.
+5: Usually maintains flow of speech but relies on repetition, self-correction or slow speech to keep going; over-uses certain connectives; simple speech is fluent but more complex communication breaks fluency down.
+4: Cannot respond without noticeable pauses, may speak slowly with frequent repetition and self-correction; links basic sentences with repetitious simple connectives and some breakdowns in coherence.
+3: Speaks with long pauses; limited ability to link simple sentences; gives only simple responses and is frequently unable to convey the basic message.
+
+LEXICAL RESOURCE
+9: Full flexibility and precise use of vocabulary in all topics; idiomatic language used naturally and accurately.
+8: Wide resource used readily and flexibly to convey precise meaning; less common and idiomatic vocabulary used skilfully with occasional inaccuracies; effective paraphrase.
+7: Vocabulary used flexibly across a variety of topics; some less common and idiomatic items with some awareness of style and collocation, though with some inappropriate choices; paraphrases effectively.
+6: Vocabulary wide enough to discuss topics at length and make meaning clear in spite of inappropriacies; generally paraphrases successfully.
+5: Manages to talk about familiar and unfamiliar topics but with limited flexibility; attempts paraphrase with mixed success.
+4: Can talk about familiar topics but conveys only basic meaning on unfamiliar ones; frequent errors in word choice; rarely attempts paraphrase.
+3: Uses simple vocabulary to convey personal information; insufficient vocabulary for less familiar topics.
+
+GRAMMATICAL RANGE & ACCURACY
+9: Full range of structures used naturally and appropriately; consistently accurate apart from slips typical of native-speaker speech.
+8: Wide range of structures used flexibly; the majority of sentences are error-free; only occasional inappropriacies or non-systematic errors.
+7: A range of complex structures used with some flexibility; frequently produces error-free sentences, though some grammatical mistakes persist.
+6: A mix of simple and complex structures but with limited flexibility; frequent mistakes with complex structures, though these rarely impede comprehension.
+5: Basic sentence forms produced with reasonable accuracy; a limited range of more complex structures, which usually contain errors and may cause some comprehension problems.
+4: Basic sentence forms and some correct simple sentences; subordinate structures are rare; errors are frequent and may lead to misunderstanding.
+3: Attempts basic sentence forms with limited success, or relies on apparently memorised utterances; numerous errors except in memorised expressions.
+
+PRONUNCIATION
+9: Full range of pronunciation features used with precision and subtlety, sustained throughout; effortless to understand.
+8: Wide range of features sustained flexibly with only occasional lapses; easy to understand throughout; L1 accent has minimal effect on intelligibility.
+7: All the positive features of band 6 plus some, but not all, of the positive features of band 8.
+6: A range of pronunciation features used with mixed control; some effective use but it is not sustained; generally understandable throughout, though mispronunciation of individual words or sounds reduces clarity at times.
+5: All the positive features of band 4 plus some, but not all, of the positive features of band 6.
+4: A limited range of pronunciation features; control is attempted but lapses are frequent; frequent mispronunciations cause some difficulty for the listener.`;
+
+const SPEAKING_SCORING_PROCEDURE = `HOW TO SCORE — follow this procedure for each of the four criteria separately:
+1. Gather the evidence you actually observed for that criterion, then find the single descriptor whose wording it matches. Award that band.
+2. Award a half-band ONLY when the performance genuinely straddles two adjacent descriptors — clearly above one but not yet meeting the one above (e.g. more than "usually maintains flow with repetition" but not yet "willing to speak at length" = 5.5). Half-bands are a real judgement, not a default hedge, and they are not a way to avoid awarding a low band.
+3. Score each criterion independently. Do not pull the four criteria towards each other or towards any expected average — a candidate with accurate but simple grammar and weak fluency should get visibly different numbers.
+4. Judge only the language actually produced. Ignore the length of the answer, the topic, how likeable the ideas are, and how hard the candidate is evidently trying.
+
+CALIBRATION — do not inflate. The reference points are:
+- Band 5 is the candidate who keeps going only through repetition, self-correction and slow speech, and whose complex structures usually contain errors. This is a very common real result.
+- Band 6 is the competent user: speaks at length with visible hesitation, vocabulary adequate but imprecise, complex structures attempted with frequent mistakes.
+- Band 7 requires BOTH frequently error-free sentences AND flexible use of some less common or idiomatic vocabulary. If either is missing it is not a 7.
+- Band 8+ requires near-effortless, sustained, precise performance and should be rare.
+Do not award band 7 or above out of encouragement. Under-supported generosity is a scoring error, exactly like unfair severity.
+
+WRITING THE FEEDBACK:
+- Every "comment" must (a) quote or paraphrase at least one specific thing the candidate actually said as evidence, and (b) state plainly what holds the band where it is and what the next half-band up would require.
+- The wording of every comment must match the number you awarded. Do not describe performance in terms that belong to a higher descriptor than the band you gave — that is the most common failure of AI examiners, and it makes the report incoherent.
+- Never mention CEFR levels (A1-C2) anywhere in your output. You award IELTS bands only; the app derives any CEFR label itself.
+- The "summary" must be consistent with the awarded bands: name the strongest criterion, the weakest, and the single highest-value thing to work on.`;
+
+const SPEAKING_RUBRIC_TRANSCRIPT = `You are an experienced, calibrated IELTS Speaking examiner. You are given only an un-timed text transcript of the speaker's answers.
+
+${SPEAKING_BAND_DESCRIPTORS}
+
+${SPEAKING_SCORING_PROCEDURE}
+
+TRANSCRIPT-SPECIFIC RULES:
+- You cannot hear the candidate. Score Fluency & Coherence from what the transcript does show — repetition, restarts, self-correction, fillers, abandoned sentences, and how ideas are linked — and say in the comment that timing and hesitation could not be measured.
+- Pronunciation cannot be assessed from text. Give a cautious estimate anchored to the rest of the performance, state explicitly in the comment that it is an estimate not based on audio, and do not let it drag the overall band up.
+- The whole report should be treated as provisional and verified by a teacher listening to the recording.
+
+Respond ONLY with raw JSON, no markdown, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":""}.`;
+
+const SPEAKING_RUBRIC_AUDIO = `You are an experienced, calibrated IELTS Speaking examiner. You have been given the candidate's actual audio recording — listen to it directly. Base your judgement on what you actually hear: real pronunciation (individual sounds, word stress, sentence stress, intonation, chunking and rhythm), true fluency (hesitation, self-correction, pace, natural connected speech), and lexical resource and grammatical range as used in speech rather than as they would look on paper.
+
+${SPEAKING_BAND_DESCRIPTORS}
+
+${SPEAKING_SCORING_PROCEDURE}
+
+AUDIO-SPECIFIC RULES:
+- Assess Pronunciation on intelligibility and on control of stress, rhythm and intonation — not on how close the accent is to a native one. A strong L1 accent that remains easy to understand does not cap the band; frequent mispronunciations that make the listener work do.
+- Do not confuse speed with fluency: fast speech full of restarts is not band 7, and a measured, well-organised delivery is not band 5.
+
+Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","heard_transcript":""}. In "heard_transcript", write your own transcription in English of what the candidate said.`;
 
 
 /* =========================================================================
@@ -1769,7 +1864,7 @@ function renderDashboard(){
             `;
           }).join("")}
         </div>
-        <p style="font-size:11px;color:var(--slate);margin:10px 0 0;font-style:italic;">CEFR badges (A1–C2) are an approximate equivalence based on published IELTS↔CEFR correspondence tables — a study reference, not an official conversion.</p>
+        <p style="font-size:11px;color:var(--slate);margin:10px 0 0;font-style:italic;">CEFR badges (A1–C2) use the conservative reading of the IELTS↔CEFR correspondence tables (B1 = 4.5–6.0, B2 = 6.5–7.0, C1 = 7.5–8.0) — a study reference, not an official conversion.</p>
 
         <hr class="rule">
         <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);margin-bottom:12px;">Recent history</h3>
