@@ -1355,7 +1355,97 @@ function parseJSON(text){
   return JSON.parse(clean);
 }
 
-const WRITING_RUBRIC = `You are an experienced IELTS Academic Writing examiner. Score strictly against the four official criteria: Task Achievement (or Task Response), Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy. IMPORTANT ON PRECISION: each criterion MUST be scored on the full 0-9 scale in 0.5 steps — half-bands (5.5, 6.5, 7.5, etc.) are the norm, not the exception, because real writing rarely sits cleanly on a whole band. Only give a whole number when the performance is unambiguously and consistently at that exact level across the whole response; if it shows a mix of two adjacent levels (which is most responses), score the half-band between them. Do not default to whole numbers out of habit. CALIBRATION: match each criterion to the official descriptor the evidence actually supports, and do not inflate. Band 6 is the competent user whose meaning is clear despite imprecision and frequent errors in complex structures; band 7 requires BOTH frequently error-free sentences AND flexible, less common vocabulary, and if either is missing it is not a 7; band 8+ should be rare. Never mention CEFR levels (A1-C2) in your output — you award IELTS bands only, and the app derives any CEFR label itself. Every comment must match the number you awarded: do not describe the response in terms belonging to a higher descriptor than the band you gave. Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":""}`;
+// Task 1 and Task 2 are NOT scored on the same first criterion — Task 1 is
+// judged on Task Achievement (did the report select, highlight and illustrate
+// the key features of the data?) and Task 2 on Task Response (is there a clear,
+// developed, supported position on the actual question asked?). The old single
+// prompt collapsed them into "Task Achievement (or Task Response)", which let
+// the examiner apply whichever was easier to satisfy. These are the public
+// descriptors, split properly.
+const WRITING_TASK1_ACHIEVEMENT = `TASK ACHIEVEMENT (Task 1 — report on the visual)
+9: All requirements fully and appropriately satisfied; presents a fully developed response.
+8: Covers all requirements sufficiently; presents, highlights and illustrates key features clearly and appropriately.
+7: Covers the requirements of the task; presents a clear overview of main trends, differences or stages; key features are highlighted, but they could be more fully extended.
+6: Addresses the requirements of the task; presents an overview with information appropriately selected; key features are covered but may be inadequately highlighted, and there may be irrelevant detail.
+5: Generally addresses the task but the format may be inappropriate in places; recounts detail mechanically with NO clear overview; there may be no data to support the description.
+4: Attempts the task but does not cover all key features; the format may be inappropriate; confuses key features with detail; parts may be unclear, irrelevant, repetitive or inaccurate.
+3: Fails to address the task, which may have been misunderstood; presents limited ideas which may be largely irrelevant or repetitive.
+NOTE: a Task 1 response with no overview of the main trend cannot reach band 6 on this criterion, however well written it is. Do not credit invented data that is not in the visual.`;
+
+const WRITING_TASK2_RESPONSE = `TASK RESPONSE (Task 2 — argumentative essay)
+9: Fully addresses all parts of the task; presents a fully developed position with relevant, fully extended and well supported ideas.
+8: Sufficiently addresses all parts of the task; presents a well-developed response with relevant, extended and supported ideas.
+7: Addresses all parts of the task; presents a clear position throughout; presents, extends and supports main ideas, though there may be a tendency to over-generalise or supporting ideas may lack focus.
+6: Addresses all parts of the task although some parts may be more fully covered than others; presents a relevant position although conclusions may become unclear or repetitive; presents relevant main ideas but some may be inadequately developed or unclear.
+5: Addresses the task only partially; the format may be inappropriate in places; expresses a position but development is not always clear and there may be no conclusions drawn; main ideas are limited and insufficiently developed; there may be irrelevant detail.
+4: Responds minimally or tangentially; the format may be inappropriate; the position is unclear; main ideas are hard to identify and may be repetitive, irrelevant or unsupported.
+3: Does not adequately address any part of the task; no clear position; few ideas, largely undeveloped or irrelevant.
+NOTE: if the prompt has two parts (e.g. "discuss both views AND give your own opinion") and one part is missing or barely touched, the criterion cannot exceed band 5.`;
+
+const WRITING_SHARED_CRITERIA = `COHERENCE & COHESION
+9: Uses cohesion in such a way that it attracts no attention; skilfully manages paragraphing.
+8: Sequences information and ideas logically; manages all aspects of cohesion well; paragraphing is sufficient and appropriate.
+7: Logically organises information with clear progression throughout; uses a range of cohesive devices appropriately, though with some under- or over-use; each paragraph has a clear central topic.
+6: Arranges information coherently with clear overall progression; uses cohesive devices effectively, but cohesion within or between sentences may be faulty or mechanical; referencing may not always be clear; paragraphing is used but not always logically.
+5: Some organisation but a lack of overall progression; cohesive devices are inadequate, inaccurate or over-used; repetitive through lack of referencing and substitution; paragraphing may be absent or inadequate.
+4: Ideas are not arranged coherently and there is no clear progression; basic cohesive devices used inaccurately or repetitively; paragraphing may be absent or confusing.
+3: Does not organise ideas logically; a very limited range of cohesive devices, which may not signal a logical relationship between ideas.
+NOTE: heavy signposting ("Firstly", "Moreover", "In conclusion") on top of weak underlying organisation is a band 5-6 feature, not a band 7 one. Judge the progression of ideas, not the count of linking words.
+
+LEXICAL RESOURCE
+9: Wide range with very natural and sophisticated control; rare minor errors occur only as slips.
+8: Wide range used fluently and flexibly to convey precise meaning; skilful use of uncommon items with occasional inaccuracies in word choice and collocation; rare spelling or word-formation errors.
+7: Sufficient range to allow some flexibility and precision; uses less common items with some awareness of style and collocation; occasional errors in word choice, spelling or word formation.
+6: Adequate range for the task; attempts less common vocabulary with some inaccuracy; some spelling or word-formation errors that do not impede communication.
+5: Limited range, minimally adequate for the task; noticeable spelling or word-formation errors that may cause difficulty for the reader.
+4: Only basic vocabulary, used repetitively or inappropriately for the task; limited control of word formation and spelling; errors may strain the reader.
+3: A very limited range of words and expressions with very limited control; errors may severely distort the message.
+NOTE: memorised "high-level" phrases bolted onto otherwise ordinary writing do not raise this criterion. What counts is precision and collocation in the candidate's own sentences.
+
+GRAMMATICAL RANGE & ACCURACY
+9: Wide range used with full flexibility and accuracy; rare minor errors occur only as slips.
+8: Wide range of structures; the majority of sentences are error-free; only very occasional errors or inappropriacies.
+7: A variety of complex structures; produces frequent error-free sentences; good control of grammar and punctuation, though a few errors persist.
+6: A mix of simple and complex forms; some errors in grammar and punctuation, but they rarely reduce communication.
+5: Only a limited range of structures; complex sentences are attempted but tend to be less accurate than simple ones; frequent grammatical errors and faulty punctuation can cause difficulty for the reader.
+4: A very limited range with only rare subordinate clauses; some accurate structures but errors predominate; punctuation is often faulty.
+3: Attempts sentence forms but errors in grammar and punctuation predominate and distort meaning.`;
+
+const WRITING_SCORING_PROCEDURE = `HOW TO SCORE — for each of the four criteria separately:
+1. Gather the evidence in the response for that criterion, find the single descriptor whose wording it actually matches, and award that band.
+2. Award a half-band ONLY when the response genuinely straddles two adjacent descriptors — clearly beyond one but not yet meeting the next. A half-band is a judgement, not a hedge, and not a way to avoid awarding a low band.
+3. Score the four criteria independently. Do not pull them towards each other or towards an expected average — accurate but simple writing should score visibly differently on Lexical Resource and Grammatical Range than on Coherence.
+4. Judge only what is on the page. Ignore how ambitious the topic is, how much effort the response shows, and whether you agree with the opinion expressed.
+
+LENGTH: Task 1 requires at least 150 words and Task 2 at least 250. An under-length response is penalised under Task Achievement / Task Response, because the task cannot be fully covered — do not additionally punish it under the other three criteria. Do not reward padding, repetition of the prompt wording, or a restated introduction used to inflate the count.
+
+CALIBRATION — do not inflate:
+- Band 5 covers the response that addresses the task only partially, organises with little progression, and whose complex sentences usually contain errors. This is a very common real result.
+- Band 6 is the competent user: task addressed, meaning clear, but with imprecise vocabulary and frequent errors in complex structures.
+- Band 7 requires BOTH frequent error-free sentences AND flexible use of some less common vocabulary. If either is missing, it is not a 7.
+- Band 8+ requires sustained precision and should be rare.
+Awarding a band 7 out of encouragement is a scoring error in exactly the same way unfair severity is.
+
+WRITING THE FEEDBACK:
+- Every "comment" must (a) quote a specific phrase or sentence from the response as evidence, and (b) state plainly what is holding the band where it is and what the next half-band up would require.
+- The wording of every comment must match the number awarded. Never describe the response in terms that belong to a higher descriptor than the band you gave — that incoherence is the most common failure of AI examiners.
+- Never mention CEFR levels (A1-C2) anywhere in your output. You award IELTS bands only; the app derives any CEFR label itself.
+- The "summary" must be consistent with the awarded bands: name the strongest criterion, the weakest, and the single highest-value fix.`;
+
+function writingRubric(task){
+  const isTask1 = task === "task1";
+  return `You are an experienced, calibrated IELTS Academic Writing examiner marking ${isTask1 ? "TASK 1 (a report describing a visual)" : "TASK 2 (an argumentative essay)"}. Score against the four official criteria: ${isTask1 ? "Task Achievement" : "Task Response"}, Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy.
+
+OFFICIAL BAND DESCRIPTORS — award the band whose wording actually matches the evidence.
+
+${isTask1 ? WRITING_TASK1_ACHIEVEMENT : WRITING_TASK2_RESPONSE}
+
+${WRITING_SHARED_CRITERIA}
+
+${WRITING_SCORING_PROCEDURE}
+
+Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":""}. The "task_achievement" key holds your ${isTask1 ? "Task Achievement" : "Task Response"} score regardless of its name.`;
+}
 
 const WRITING_PARAGRAPH_RUBRIC = `You are an IELTS Writing examiner giving developmental, paragraph-by-paragraph feedback — not a score. You will receive the student's essay already split into numbered paragraphs. For EACH paragraph, in order, find concrete mistakes or weak spots (grammar, word choice, cohesion, task relevance, clarity) and give a short corrected/improved version of each specific problem phrase, plus a one-line reason. If a paragraph has no notable issues, return an empty "issues" array and a positive one-line comment instead. Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"paragraphs":[{"comment":"one short sentence on this paragraph's main strength or weakness","issues":[{"original":"short exact phrase from the paragraph, under 12 words","suggestion":"the corrected or improved phrase","why":"brief reason, under 15 words"}]}]}. Return exactly one entry in "paragraphs" for every numbered paragraph given, in the same order — never merge, skip, or add paragraphs.`;
 
@@ -1455,14 +1545,14 @@ Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"flu
 const IELTS_RUBRICS = {
   listening: {
     title: "IELTS Listening — how the raw score becomes a band",
-    intro: "Listening (and Reading) are marked out of 40. Each correct answer scores one mark; the raw total is converted to a 9-band scale. There is no half-mark for spelling — an answer must be correctly spelled to be accepted.",
+    intro: "Listening and Reading are each marked out of 40, one mark per correct answer, converted to the 9-band scale — but the two papers use different conversion tables, so the same raw score is not the same band in both. There is no half-mark for spelling: an answer must be correctly spelled to be accepted.",
     criteria: [
       { name:"Band 8 (≈35–36 / 40)", desc:"Very good user. Handles complex language well; only occasional lapses in unfamiliar situations." },
-      { name:"Band 7 (≈30–32 / 40)", desc:"Good user. Follows detailed argument and distinguishes fine differences of meaning, with occasional inaccuracies." },
-      { name:"Band 6 (≈23–26 / 40)", desc:"Competent user. Grasps main ideas and specific factual detail, though may miss some information in fast or complex passages." },
-      { name:"Band 5 (≈16–18 / 40)", desc:"Modest user. Understands the gist and some detail but struggles with connected speech, distraction and paraphrase." }
+      { name:"Band 7 (≈30–31 / 40)", desc:"Good user. Follows detailed argument and distinguishes fine differences of meaning, with occasional inaccuracies." },
+      { name:"Band 6 (≈23–25 / 40)", desc:"Competent user. Grasps main ideas and specific factual detail, though may miss some information in fast or complex passages." },
+      { name:"Band 5 (≈16–17 / 40)", desc:"Modest user. Understands the gist and some detail but struggles with connected speech, distraction and paraphrase." }
     ],
-    note:"Approximate conversions only — the official Academic table varies slightly by test version."
+    note:"Approximate conversions only — the official table varies slightly by test version. Listening is marginally more forgiving than Academic Reading through the middle of the scale."
   },
   reading: {
     title: "IELTS Academic Reading — how the raw score becomes a band",
@@ -2233,10 +2323,16 @@ function listeningAnswerText(q){
   return clean.length ? clean.join(" OR ") : "—";
 }
 
+// IELTS requires correct spelling, so matching stays exact — but the same
+// normalisation must be applied to BOTH sides. Previously punctuation was
+// stripped from the candidate's answer only, so a stored key like "the bank."
+// or one with a stray double space could never be matched.
 function checkGap(userVal, answers){
   if(!userVal) return false;
-  const v = userVal.trim().toLowerCase().replace(/[.,]/g,"");
-  return answers.some(a=>a.toLowerCase()===v);
+  const norm = s => String(s).trim().toLowerCase().replace(/[.,]/g,"").replace(/\s+/g," ");
+  const v = norm(userVal);
+  if(!v) return false;
+  return answers.some(a => norm(a) === v);
 }
 
 function submitListening(){
@@ -2252,7 +2348,7 @@ function submitListening(){
     }
   }));
   L.submitted = true;
-  const band = rawToBandListening(correct);
+  const band = rawToBandListening(correct, total);
   recordScore("listening", band, `${correct}/${total} correct`);
   renderListening();
 }
@@ -2278,16 +2374,44 @@ function showListeningResult(){
   const rows = lines.map(l=>`<div class="key-line"><span class="${l.ok?'ok':'bad'}">${l.ok?'✓':'✗'}</span> Q${l.n}: <span class="correct-answer">${l.answer}</span></div>`).join("");
   box.innerHTML = `
     <div class="key-box">
-      <h4>Score Evaluation: ${correct} / ${total} → Band ${rawToBandListening(correct).toFixed(1)}<span class="cefr-tag">${bandToCEFR(rawToBandListening(correct))}</span></h4>
+      <h4>Score Evaluation: ${correct} / ${total} → Band ${rawToBandListening(correct, total).toFixed(1)}<span class="cefr-tag">${bandToCEFR(rawToBandListening(correct, total))}</span></h4>
       <div style="columns:2;column-gap:24px;">${rows}</div>
     </div>
   `;
 }
 
-function rawToBandListening(c){
+// Raw score (out of 40) to band. Listening and ACADEMIC Reading use DIFFERENT
+// published conversion tables, and Reading was previously scored with the
+// Listening one. Through the upper-middle of the scale — exactly where most
+// candidates sit — that awarded half a band too much: a raw 32 is 7.5 on
+// listening but only 7.0 on academic reading, 26 is 6.5 vs 6.0, and 18 is 5.5
+// vs 5.0. (The two tables cross over at the bottom, where reading is marginally
+// the softer of the two, but that range matters far less.)
+//
+// Both tables assume a 40-question paper; the generators enforce 4 sections x
+// 10 questions, but if a paper ever has a different total the raw score is
+// scaled to a 40-question equivalent first so the band still means something.
+function scaleRawTo40(correct, total){
+  const c = Number(correct) || 0;
+  const t = Number(total);
+  if(!isFinite(t) || t <= 0 || t === 40) return c;
+  return Math.round((c / t) * 40);
+}
+
+function rawToBandListening(correct, total){
+  const c = scaleRawTo40(correct, total);
   if(c>=39) return 9.0; if(c>=37) return 8.5; if(c>=35) return 8.0; if(c>=32) return 7.5;
-  if(c>=30) return 7.0; if(c>=27) return 6.5; if(c>=23) return 6.0; if(c>=18) return 5.5;
-  if(c>=14) return 5.0; if(c>=10) return 4.5; if(c>=7) return 4.0; return 3.5;
+  if(c>=30) return 7.0; if(c>=26) return 6.5; if(c>=23) return 6.0; if(c>=18) return 5.5;
+  if(c>=16) return 5.0; if(c>=13) return 4.5; if(c>=11) return 4.0; if(c>=8) return 3.5;
+  if(c>=6) return 3.0; if(c>=4) return 2.5; return 2.0;
+}
+
+function rawToBandReading(correct, total){
+  const c = scaleRawTo40(correct, total);
+  if(c>=39) return 9.0; if(c>=37) return 8.5; if(c>=35) return 8.0; if(c>=33) return 7.5;
+  if(c>=30) return 7.0; if(c>=27) return 6.5; if(c>=23) return 6.0; if(c>=19) return 5.5;
+  if(c>=15) return 5.0; if(c>=13) return 4.5; if(c>=10) return 4.0; if(c>=8) return 3.5;
+  if(c>=6) return 3.0; if(c>=4) return 2.5; return 2.0;
 }
 
 let activeListeningAudio=null;
@@ -2922,7 +3046,7 @@ function gradeReading(){
 function submitReading(){
   state.reading.submitted = true;
   const {correct,total} = gradeReading();
-  const band = rawToBandListening(correct);
+  const band = rawToBandReading(correct, total);
   recordScore("reading", band, `${correct}/${total} correct`);
   renderReading();
 }
@@ -2931,7 +3055,7 @@ function showReadingResult(){
   const {correct,total,lines} = gradeReading();
   const box = document.getElementById("readingResult");
   const rows = lines.map(l=>`<div class="key-line"><span class="${l.ok?'ok':'bad'}">${l.ok?'✓':'✗'}</span> Q${l.n}: <span class="correct-answer">${l.correct}</span></div>`).join("");
-  box.innerHTML = `<div class="key-box" style="margin-top:20px;"><h4>Score: ${correct} / ${total} → Band ${rawToBandListening(correct).toFixed(1)}<span class="cefr-tag">${bandToCEFR(rawToBandListening(correct))}</span></h4><div style="columns:2;column-gap:24px;">${rows}</div></div>`;
+  box.innerHTML = `<div class="key-box" style="margin-top:20px;"><h4>Score: ${correct} / ${total} → Band ${rawToBandReading(correct, total).toFixed(1)}<span class="cefr-tag">${bandToCEFR(rawToBandReading(correct, total))}</span></h4><div style="columns:2;column-gap:24px;">${rows}</div></div>`;
 }
 
 /* =========================================================================
@@ -3810,20 +3934,27 @@ async function requestWritingScore(task){
       alert("Add a Gemini API key in AI engine settings first.");
       btn.textContent = original; btn.disabled = false; return;
     }
-    const text = await callGemini(WRITING_RUBRIC, user, null, null);
+    const text = await callGemini(writingRubric(task), user, null, null);
     const json = parseJSON(text);
     json.overall_band = officialRound([json.task_achievement.band, json.coherence_cohesion.band, json.lexical_resource.band, json.grammar.band].map(Number).reduce((a,b)=>a+b,0)/4);
     W.reports[task] = json;
     showWritingReport(task, json);
 
-    const other = task==="task1" ? W.reports.task2 : W.reports.task1;
-    const combined = other ? (json.overall_band * 2 + other.overall_band)/3 : json.overall_band;
-    let finalBand = Math.floor(combined);
-    const rem = combined - finalBand;
-    if(rem>=0.75) finalBand += 1.0;
-    else if(rem>=0.25) finalBand += 0.5;
+    // Task 2 is worth twice Task 1 in the official Writing band. The weighting
+    // used to double whichever task had just been scored, so marking Task 2
+    // first and Task 1 second silently doubled Task 1 instead.
+    const t1 = W.reports.task1, t2 = W.reports.task2;
+    let finalBand, note;
+    if(t1 && t2){
+      finalBand = officialRound((t1.overall_band + t2.overall_band * 2) / 3);
+      note = `Task 1 ${fmtBand(t1.overall_band)} + Task 2 ${fmtBand(t2.overall_band)} (weighted 1:2)`;
+    } else {
+      const only = t1 || t2;
+      finalBand = only.overall_band;
+      note = `${t1 ? "Task 1" : "Task 2"} only — provisional until both tasks are scored`;
+    }
 
-    recordScore("writing", finalBand, `Task 1/2 weighted breakdown estimation`);
+    recordScore("writing", finalBand, note);
     saveSubmission("writing", task, WRITING[task].prompt, draft, json.overall_band, json);
   }catch(e){
     console.error(e);
