@@ -1123,8 +1123,73 @@ async function loadHistory(){
       state.scores = parsed.scores || state.scores;
     }
   }catch(e){ /* no history yet */ }
-  renderDashboardIfActive();
+  // The dashboard draws with Chart.js, which comes from a CDN. If that script
+  // is blocked the render throws, and because loadHistory is awaited during
+  // boot an uncaught throw here aborts everything after it — including the
+  // restore of generated test content. Never let a chart failure break boot.
+  try{ renderDashboardIfActive(); }catch(e){ console.error("dashboard render failed", e); }
 }
+
+/* -------------------------------------------------------------------------
+   GENERATED TEST CONTENT — persistence
+
+   The four question banks (LISTENING.parts, READING_PASSAGES, WRITING,
+   SPEAKING) are plain module-level variables. Switching modules never touched
+   them, but nothing wrote them to storage either, so a page reload silently
+   dropped a freshly generated test back to the built-in one — hours of
+   generated material gone with an accidental refresh.
+
+   They are now saved whenever a generator succeeds and restored at boot, so a
+   generated set stays put until it is deliberately regenerated.
+   ------------------------------------------------------------------------- */
+const GEN_CONTENT_KEY = "ielts-generated-content";
+
+async function saveGeneratedContent(){
+  try{
+    await window.storage.set(GEN_CONTENT_KEY, JSON.stringify({
+      v: 1,
+      savedAt: new Date().toISOString(),
+      listening: LISTENING.parts,
+      reading: READING_PASSAGES,
+      writing: WRITING,
+      speaking: SPEAKING
+    }), false);
+  }catch(e){ console.error("generated content save failed", e); }
+}
+
+// Structural checks mirror applySessionData: a malformed or half-written blob
+// must leave the built-in test in place rather than break the module.
+async function restoreGeneratedContent(){
+  try{
+    const r = await window.storage.get(GEN_CONTENT_KEY, false);
+    if(!r || !r.value) return;
+    const d = JSON.parse(r.value);
+    if(Array.isArray(d.listening) && d.listening.length) LISTENING.parts = d.listening;
+    if(Array.isArray(d.reading) && d.reading.length) READING_PASSAGES = d.reading;
+    if(d.writing && d.writing.task1 && d.writing.task2) WRITING = d.writing;
+    if(d.speaking && d.speaking.part1 && d.speaking.part2 && d.speaking.part3) SPEAKING = d.speaking;
+  }catch(e){ /* nothing stored yet, or unreadable — keep the built-in test */ }
+}
+
+// Escape hatch. Generated banks overwrite the module-level defaults in place,
+// so the built-in literals only come back by re-running the script — hence the
+// reload rather than an in-memory swap.
+async function resetGeneratedContent(){
+  try{ await window.storage.delete(GEN_CONTENT_KEY, false); }catch(e){}
+  location.reload();
+}
+
+// Rendered beside each module's generator button.
+function restoreBuiltInBtn(){
+  return `<button class="btn ghost small" data-restore-builtin="1" title="Discard the generated test and go back to the built-in one">Restore original</button>`;
+}
+
+document.addEventListener("click", e=>{
+  if(!e.target.closest("[data-restore-builtin]")) return;
+  if(confirm("Discard the generated test content and restore the built-in test?\n\nYour scores and history are kept. Any answers or drafts in progress will be lost.")){
+    resetGeneratedContent();
+  }
+});
 
 async function saveHistory(){
   try{
@@ -1180,6 +1245,10 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   }
   document.getElementById("geminiKeyInput").value = state.settings.geminiKey || "";
   document.getElementById("geminiModelInput").value = state.settings.geminiModel || "gemini-3.5-flash-lite";
+  // Restore generated content FIRST: it must precede the first render, and it
+  // must not sit behind anything that can fail. Ordering it after loadHistory
+  // meant a single throw in the dashboard render silently skipped it.
+  await restoreGeneratedContent();
   await loadHistory();
   render();
   // Accounts are optional; this no-ops when supabase-config.js is unset.
@@ -2123,6 +2192,9 @@ function applySessionData(data){
     }
   }
   saveHistory();
+  // A restored session brings its own question banks; persist them so they
+  // survive a reload the same way freshly generated ones do.
+  saveGeneratedContent();
   render();
 }
 
@@ -2435,6 +2507,7 @@ function renderListening(){
       </div>
       <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;">
         <button class="btn brass small" id="generateListeningBtn" ${(!geminiOn || genReady<4) ? "disabled" : ""}>Generate 4-section test from these audios</button>
+        ${restoreBuiltInBtn()}
         <span style="font-size:12px;color:var(--slate);" id="genListeningStatus">${genReady}/4 audios attached${genReady<4?" — attach all four to enable generation":""}</span>
       </div>
       <div class="gen-progress" id="listeningGenBar" style="display:none;">
@@ -2920,6 +2993,7 @@ async function generateNewListeningWithAI(){
       });
     }
     LISTENING.parts = newParts;
+    saveGeneratedContent();
     const keptAudio = {};
     for(let i=1;i<=4;i++) keptAudio[i] = { b64: L.genAudio[i].b64, mime: L.genAudio[i].mime };
     state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: keptAudio, genAudio: L.genAudio };
@@ -2975,6 +3049,7 @@ function renderReading(){
           <option value="Renewable Energy & Engineering">Energy & Engineering</option>
         </select>
         <button id="generateReadingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate Exam Sections</button>
+        ${restoreBuiltInBtn()}
       </div>
       </div>
       <div class="gen-progress" id="readingGenBar" style="display:none;">
@@ -3138,6 +3213,7 @@ Double-check before returning: every section's paragraphs are long and academica
         p.id = idx + 1;
         return p;
       });
+      saveGeneratedContent();
       genProgressDone("readingGen", "Done — 40 questions across 4 sections.");
       alert(`✨ Success! Full exam reloaded with 4 new, longer academic sections (40 questions, mixed question types).`);
       state.reading.activePassage = 0;
@@ -3451,6 +3527,7 @@ function renderWriting(){
             <option value="Globalisation & International Affairs">Globalisation</option>
           </select>
           <button id="generateWritingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate New Writing Exam</button>
+          ${restoreBuiltInBtn()}
         </div>
       </div>
       <div class="gen-progress" id="writingGenBar" style="display:none;">
@@ -3603,6 +3680,7 @@ Follow the graph-type guidance above when populating chartData. Give every serie
     const parsedObj = parseJSON(rawText);
     if(parsedObj.task1 && parsedObj.task2) {
       WRITING = parsedObj;
+      saveGeneratedContent();
       genProgressDone("writingGen", "Done — new Task 1 and Task 2 ready.");
       alert("✨ Success! Writing Task 1 and Task 2 prompts re-generated successfully.");
       state.writing.drafts = {task1:"", task2:""};
@@ -4593,6 +4671,7 @@ function renderSpeaking(){
             <option value="Culture & Traditions">Culture & Traditions</option>
           </select>
           <button id="generateSpeakingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate New Speaking Questions</button>
+          ${restoreBuiltInBtn()}
         </div>
       </div>
       <div class="gen-progress" id="speakingGenBar" style="display:none;">
@@ -4658,6 +4737,7 @@ Return ONLY raw JSON, no markdown, no commentary.`;
     const parsedObj = parseJSON(rawText);
     if(parsedObj.part1 && Array.isArray(parsedObj.part1.questions) && parsedObj.part2 && parsedObj.part2.cue && Array.isArray(parsedObj.part2.cue.points) && parsedObj.part3 && Array.isArray(parsedObj.part3.questions)){
       SPEAKING = parsedObj;
+      saveGeneratedContent();
       genProgressDone("speakingGen", "Done — new Part 1, 2 and 3 ready.");
       alert("✨ Success! A new Speaking question set has been generated for all three parts.");
       state.speaking.transcripts = {};
