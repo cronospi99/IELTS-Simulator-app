@@ -1347,30 +1347,36 @@ function genProgressHide(id){
   if(bar) bar.style.display = "none";
 }
 
-// Approximate IELTS-to-CEFR equivalency, using the CONSERVATIVE (threshold)
-// reading of the correspondence tables rather than the generous one.
+// IELTS-to-CEFR equivalency, taken from the official IELTS CEFR mapping chart:
 //
-// The permissive table that many sites reproduce puts B2 at 5.5-6.5 and C1 at
-// 7.0+. That treats a band 5.5 candidate — one who still relies on repetition
-// and self-correction to keep going, and whose complex structures usually
-// contain errors — as an independent B2 user, which does not match the CEFR
-// B2 descriptors and made this app's feedback read as inflated. A candidate is
-// only a genuine B2 once performance is consistently at IELTS band 6.5, so:
+//   C2  9.0        (8.5 sits on the C1/C2 boundary — see below)
+//   C1  7.0 - 8.0
+//   B2  5.5 - 6.5
+//   B1  4.0 - 5.0
 //
-//   A1  below 3.0   |  A2  3.0-4.0  |  B1  4.5-6.0
-//   B2  6.5-7.0     |  C1  7.5-8.0  |  C2  8.5-9.0
+// Two points the chart does not settle, resolved here:
 //
-// Still an approximation (the real mapping is not linear across all four
-// skills) and a study reference, not an official conversion.
+// 1. Band 8.5 is absent from the chart, which lists 9 against C2 and 8 against
+//    C1. It is treated as C2, matching the widely published C2 = 8.5-9.0 row.
+// 2. The chart's IELTS scale stops at band 4 — A2 and A1 are shown with no
+//    IELTS equivalent at all, because IELTS does not reliably discriminate
+//    below B1. Bands under 4.0 are still labelled A2/A1 here so the UI has
+//    something to show, but that part is an extrapolation beyond the official
+//    chart, and the app's footnotes say so.
+//
+// Note this is deliberately the mapping the chart gives, not a stricter one:
+// band 5.5 is B2 on the official chart even though a 5.5 candidate still
+// relies on repetition and self-correction. CEFR bands are broad, and the
+// bottom of B2 is genuinely where that candidate sits.
 function bandToCEFR(band){
   const b = Number(band);
   if(!isFinite(b)) return "—";
   if(b >= 8.5) return "C2";
-  if(b >= 7.5) return "C1";
-  if(b >= 6.5) return "B2";
-  if(b >= 4.5) return "B1";
-  if(b >= 3.0) return "A2";
-  return "A1";
+  if(b >= 7.0) return "C1";
+  if(b >= 5.5) return "B2";
+  if(b >= 4.0) return "B1";
+  if(b >= 3.0) return "A2";   // below the official chart's range
+  return "A1";                // below the official chart's range
 }
 
 function officialRound(avg){
@@ -1740,7 +1746,8 @@ const BD_TABS = [
   { id:"speaking",      label:"Speaking" },
   { id:"writing_task1", label:"Writing Task 1" },
   { id:"writing_task2", label:"Writing Task 2" },
-  { id:"conversion",    label:"Listening & Reading" }
+  { id:"conversion",    label:"Listening & Reading" },
+  { id:"cefr",          label:"CEFR" }
 ];
 
 let bdActiveTab = "speaking";
@@ -1813,22 +1820,61 @@ function conversionTableHTML(){
     <p class="bd-foot">One mark per correct answer, no half marks — spelling must be correct. Highlighted rows are where the two papers disagree: the same raw score is not the same band in Listening and Academic Reading, which is why they are converted with separate tables. Approximate conversions; the official table varies slightly by test version.</p>`;
 }
 
+// Walks bandToCEFR across the whole scale rather than restating the mapping, so
+// this table always shows what the app actually awards.
+function cefrTableHTML(){
+  const groups = { C2:"Proficient user", C1:"Proficient user", B2:"Independent user",
+                   B1:"Independent user", A2:"Basic user", A1:"Basic user" };
+  const order = ["C2","C1","B2","B1","A2","A1"];
+  const found = {};
+  for(let b=9; b>=0; b-=0.5){
+    const lvl = bandToCEFR(b);
+    (found[lvl] || (found[lvl] = [])).push(b);
+  }
+  const rows = order.map(lvl=>{
+    const bands = found[lvl];
+    if(!bands || !bands.length) return "";
+    const hi = Math.max(...bands), lo = Math.min(...bands);
+    // Below band 4 the official chart shows no IELTS equivalent at all.
+    const offChart = hi < 4;
+    const range = lo === hi ? hi.toFixed(1) : `${lo.toFixed(1)} – ${hi.toFixed(1)}`;
+    return `<tr${offChart?' class="bd-global"':''}>
+      <td class="bd-band">${lvl}</td>
+      <td>${escapeXml(groups[lvl])}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--ink);">${range}</td>
+      <td>${offChart ? "Not mapped on the official chart — shown as an approximation." : ""}</td>
+    </tr>`;
+  }).join("");
+  return `
+    <div class="bd-scroll">
+      <table class="bd-table" style="min-width:560px;">
+        <thead><tr><th>CEFR</th><th>Common European Framework</th><th>IELTS band</th><th>Note</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="bd-foot">Generated from the app's own band-to-CEFR function, so it always matches the badge shown on your results. Based on the official IELTS CEFR mapping chart, whose IELTS scale runs from band 4 to band 9 — A2 and A1 carry no IELTS equivalent there, and band 8.5 is not printed on it (treated as C2 here, matching the published C2 = 8.5–9.0 row). CEFR levels are broad: an indicative equivalence for study, not an official conversion.</p>`;
+}
+
 function descriptorChartHTML(permanent){
   const tabs = BD_TABS.map(t=>
     `<button class="bd-tab ${t.id===bdActiveTab?"active":""}" data-bdtab="${t.id}">${t.label}</button>`
   ).join("");
-  const body = bdActiveTab === "conversion"
-    ? conversionTableHTML()
-    : descriptorTableHTML(bdActiveTab);
-  const title = bdActiveTab === "conversion"
-    ? "Listening & Academic Reading — raw score to band"
-    : OFFICIAL_BAND_DESCRIPTORS[bdActiveTab].title;
+  const views = {
+    conversion: { html: conversionTableHTML, title:"Listening & Academic Reading — raw score to band",
+                  sub:"Generated from the app's own conversion functions — exactly what it applies to your raw score." },
+    cefr:       { html: cefrTableHTML, title:"IELTS band to CEFR level",
+                  sub:"The official IELTS CEFR mapping, generated from the function that prints your CEFR badge." }
+  };
+  const view = views[bdActiveTab];
+  const body = view ? view.html() : descriptorTableHTML(bdActiveTab);
+  const title = view ? view.title : OFFICIAL_BAND_DESCRIPTORS[bdActiveTab].title;
+  const sub = view ? view.sub : "The exact wording your responses are marked against — the AI examiner is given this same table.";
   return `
     <div class="bd-panel" id="bdPanel">
       <div class="bd-panel-head">
         <div>
           <h3>${escapeXml(title)}</h3>
-          <p>The exact wording your responses are marked against — the AI examiner is given this same table.</p>
+          <p>${escapeXml(sub)}</p>
         </div>
         ${permanent ? "" : `<button class="bd-launch" data-bdclose="1"><span class="bd-launch-ico">✕</span> Hide</button>`}
       </div>
@@ -2240,7 +2286,7 @@ function renderDashboard(){
             `;
           }).join("")}
         </div>
-        <p style="font-size:11px;color:var(--slate);margin:10px 0 0;font-style:italic;">CEFR badges (A1–C2) use the conservative reading of the IELTS↔CEFR correspondence tables (B1 = 4.5–6.0, B2 = 6.5–7.0, C1 = 7.5–8.0) — a study reference, not an official conversion.</p>
+        <p style="font-size:11px;color:var(--slate);margin:10px 0 0;font-style:italic;">CEFR badges (A1–C2) follow the official IELTS CEFR mapping chart: B1 = 4.0–5.0, B2 = 5.5–6.5, C1 = 7.0–8.0, C2 = 8.5–9.0. The official chart maps bands 4–9 only, so anything below band 4 is an approximation. An indicative equivalence for study, not an official conversion.</p>
 
         <hr class="rule">
         <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);margin-bottom:12px;">Recent history</h3>
