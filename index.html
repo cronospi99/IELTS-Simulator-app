@@ -340,7 +340,11 @@ textarea.essay{
   width:12px;height:12px;border-radius:50%;background:var(--coral);opacity:0;
 }
 .rec-dot.live{opacity:1;animation:pulse 1.1s infinite;}
+/* Paused: solid, no pulse — the recording is held, not running. */
+.rec-dot.paused{opacity:1;animation:none;background:var(--brass);}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.rec-paused-tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--brass);font-family:'IBM Plex Mono',monospace;}
 .transcript-box{
   border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:#fff;min-height:90px;
   font-size:14px;line-height:1.7;color:#2a3145;white-space:pre-wrap;
@@ -4484,6 +4488,37 @@ function showBandVersionBody(task, band){
    ========================================================================= */
 
 let mediaRecorder=null, mediaChunks=[], recStartTime=null, recognizer=null, speechFirstTs=null, speechLastTs=null, speechPauses=[];
+
+/* -------------------------------------------------------------------------
+   Pause state.
+
+   Paused wall-clock time must not leak into any of the three things that read
+   the clock, or pausing would silently corrupt the metrics:
+     - the on-screen timer and reported duration,
+     - the words-per-minute figure (speaking span),
+     - the hesitation analysis (a 3-minute pause is not a 3-minute hesitation).
+   pausedTotalMs accumulates completed pauses; pauseStartedAt marks a pause in
+   progress. Every elapsed-time calculation goes through the helpers below
+   rather than subtracting recStartTime directly.
+   ------------------------------------------------------------------------- */
+let isPaused=false, pausedTotalMs=0, pauseStartedAt=null;
+let pausedMsAtFirstSpeech=0, pausedMsAtLastSpeech=0;
+let recognizerRunning=false;
+
+// Total paused time so far, including a pause currently in progress.
+function pausedMsNow(){
+  return pausedTotalMs + (pauseStartedAt !== null ? Date.now() - pauseStartedAt : 0);
+}
+// Recording time with paused stretches removed.
+function recElapsedMs(){
+  if(recStartTime === null) return 0;
+  return Math.max(0, Date.now() - recStartTime - pausedMsNow());
+}
+// First-word to last-word span, with any pauses taken in between removed.
+function speakingSpanMs(){
+  if(speechFirstTs === null || speechLastTs === null) return 0;
+  return Math.max(0, (speechLastTs - speechFirstTs) - (pausedMsAtLastSpeech - pausedMsAtFirstSpeech));
+}
 function renderSpeaking(){
   const S = state.speaking;
   const geminiOn = !!state.settings.geminiKey;
@@ -4622,8 +4657,10 @@ function renderSpeakingPart(part){
     ${promptHtml}
     <div class="rec-controls">
       <button class="btn coral small" id="recBtn"><span class="rec-dot" id="recDot"></span> Record live</button>
+      <button class="btn ghost small" id="pauseBtn" disabled>Pause</button>
       <button class="btn ghost small" id="stopBtn" disabled>Stop</button>
       <span class="mono" id="recTimer" style="font-size:13px;color:var(--slate);">00:00</span>
+      <span class="rec-paused-tag" id="recPausedTag" style="display:none;">Paused</span>
       <div style="flex:1;"></div>
       <button class="btn small" id="speakScoreBtn" ${S.loading?"disabled":""}>Evaluate Part</button>
     </div>
@@ -4661,6 +4698,7 @@ function renderSpeakingPart(part){
   `;
 
   document.getElementById("recBtn").addEventListener("click", startRecording);
+  document.getElementById("pauseBtn").addEventListener("click", togglePauseRecording);
   document.getElementById("stopBtn").addEventListener("click", stopRecording);
   document.getElementById("speakScoreBtn").addEventListener("click", ()=>scoreSpeaking(part));
   document.getElementById("speakLangBtn").addEventListener("click", ()=>requestSpeakingLanguageCheck(part));
@@ -4726,12 +4764,23 @@ function startRecording(){
     speechFirstTs = null;
     speechLastTs = null;
     speechPauses = [];   // silent gaps between detected speech, in seconds
+    isPaused = false; pausedTotalMs = 0; pauseStartedAt = null;
+    pausedMsAtFirstSpeech = 0; pausedMsAtLastSpeech = 0;
     document.getElementById("recDot").classList.add("live");
+    document.getElementById("recDot").classList.remove("paused");
     document.getElementById("recBtn").disabled = true;
     document.getElementById("stopBtn").disabled = false;
+    // MediaRecorder.pause is not universal; only offer it where it exists.
+    const pauseBtn = document.getElementById("pauseBtn");
+    const canPause = typeof mediaRecorder.pause === "function" && typeof mediaRecorder.resume === "function";
+    pauseBtn.disabled = !canPause;
+    pauseBtn.textContent = "Pause";
+    pauseBtn.title = canPause ? "Hold the recording without ending it" : "This browser cannot pause a recording mid-take";
+    document.getElementById("recPausedTag").style.display = "none";
 
     recTimerInterval = setInterval(()=>{
-      const s = Math.floor((Date.now()-recStartTime)/1000);
+      if(isPaused) return;   // freeze the display while held
+      const s = Math.floor(recElapsedMs()/1000);
       document.getElementById("recTimer").textContent = `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
     }, 500);
 
@@ -4743,16 +4792,22 @@ function startRecording(){
       recognizer.lang = "en-US";
       let finalTrans = "";
       recognizer.onresult = e=>{
+        if(isPaused) return;                            // stray event while held
         const now = Date.now();
-        if(speechFirstTs===null) speechFirstTs = now;   // first detected speech, not the record click
+        if(speechFirstTs===null){                       // first detected speech, not the record click
+          speechFirstTs = now;
+          pausedMsAtFirstSpeech = pausedMsNow();
+        }
         // A gap between consecutive recognition events approximates a silent
         // pause. Interim results fire continuously while speaking, so only real
-        // hesitations open a gap this large.
+        // hesitations open a gap this large. Time spent paused is deducted, so
+        // holding the recording never registers as a hesitation.
         if(speechLastTs !== null){
-          const gap = (now - speechLastTs)/1000;
+          const gap = ((now - speechLastTs) - (pausedMsNow() - pausedMsAtLastSpeech))/1000;
           if(gap >= 0.9) speechPauses.push(Math.round(gap*10)/10);
         }
         speechLastTs = now;                              // last detected speech, excludes trailing silence
+        pausedMsAtLastSpeech = pausedMsNow();
         let interim = "";
         for(let i=e.resultIndex; i<e.results.length; ++i){
           if(e.results[i].isFinal) finalTrans += e.results[i][0].transcript + " ";
@@ -4763,13 +4818,13 @@ function startRecording(){
         S.transcripts[S.part] = full;
 
         const wCount = full.trim() ? full.trim().split(/\s+/).length : 0;
-        const dSec = Math.max(1, Math.floor((now-recStartTime)/1000));
+        const dSec = Math.max(1, Math.floor(recElapsedMs()/1000));
         // WPM over actual speaking span (first→last detected speech), not total
         // elapsed time, so pauses before speaking / after finishing no longer
         // drag the figure down. For very short spans (<5 s) fall back to elapsed
         // time so a single burst doesn't spike to an absurd number.
-        const spanSec = (speechLastTs - speechFirstTs)/1000;
-        const effectiveSec = spanSec >= 5 ? spanSec : Math.max(1,(now-recStartTime)/1000);
+        const spanSec = speakingSpanMs()/1000;
+        const effectiveSec = spanSec >= 5 ? spanSec : Math.max(1, recElapsedMs()/1000);
         const pace = Math.round((wCount / effectiveSec) * 60);
 
         const fillerCount = countFillers(full).total;
@@ -4783,27 +4838,78 @@ function startRecording(){
         S.metrics[S.part] = { words:wCount, duration:dSec, pace, speakingSec: Math.round(spanSec),
                               fillers: fillerCount, longPauses, pauses: speechPauses.slice() };
       };
+      // Restarting a stopped recogniser on resume fires onend first; the flag
+      // keeps start()/stop() calls balanced so we never start a live one.
+      recognizer.onend = ()=>{ recognizerRunning = false; };
       recognizer.start();
+      recognizerRunning = true;
     }
   }).catch(err=>{
     alert("Could not access microphone feed profile.");
   });
 }
 
+// Hold the take without ending it. The audio track keeps its single blob, so a
+// paused-and-resumed recording still produces one continuous file to score.
+function togglePauseRecording(){
+  if(!mediaRecorder || mediaRecorder.state === "inactive") return;
+  const dot = document.getElementById("recDot");
+  const btn = document.getElementById("pauseBtn");
+  const tag = document.getElementById("recPausedTag");
+
+  if(!isPaused){
+    if(mediaRecorder.state !== "recording") return;
+    mediaRecorder.pause();
+    isPaused = true;
+    pauseStartedAt = Date.now();
+    // Speech recognition has no pause; stop it and start a fresh session on
+    // resume. finalTrans lives in the startRecording closure, so the transcript
+    // accumulated so far survives the restart.
+    if(recognizer && recognizerRunning){ try{ recognizer.stop(); }catch(e){} }
+    dot.classList.remove("live"); dot.classList.add("paused");
+    btn.textContent = "Resume";
+    tag.style.display = "";
+  } else {
+    mediaRecorder.resume();
+    if(pauseStartedAt !== null){ pausedTotalMs += Date.now() - pauseStartedAt; pauseStartedAt = null; }
+    isPaused = false;
+    if(recognizer && !recognizerRunning){
+      try{ recognizer.start(); recognizerRunning = true; }catch(e){ /* already running */ }
+    }
+    dot.classList.remove("paused"); dot.classList.add("live");
+    btn.textContent = "Pause";
+    tag.style.display = "none";
+  }
+}
+
 function stopRecording(){
+  // Resume first: a MediaRecorder stopped while paused does not reliably flush
+  // its final chunk in every browser.
+  if(mediaRecorder && mediaRecorder.state === "paused"){
+    try{ mediaRecorder.resume(); }catch(e){}
+  }
+  if(pauseStartedAt !== null){ pausedTotalMs += Date.now() - pauseStartedAt; pauseStartedAt = null; }
+  isPaused = false;
+
   if(mediaRecorder && mediaRecorder.state!=="inactive") mediaRecorder.stop();
-  if(recognizer) recognizer.stop();
+  if(recognizer) { try{ recognizer.stop(); }catch(e){} }
+  recognizerRunning = false;
   clearInterval(recTimerInterval);
-  document.getElementById("recDot").classList.remove("live");
+  const dot = document.getElementById("recDot");
+  if(dot) dot.classList.remove("live", "paused");
   document.getElementById("recBtn").disabled = false;
   document.getElementById("stopBtn").disabled = true;
+  const pauseBtn = document.getElementById("pauseBtn");
+  if(pauseBtn){ pauseBtn.disabled = true; pauseBtn.textContent = "Pause"; }
+  const tag = document.getElementById("recPausedTag");
+  if(tag) tag.style.display = "none";
 
   // Finalise metrics against the true speaking span (excludes trailing silence
-  // between the last word and pressing Stop).
+  // between the last word and pressing Stop, and any time spent paused).
   const S = state.speaking;
   const m = S.metrics[S.part];
   if(m && speechFirstTs!==null && speechLastTs!==null){
-    const spanSec = Math.max(1,(speechLastTs - speechFirstTs)/1000);
+    const spanSec = Math.max(1, speakingSpanMs()/1000);
     if(spanSec >= 5){
       m.pace = Math.round((m.words / spanSec) * 60);
       m.speakingSec = Math.round(spanSec);
