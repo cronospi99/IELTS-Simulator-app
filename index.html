@@ -4413,6 +4413,14 @@ function showWritingReport(task, r){
 
 const WRITING_GRAMMAR_SYS = `You are an IELTS Writing examiner acting as a strict grammar proofreader for an academic Task 1 or Task 2 response.
 Correct ONLY grammar and mechanics — verb tense, subject–verb agreement, articles, prepositions, plurals, word form, pronouns, run-ons/fragments, punctuation and capitalisation. Do NOT paraphrase, upgrade vocabulary, change the writer's ideas, or restructure sentences for style. Preserve the writer's wording wherever it is already correct.
+
+COVERAGE — this is the part that is most often done badly, so follow it literally:
+1. Work through the response SENTENCE BY SENTENCE, from the first word to the last, paragraph by paragraph. Do not stop once you have found a few problems, and do not lose attention toward the end — the final paragraph must be checked as carefully as the first.
+2. Report EVERY error you find. Do not skip one because it is minor, because it is the same type as an earlier one, or because the meaning is still clear. If the writer makes the same mistake five times, that is five entries.
+3. The "corrected" text must contain NO remaining errors. After you write it, proofread it once more as if it were someone else's work, and fix anything you left behind before you answer.
+4. "corrected" and "errors" must agree with each other. Every difference between the writer's original wording and your corrected version must appear as an entry in "errors", and every entry in "errors" must actually be applied in "corrected". A correction that appears in one but not the other is a defect.
+5. Quote "original" exactly as the writer wrote it, so the phrase can be found in the response. Keep each quoted phrase short — just the part that is wrong plus any words needed to make it findable.
+
 Respond with ONLY raw JSON in this exact shape:
 {
   "summary": "one short sentence, e.g. '6 corrections: 3 verb tense, 2 articles, 1 punctuation'",
@@ -4517,17 +4525,57 @@ const BAND_NOTES = {
   "9.0":"Band 9.0 — fully extended, effortless cohesion, natural and sophisticated language, and complete grammatical accuracy."
 };
 
-function bandVersionPrompt(task, band){
-  const kind = task==="task1"
+// Mirrors speakingBandPrompt: when the student has written something, this
+// rewrites THEIR essay at the target band rather than producing an unrelated
+// model answer, so they can see what their own argument looks like a band up.
+function bandVersionPrompt(task, band, draft){
+  const isTask1 = task === "task1";
+  const kind = isTask1
     ? "IELTS Academic Writing Task 1 (a report describing the visual/data in the prompt, ~150–180 words, no personal opinion)"
     : "IELTS Academic Writing Task 2 (an argumentative/discursive essay, ~250–290 words, with a clear position)";
+  const own = (draft || "").trim();
+
+  const calibration = `- Calibrate ${isTask1 ? "task achievement" : "task response"}, coherence & cohesion, lexical resource and grammatical range & accuracy so they are genuinely characteristic of band ${band} against the official IELTS descriptors — this means deliberately including realistic weaknesses/errors for lower bands, and only near-flawless language for the highest bands.
+- Keep it realistic in length for the task.
+- Return ONLY the essay text itself. No preamble, no band label, no markdown, no quotation marks.`;
+
+  if(own){
+    return `${kind}.
+Task prompt: ${WRITING[task].prompt}
+
+This is what the candidate actually wrote:
+"""
+${own}
+"""
+
+Rewrite THE CANDIDATE'S OWN RESPONSE so that it would be awarded EXACTLY IELTS band ${band}.
+
+This is a rewrite, not a new answer. Absolutely required:
+- Keep their content. ${isTask1
+      ? "The same data points, comparisons and trends they chose to report stay selected — do not swap in different figures from the visual, and do not add data they did not mention."
+      : "The same position, the same arguments, the same examples and the same conclusion. If they argued that remote work harms junior staff and used their own first job as the example, the band " + band + " version still argues that, with that example."}
+- Keep the same paragraph structure and order of ideas, and roughly the same length. Only where the target band genuinely requires fuller development may you extend a point, and then only by developing what they already wrote.
+- Change ONLY the language: grammatical range and accuracy, vocabulary, cohesion, and how clearly the ${isTask1 ? "overview and key features are presented" : "position is stated and supported"}.
+- If the target band is BELOW their current level, degrade the language honestly — simplify the structures, narrow the vocabulary, introduce the errors and clumsy cohesion typical of band ${band} — while keeping the same content.
+- If the target band is ABOVE their current level, upgrade the language — more flexible structures, more precise and less common vocabulary, smoother cohesion — while keeping the same content.
+${calibration}`;
+  }
+
   return `Write a model answer for the following ${kind} that would be awarded EXACTLY IELTS band ${band}.
 Task prompt: ${WRITING[task].prompt}
 
 Requirements:
-- Calibrate task response, coherence & cohesion, lexical resource and grammatical range & accuracy so they are genuinely characteristic of band ${band} against the official IELTS descriptors — this means deliberately including realistic weaknesses/errors for lower bands, and only near-flawless language for the highest bands.
-- Keep it realistic in length for the task.
-- Return ONLY the essay text itself. No preamble, no band label, no markdown, no quotation marks.`;
+${calibration}`;
+}
+
+// Cached band versions are tied to the answer they were rewritten from. Editing
+// a draft, or recording a new take, must invalidate them — otherwise a student
+// is shown "their" response rewritten from work they have since replaced.
+function contentFingerprint(text){
+  const t = (text || "").trim();
+  let h = 0;
+  for(let i=0;i<t.length;i++){ h = ((h<<5) - h + t.charCodeAt(i)) | 0; }
+  return t.length + ":" + h;
 }
 
 function stripFences(t){
@@ -4539,10 +4587,13 @@ function renderBandVersions(task){
   if(!area) return;
   const store = state.writing.bandVersions[task] || (state.writing.bandVersions[task] = {});
   const active = store.__active || null;
+  const hasOwn = !!(state.writing.drafts[task] || "").trim();
   area.innerHTML = `
     <div class="band-versions">
-      <h3>Model answers by band score</h3>
-      <p class="bv-intro">See how this same task looks written at each IELTS band. Pick a band — the model answer is generated on demand and then saved here.</p>
+      <h3>${hasOwn ? "Your response at each band score" : "Model answers by band score"}</h3>
+      <p class="bv-intro">${hasOwn
+        ? "Your own response rewritten at each IELTS band — same position, same arguments, same examples, only the language changes. Pick a band; it is generated on demand and saved here. Editing your draft clears these."
+        : "Write your response first and these become your own response rewritten at each band. Until then they are generic model answers for this task."}</p>
       <div class="band-tabs">
         ${BAND_TARGETS.map(b=>`
           <button class="band-tab ${b===active?"active":""} ${store[b]?"ready":""}" data-band="${b}">
@@ -4559,6 +4610,13 @@ function renderBandVersions(task){
 
 async function selectBandVersion(task, band){
   const store = state.writing.bandVersions[task] || (state.writing.bandVersions[task] = {});
+  const draft = state.writing.drafts[task] || "";
+  const fp = contentFingerprint(draft);
+  if(store.__fp !== fp){
+    // The draft changed — drop versions rewritten from the previous one.
+    Object.keys(store).forEach(k=>{ if(k !== "__active") delete store[k]; });
+    store.__fp = fp;
+  }
   store.__active = band;
   // reflect active state on tabs
   const area = document.getElementById("bandVersionsArea");
@@ -4571,11 +4629,15 @@ async function selectBandVersion(task, band){
       `<div class="band-version-note" style="border-color:var(--coral);color:var(--coral);background:#fdecea;">Add a Gemini API key in ⚙ AI engine settings to generate model answers.</div>`;
     return;
   }
+  const adapting = !!draft.trim();
   const body = document.getElementById("bandVersionBody");
   body.innerHTML = `<div class="band-version-note">${escapeXml(BAND_NOTES[band]||("Band "+band))}</div>
-    <div class="band-version-box"><span class="loader"><span></span><span></span><span></span></span> Writing a band ${escapeXml(band)} model answer…</div>`;
+    <div class="band-version-box"><span class="loader"><span></span><span></span><span></span></span> ${adapting ? `Rewriting your response at band ${escapeXml(band)}…` : `Writing a band ${escapeXml(band)} model answer…`}</div>`;
   try{
-    const text = await callGemini("You are an expert IELTS examiner who writes calibrated model answers at a requested band.", bandVersionPrompt(task, band), null, null);
+    const sys = adapting
+      ? "You are an expert IELTS examiner who rewrites a candidate's own response at a requested band, preserving their content, argument and examples exactly and changing only the language."
+      : "You are an expert IELTS examiner who writes calibrated model answers at a requested band.";
+    const text = await callGemini(sys, bandVersionPrompt(task, band, draft), null, null);
     store[band] = stripFences(text);
     showBandVersionBody(task, band);
     // mark the tab as ready
@@ -5475,21 +5537,11 @@ function renderSpeakingBandVersions(part){
   if(active && store[active]) showSpeakingBandBody(part, active);
 }
 
-// Cached band versions are tied to the answer they were built from. Recording
-// a new take must invalidate them, or a student would be shown "their" answer
-// rewritten from a response they have since replaced.
-function transcriptFingerprint(text){
-  const t = (text || "").trim();
-  let h = 0;
-  for(let i=0;i<t.length;i++){ h = ((h<<5) - h + t.charCodeAt(i)) | 0; }
-  return t.length + ":" + h;
-}
-
 async function selectSpeakingBandVersion(part, band){
   const all = state.speaking.bandVersions || (state.speaking.bandVersions = {});
   const store = all[part] || (all[part] = {});
   const transcript = state.speaking.transcripts[part] || "";
-  const fp = transcriptFingerprint(transcript);
+  const fp = contentFingerprint(transcript);
   if(store.__fp !== fp){
     // The answer changed — drop versions written against the previous one.
     Object.keys(store).forEach(k=>{ if(k !== "__active") delete store[k]; });
