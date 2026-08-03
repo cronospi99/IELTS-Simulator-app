@@ -33,6 +33,25 @@
   --paper-line:rgba(246,243,234,0.14);
   --radius:14px;
   --shadow:0 20px 50px -20px rgba(19,27,46,0.45);
+
+  /* Material Design 3 elevation. Two shadows per level — a tight key light for
+     the contact edge and a wide ambient light for the spread — which is what
+     reads as depth rather than a single blurry drop shadow. */
+  --elev-1:0 1px 2px rgba(19,27,46,.30), 0 1px 3px 1px rgba(19,27,46,.12);
+  --elev-2:0 1px 2px rgba(19,27,46,.30), 0 2px 6px 2px rgba(19,27,46,.13);
+  --elev-3:0 1px 3px rgba(19,27,46,.30), 0 4px 8px 3px rgba(19,27,46,.13);
+  --elev-4:0 2px 3px rgba(19,27,46,.30), 0 6px 10px 4px rgba(19,27,46,.13);
+  --elev-5:0 4px 4px rgba(19,27,46,.30), 0 8px 12px 6px rgba(19,27,46,.13);
+
+  /* MD3 tonal surfaces: higher elevation reads as a lighter tonal overlay. */
+  --surface:#ffffff;
+  --surface-1:#fdfcf8;
+  --surface-2:#faf8f1;
+  --surface-3:#f5f2e8;
+
+  /* Apple's standard easing curves. */
+  --ease-out:cubic-bezier(.25,.46,.45,.94);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -95,8 +114,11 @@ nav.tabs button.tab-ref.active{background:var(--paper);color:var(--ink);border-c
 
 main{padding-top:0;}
 .panel{
-  background:var(--paper);color:var(--ink);border-radius:2px 14px 14px 14px;
-  box-shadow:var(--shadow);padding:36px;margin-top:0;min-height:400px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 220px),
+    var(--paper);
+  color:var(--ink);border-radius:2px 20px 20px 20px;
+  box-shadow:var(--shadow), var(--elev-5);padding:36px;margin-top:0;min-height:400px;
 }
 @media(max-width:640px){.panel{padding:22px;}}
 
@@ -144,30 +166,81 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
 .overall-text .big{font-family:'Fraunces',serif;font-size:15px;color:var(--slate);}
 .skill-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px;}
 .skill-card{
-  border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:#fff;
+  border:1px solid var(--line);border-radius:16px;padding:16px 18px;
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));
   display:flex;justify-content:space-between;align-items:center;
+  box-shadow:var(--elev-1);
+  transition:transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
 }
+.skill-card:hover{transform:translateY(-3px);box-shadow:var(--elev-3);}
+@media (prefers-reduced-motion: reduce){.skill-card,.skill-card:hover{transition:none;transform:none;}}
 .skill-card .name{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate);font-weight:600;}
 .skill-card .band{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--ink);}
 .skill-card .go{
   font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);
   border:1px solid var(--teal);padding:6px 10px;border-radius:8px;background:transparent;
 }
-.chart-box{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fff;}
-.chart-box h3{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);}
-
-/* ---------- buttons ---------- */
-.btn{
-  border-radius:9px;padding:11px 20px;font-size:13.5px;font-weight:600;border:1px solid var(--ink);
-  background:var(--ink);color:var(--paper);transition:transform .12s, opacity .12s;
+.chart-box{
+  border:1px solid var(--line);border-radius:18px;padding:20px;
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));
+  box-shadow:var(--elev-2);
+  transition:box-shadow .25s var(--ease-out);
 }
-.btn:hover{transform:translateY(-1px);}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
-.btn.secondary{background:transparent;color:var(--ink);}
-.btn.ghost{background:transparent;color:var(--slate);border-color:var(--line);}
-.btn.brass{background:var(--brass);border-color:var(--brass);color:var(--ink);}
-.btn.coral{background:var(--coral);border-color:var(--coral);color:#fff;}
-.btn.small{padding:7px 13px;font-size:12px;}
+.chart-box:hover{box-shadow:var(--elev-3);}
+.chart-box h3{margin:0 0 14px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate);font-weight:700;}
+/* responsive:false aspect handling needs a sized parent, or the canvas grows
+   on every resize tick. */
+.chart-canvas{position:relative;width:100%;}
+.chart-canvas canvas{position:absolute;inset:0;width:100%!important;height:100%!important;}
+
+/* ---------- buttons (Apple-style) ----------
+   Full pill radius, a soft top-to-bottom gradient with an inner highlight for
+   the lit-from-above look, and the springy scale-down on press that iOS uses
+   instead of a colour change. Elevation lifts on hover, settles on press. */
+.btn{
+  position:relative;border-radius:980px;padding:11px 22px;font-size:13.5px;font-weight:600;
+  letter-spacing:-.01em;border:1px solid var(--ink);
+  background:linear-gradient(180deg,var(--ink-2),var(--ink));
+  color:var(--paper);box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.14);
+  transition:transform .22s var(--ease-spring), box-shadow .22s var(--ease-out),
+             opacity .15s var(--ease-out), filter .15s var(--ease-out);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--elev-3), inset 0 1px 0 rgba(255,255,255,.18);filter:brightness(1.06);}
+.btn:active{transform:scale(.96);box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.10);filter:brightness(.97);transition-duration:.09s;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;filter:none;}
+.btn.secondary{background:transparent;color:var(--ink);box-shadow:none;}
+.btn.secondary:hover{background:rgba(19,27,46,.06);box-shadow:var(--elev-1);}
+.btn.ghost{
+  background:linear-gradient(180deg,#fff,var(--surface-2));color:var(--slate);border-color:var(--line);
+  box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.btn.ghost:hover{color:var(--ink);box-shadow:var(--elev-2), inset 0 1px 0 #fff;}
+.btn.brass{
+  background:linear-gradient(180deg,var(--brass-2),var(--brass));border-color:var(--brass);color:var(--ink);
+  box-shadow:var(--elev-2), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.btn.brass:hover{box-shadow:0 6px 16px -4px rgba(201,162,39,.5), var(--elev-2), inset 0 1px 0 rgba(255,255,255,.55);}
+.btn.coral{
+  background:linear-gradient(180deg,#d4574f,var(--coral));border-color:var(--coral);color:#fff;
+  box-shadow:var(--elev-2), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.btn.coral:hover{box-shadow:0 6px 16px -4px rgba(193,68,60,.5), var(--elev-2), inset 0 1px 0 rgba(255,255,255,.35);}
+/* Ghost buttons sitting on the dark topbar need the inverse treatment — the
+   light ghost gradient would put pale text on a near-white pill. */
+.btn.ghost.on-dark{
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));
+  color:var(--paper);border-color:var(--paper-line);
+  box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.16);
+}
+.btn.ghost.on-dark:hover{
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.10));
+  color:#fff;box-shadow:var(--elev-2), inset 0 1px 0 rgba(255,255,255,.22);
+}
+.btn.small{padding:8px 15px;font-size:12px;}
+@media (prefers-reduced-motion: reduce){
+  .btn,.btn:hover,.btn:active{transition:none;transform:none;}
+}
 
 /* ---------- test intro cards ---------- */
 .module-hero{
@@ -189,15 +262,33 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
 .timerbar .time.warn{color:var(--coral);}
 
 /* ---------- reading / listening ---------- */
+/* Reading passages are read for 20 minutes at a stretch, so they get real
+   book typography: a looser leading, wider paragraph rhythm, a measure capped
+   near 70 characters, and generous gutters so the text never touches the edge. */
 .passage{
-  columns:1;line-height:1.85;font-size:15px;color:#2a3145;background:#fff;
-  border:1px solid var(--line);border-radius:12px;padding:26px 28px;max-height:900px;overflow-y:auto;
+  /* No `columns` here. A multi-column container with a constrained height
+     fragments its overflow into further columns sideways instead of scrolling,
+     so long passages spilled out to the right — worse now that the text is set
+     larger and looser. Plain block flow scrolls vertically as intended. */
+  line-height:2.0;font-size:16.5px;color:#2a3145;overflow-x:hidden;
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));
+  border:1px solid var(--line);border-radius:18px;padding:38px 44px;
+  max-height:900px;overflow-y:auto;box-shadow:var(--elev-2);
+  letter-spacing:.003em;scroll-behavior:smooth;
 }
-.passage p{margin:0 0 16px;}
+.passage > *{max-width:70ch;}
+.passage p{margin:0 0 1.6em;}
+.passage .passage-title{
+  font-size:21px;font-weight:600;line-height:1.35;color:var(--ink);
+  margin:0 0 1.1em;padding-bottom:.7em;border-bottom:1px solid var(--line);
+}
+.passage p + p{margin-top:0;}
+.passage h4,.passage h3{margin:2em 0 .85em;line-height:1.4;}
 .passage .para-label{
   display:inline-block;font-family:'IBM Plex Mono',monospace;color:var(--brass);
-  font-weight:600;margin-right:8px;
+  font-weight:700;margin-right:12px;font-size:13px;letter-spacing:.04em;
 }
+@media(max-width:640px){.passage{padding:24px 22px;font-size:16px;line-height:1.9;}}
 .two-col{display:grid;grid-template-columns:1.2fr 0.9fr;gap:24px;}
 @media(max-width:960px){.two-col{grid-template-columns:1fr;}}
 #readingQuestions{max-height:900px;overflow-y:auto;}
@@ -238,7 +329,8 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
 
 /* answer key reveal */
 .key-box{
-  border:1px dashed var(--brass);border-radius:10px;padding:16px 18px;background:#fbf4de;margin-top:10px;
+  border:1px dashed var(--brass);border-radius:16px;padding:20px 22px;background:#fbf4de;margin-top:12px;
+  box-shadow:var(--elev-1);
 }
 .key-box h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;color:#8a6c11;letter-spacing:.06em;}
 .key-line{font-size:13.5px;margin-bottom:4px;display:flex;gap:8px;}
@@ -257,8 +349,9 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
 }
 .write-tabs button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .prompt-card{
-  background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px;
-  font-size:14.5px;line-height:1.7;
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));border:1px solid var(--line);
+  border-radius:18px;padding:24px 26px;margin-bottom:18px;
+  font-size:15px;line-height:1.75;box-shadow:var(--elev-2);
 }
 .prompt-card .task-tag{
   font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--brass);text-transform:uppercase;letter-spacing:.08em;
@@ -337,17 +430,61 @@ textarea.essay{
 .cue-card ul{margin:10px 0 0;padding-left:18px;}
 .rec-controls{display:flex;align-items:center;gap:14px;margin:20px 0;flex-wrap:wrap;}
 .rec-dot{
-  width:12px;height:12px;border-radius:50%;background:var(--coral);opacity:0;
+  position:relative;width:12px;height:12px;border-radius:50%;background:var(--coral);opacity:0;
+  flex-shrink:0;
 }
 .rec-dot.live{opacity:1;animation:pulse 1.1s infinite;}
-/* Paused: solid, no pulse — the recording is held, not running. */
+/* Concentric rings radiating from the dot while the take is running. */
+.rec-dot.live::before,.rec-dot.live::after{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  border:2px solid var(--coral);animation:recRing 1.8s var(--ease-out) infinite;
+}
+.rec-dot.live::after{animation-delay:.9s;}
+@keyframes recRing{
+  0%{transform:scale(1);opacity:.55;}
+  100%{transform:scale(3.4);opacity:0;}
+}
+/* Paused: solid, no pulse, no rings — the recording is held, not running. */
 .rec-dot.paused{opacity:1;animation:none;background:var(--brass);}
+.rec-dot.paused::before,.rec-dot.paused::after{display:none;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ---------- live recording waveform ----------
+   Twelve bars driven by the real microphone level via an AnalyserNode, with a
+   CSS keyframe fallback so the control still looks alive if Web Audio is
+   unavailable. Collapsed to zero width until a take starts. */
+.rec-wave{
+  display:inline-flex;align-items:center;gap:3px;height:30px;
+  max-width:0;opacity:0;overflow:hidden;
+  transition:max-width .45s var(--ease-out), opacity .3s var(--ease-out);
+}
+.rec-wave.active{max-width:180px;opacity:1;}
+.rec-wave span{
+  display:block;width:3.5px;height:5px;border-radius:999px;
+  background:linear-gradient(180deg,var(--coral),#e0736b);
+  transform-origin:center;transition:height .08s linear;
+}
+.rec-wave.fallback span{animation:recBar 1s ease-in-out infinite;}
+.rec-wave.fallback span:nth-child(2n){animation-duration:.75s;}
+.rec-wave.fallback span:nth-child(3n){animation-duration:1.25s;}
+.rec-wave.fallback span:nth-child(4n){animation-duration:.9s;}
+@keyframes recBar{0%,100%{height:5px;}50%{height:26px;}}
+/* Held: bars freeze flat and desaturate to brass, matching the paused dot. */
+.rec-wave.paused span{
+  height:5px!important;animation-play-state:paused;
+  background:linear-gradient(180deg,var(--brass),var(--brass-2));
+}
+@media (prefers-reduced-motion: reduce){
+  .rec-dot.live::before,.rec-dot.live::after{animation:none;opacity:0;}
+  .rec-wave.fallback span{animation:none;height:14px;}
+  .rec-wave{transition:none;}
+}
 .rec-paused-tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
   color:var(--brass);font-family:'IBM Plex Mono',monospace;}
 .transcript-box{
-  border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:#fff;min-height:90px;
-  font-size:14px;line-height:1.7;color:#2a3145;white-space:pre-wrap;
+  border:1px solid var(--line);border-radius:16px;padding:18px 20px;min-height:90px;
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));box-shadow:var(--elev-1);
+  font-size:14.5px;line-height:1.8;color:#2a3145;white-space:pre-wrap;
 }
 .metrics-row{display:flex;gap:22px;margin-top:14px;flex-wrap:wrap;}
 .metric{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate);}
@@ -462,7 +599,8 @@ textarea.essay{
 .heard-box p{font-size:13px;color:var(--slate);line-height:1.6;margin:6px 0 0;font-style:italic;}
 
 /* ---------- grammar check ---------- */
-.grammar-box{background:#fff;border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:16px 18px;margin-top:14px;}
+.grammar-box{background:linear-gradient(180deg,var(--surface),var(--surface-1));border:1px solid var(--line);
+  border-left:4px solid var(--teal);border-radius:6px 16px 16px 6px;padding:20px 22px;margin-top:16px;box-shadow:var(--elev-2);}
 .grammar-box .g-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
 .grammar-box .g-head b{font-size:13.5px;color:var(--ink);}
 .grammar-summary{font-size:12.5px;color:var(--slate);font-style:italic;}
@@ -541,7 +679,7 @@ textarea.essay{
 .hes-foot{font-size:11px;color:var(--slate);line-height:1.5;margin:10px 0 0;}
 
 /* ---------- band-score model versions ---------- */
-.band-versions{background:linear-gradient(180deg,#fbf9f2,#f2eddd);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:20px;}
+.band-versions{background:linear-gradient(180deg,#fbf9f2,#f2eddd);border:1px solid var(--line);border-radius:20px;padding:22px 24px;margin-top:22px;box-shadow:var(--elev-2);}
 .band-versions h3{font-family:'Fraunces',serif;font-size:18px;margin:0 0 4px;color:var(--ink);}
 .band-versions .bv-intro{font-size:12.5px;color:var(--slate);line-height:1.6;margin:0 0 14px;}
 .band-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
@@ -614,8 +752,8 @@ textarea.essay{
       Module: <b id="modLabel">Dashboard</b>
     </div>
     <button id="accountBtn" class="btn ghost small" style="border-color:var(--paper-line);color:var(--paper);display:none;">👤 Sign in</button>
-    <button id="sessionBtn" class="btn ghost small" style="border-color:var(--paper-line);color:var(--paper);">💾 Session</button>
-    <button id="settingsBtn" class="btn ghost small" style="border-color:var(--paper-line);color:var(--paper);">⚙ AI engine</button>
+    <button id="sessionBtn" class="btn ghost on-dark small">💾 Session</button>
+    <button id="settingsBtn" class="btn ghost on-dark small">⚙ AI engine</button>
   </div>
 </header>
 
@@ -2379,11 +2517,11 @@ function renderDashboard(){
       <div>
         <div class="chart-box">
           <h3>Skill profile</h3>
-          <canvas id="radarCanvas" height="220"></canvas>
+          <div class="chart-canvas" style="height:250px;"><canvas id="radarCanvas"></canvas></div>
         </div>
         <div class="chart-box" style="margin-top:16px;">
           <h3>Band history</h3>
-          <canvas id="barCanvas" height="180"></canvas>
+          <div class="chart-canvas" style="height:190px;"><canvas id="barCanvas"></canvas></div>
         </div>
       </div>
     </div>
@@ -2423,38 +2561,78 @@ function drawDashCharts(){
   const labels = ["Listening","Reading","Writing","Speaking"];
   const data = ["listening","reading","writing","speaking"].map(m=>state.scores[m]||0);
 
+  // Shared chart styling: Inter throughout, hairline grids that sit behind the
+  // data rather than competing with it, and dark rounded tooltips.
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color = "#5b6478";
+  const TOOLTIP = {
+    backgroundColor:"rgba(19,27,46,.94)", padding:12, cornerRadius:10, displayColors:false,
+    titleFont:{size:12,weight:"600"}, bodyFont:{size:13,weight:"700"}, caretSize:6,
+    callbacks:{ label:ctx=>` Band ${Number(ctx.parsed.r ?? ctx.parsed.y).toFixed(1)}` }
+  };
+
+  // Radar: a soft vertical gradient fill instead of a flat wash, so the shape
+  // reads as a solid volume.
+  const radarFill = rc.getContext("2d").createLinearGradient(0,0,0,240);
+  radarFill.addColorStop(0,"rgba(201,162,39,.42)");
+  radarFill.addColorStop(1,"rgba(201,162,39,.08)");
+
   radarChart = new Chart(rc, {
     type:"radar",
     data:{
       labels,
       datasets:[{
-        label:"Band",
-        data,
-        backgroundColor:"rgba(201,162,39,0.22)",
-        borderColor:"#c9a227",
-        pointBackgroundColor:"#131b2e"
+        label:"Band", data,
+        backgroundColor:radarFill,
+        borderColor:"#c9a227", borderWidth:2.5,
+        pointBackgroundColor:"#fff", pointBorderColor:"#131b2e", pointBorderWidth:2,
+        pointRadius:5, pointHoverRadius:7,
+        pointHoverBackgroundColor:"#c9a227", pointHoverBorderColor:"#131b2e",
+        fill:true, tension:.05
       }]},
     options:{
-      scales:{ r:{ min:0, max:9, ticks:{stepSize:3}, pointLabels:{font:{size:11}} } },
-      plugins:{legend:{display:false}}
+      responsive:true, maintainAspectRatio:false,
+      animation:{duration:900, easing:"easeOutQuart"},
+      layout:{padding:6},
+      scales:{ r:{
+        min:0, max:9, beginAtZero:true,
+        ticks:{stepSize:3, backdropColor:"transparent", color:"#98a0b0", font:{size:10}},
+        grid:{color:"rgba(19,27,46,.09)"},
+        angleLines:{color:"rgba(19,27,46,.09)"},
+        pointLabels:{font:{size:11.5,weight:"600"}, color:"#131b2e"}
+      }},
+      plugins:{legend:{display:false}, tooltip:TOOLTIP}
     }
   });
 
   const hist = [...state.history].reverse().slice(-10);
+  // Bars get a vertical gradient and a fully rounded cap.
+  const barFill = bc.getContext("2d").createLinearGradient(0,0,0,180);
+  barFill.addColorStop(0,"#3f8b7b");
+  barFill.addColorStop(1,"#2f6f62");
+
   barChart = new Chart(bc, {
     type:"bar",
     data:{
       labels: hist.map(h=>new Date(h.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})),
       datasets:[{
-        label:"Module Score",
-        data: hist.map(h=>h.band),
-        backgroundColor:"#2f6f62",
-        borderRadius:4
+        label:"Module Score", data: hist.map(h=>h.band),
+        backgroundColor:barFill, hoverBackgroundColor:"#c9a227",
+        borderRadius:{topLeft:8,topRight:8,bottomLeft:2,bottomRight:2},
+        borderSkipped:false, maxBarThickness:34
       }]
     },
     options:{
-      scales:{ y:{ min:0, max:9, ticks:{stepSize:2} } },
-      plugins:{legend:{display:false}}
+      responsive:true, maintainAspectRatio:false,
+      animation:{duration:800, easing:"easeOutQuart"},
+      scales:{
+        y:{ min:0, max:9, ticks:{stepSize:3, color:"#98a0b0", font:{size:10}},
+            grid:{color:"rgba(19,27,46,.07)", drawTicks:false},
+            border:{display:false} },
+        x:{ grid:{display:false}, border:{display:false},
+            ticks:{color:"#98a0b0", font:{size:10.5}, maxRotation:0} }
+      },
+      plugins:{legend:{display:false}, tooltip:TOOLTIP}
     }
   });
 
@@ -3028,7 +3206,7 @@ function renderReading(){
         <b>AI Test Generator (Replaces current sections)</b>
         <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Builds 4 full-length (700–950 word) academic articles with a mixed set of question types per section — headings, TRUE/FALSE/NOT GIVEN, matching information, multiple choice, and completion." : "Add a Gemini API key in ⚙ AI engine to enable live generation."}</p>
       </div>
-      <div style="display:flex; gap:8px; align-items:center;">
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <select id="aiTopic" style="border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px;" ${!geminiOn ? "disabled" : ""}>
           <option value="random">Random Academic Topic</option>
           <option value="Technology & Artificial Intelligence">Technology & AI</option>
@@ -3308,7 +3486,7 @@ function renderReadingPassage(p, sectionNumber){
     <div class="two-col">
       <div>
         <div class="passage">
-          <p class="display" style="font-size:18px;font-weight:600;margin-bottom:12px;">Section ${sectionNumber}: ${p.title}</p>
+          <p class="display passage-title">Section ${sectionNumber}: ${p.title}</p>
           ${Object.entries(p.paras).map(([k,v])=>`<p><span class="para-label">${k}</span>${v}</p>`).join("")}
         </div>
       </div>
@@ -4688,6 +4866,60 @@ let mediaRecorder=null, mediaChunks=[], recStartTime=null, recognizer=null, spee
    progress. Every elapsed-time calculation goes through the helpers below
    rather than subtracting recStartTime directly.
    ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------
+   Live waveform. An AnalyserNode on the same MediaStream drives the bar
+   heights, so the animation reflects what the microphone is actually picking
+   up rather than looping regardless of input — a student can see at a glance
+   that they are being heard. Falls back to a CSS keyframe animation wherever
+   Web Audio is unavailable or blocked.
+   ------------------------------------------------------------------------- */
+let audioCtx=null, analyser=null, waveRAF=null, waveSourceNode=null;
+
+function startWaveform(stream){
+  const wave = document.getElementById("recWave");
+  if(!wave) return;
+  wave.classList.add("active");
+  const bars = Array.from(wave.children);
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC){ wave.classList.add("fallback"); return; }
+  try{
+    audioCtx = new AC();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 64;
+    analyser.smoothingTimeConstant = 0.75;
+    waveSourceNode = audioCtx.createMediaStreamSource(stream);
+    waveSourceNode.connect(analyser);          // analyser only — never to the
+                                               // destination, or the candidate
+                                               // hears themselves echo back.
+    const bins = new Uint8Array(analyser.frequencyBinCount);
+    const draw = ()=>{
+      waveRAF = requestAnimationFrame(draw);
+      if(isPaused) return;                     // hold the bars where they are
+      analyser.getByteFrequencyData(bins);
+      for(let i=0;i<bars.length;i++){
+        const v = bins[Math.floor(i * bins.length / bars.length)] / 255;
+        bars[i].style.height = (5 + Math.pow(v, 0.65) * 24).toFixed(1) + "px";
+      }
+    };
+    draw();
+  }catch(e){
+    console.error("waveform unavailable", e);
+    wave.classList.add("fallback");
+  }
+}
+
+function stopWaveform(){
+  if(waveRAF){ cancelAnimationFrame(waveRAF); waveRAF = null; }
+  try{ if(waveSourceNode) waveSourceNode.disconnect(); }catch(e){}
+  try{ if(audioCtx && audioCtx.state !== "closed") audioCtx.close(); }catch(e){}
+  audioCtx = null; analyser = null; waveSourceNode = null;
+  const wave = document.getElementById("recWave");
+  if(wave){
+    wave.classList.remove("active","fallback","paused");
+    Array.from(wave.children).forEach(b=>b.style.height="");
+  }
+}
+
 let isPaused=false, pausedTotalMs=0, pauseStartedAt=null;
 let pausedMsAtFirstSpeech=0, pausedMsAtLastSpeech=0;
 let recognizerRunning=false;
@@ -4721,7 +4953,7 @@ function renderSpeaking(){
           <b>🎙 New Speaking Question Set Generator</b>
           <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Generate a brand-new, thematically-linked Part 1, 2 and 3 (a fresh cue card plus matching interview questions)." : "Add a Gemini API key in ⚙ AI engine to enable live generation."}</p>
         </div>
-        <div style="display:flex; gap:8px; align-items:center;">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <select id="speakingTopic" style="border:1px solid var(--line); border-radius:6px; padding:6px 10px; font-size:13px;" ${!geminiOn ? "disabled" : ""}>
             <option value="random">Random Topic</option>
             <option value="Home, Neighbourhood & Daily Life">Home & Daily Life</option>
@@ -4848,6 +5080,7 @@ function renderSpeakingPart(part){
       <button class="btn coral small" id="recBtn"><span class="rec-dot" id="recDot"></span> Record live</button>
       <button class="btn ghost small" id="pauseBtn" disabled>Pause</button>
       <button class="btn ghost small" id="stopBtn" disabled>Stop</button>
+      <span class="rec-wave" id="recWave" aria-hidden="true">${Array.from({length:12},()=>"<span></span>").join("")}</span>
       <span class="mono" id="recTimer" style="font-size:13px;color:var(--slate);">00:00</span>
       <span class="rec-paused-tag" id="recPausedTag" style="display:none;">Paused</span>
       <div style="flex:1;"></div>
@@ -4957,6 +5190,7 @@ function startRecording(){
     pausedMsAtFirstSpeech = 0; pausedMsAtLastSpeech = 0;
     document.getElementById("recDot").classList.add("live");
     document.getElementById("recDot").classList.remove("paused");
+    startWaveform(stream);
     document.getElementById("recBtn").disabled = true;
     document.getElementById("stopBtn").disabled = false;
     // MediaRecorder.pause is not universal; only offer it where it exists.
@@ -5056,6 +5290,7 @@ function togglePauseRecording(){
     // accumulated so far survives the restart.
     if(recognizer && recognizerRunning){ try{ recognizer.stop(); }catch(e){} }
     dot.classList.remove("live"); dot.classList.add("paused");
+    const wave = document.getElementById("recWave"); if(wave) wave.classList.add("paused");
     btn.textContent = "Resume";
     tag.style.display = "";
   } else {
@@ -5066,6 +5301,7 @@ function togglePauseRecording(){
       try{ recognizer.start(); recognizerRunning = true; }catch(e){ /* already running */ }
     }
     dot.classList.remove("paused"); dot.classList.add("live");
+    const wave = document.getElementById("recWave"); if(wave) wave.classList.remove("paused");
     btn.textContent = "Pause";
     tag.style.display = "none";
   }
@@ -5084,6 +5320,7 @@ function stopRecording(){
   if(recognizer) { try{ recognizer.stop(); }catch(e){} }
   recognizerRunning = false;
   clearInterval(recTimerInterval);
+  stopWaveform();
   const dot = document.getElementById("recDot");
   if(dot) dot.classList.remove("live", "paused");
   document.getElementById("recBtn").disabled = false;
