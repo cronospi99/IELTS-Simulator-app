@@ -55,6 +55,77 @@
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
+
+/* ---------- intro curtain ----------
+   A full-bleed ink cover with a live percentage, which then leaves as five
+   vertical panels sweeping upward in a stagger. The panels are separate from
+   the cover so the counter can fade out first and the reveal reads as the
+   room opening rather than a box disappearing. */
+.intro{
+  position:fixed;inset:0;z-index:9999;background:var(--ink);
+  display:flex;align-items:flex-end;justify-content:center;
+  overflow:hidden;
+}
+.intro-panels{position:absolute;inset:0;display:flex;}
+.intro-panels span{
+  flex:1;background:var(--ink);
+  transform:translateY(0);
+  transition:transform 1.05s cubic-bezier(.76,0,.24,1);
+}
+.intro-inner{
+  position:relative;z-index:2;width:100%;max-width:1080px;padding:0 24px 46px;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;
+  transition:opacity .45s var(--ease-out), transform .45s var(--ease-out);
+}
+.intro-eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--brass);margin:0 0 8px;opacity:0;animation:introUp .8s var(--ease-out) .15s forwards;
+}
+.intro-title{
+  font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,4.6vw,46px);line-height:1.05;
+  color:var(--paper);margin:0;opacity:0;animation:introUp .9s var(--ease-out) .28s forwards;
+}
+.intro-count{
+  font-family:'Fraunces',serif;font-weight:600;color:var(--brass-2);
+  font-size:clamp(52px,11vw,116px);line-height:.9;letter-spacing:-.03em;
+  display:flex;align-items:flex-start;font-variant-numeric:tabular-nums;
+  opacity:0;animation:introUp .8s var(--ease-out) .4s forwards;
+}
+.intro-count i{font-size:.32em;font-style:normal;margin-top:.35em;margin-left:.12em;opacity:.65;}
+@keyframes introUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+/* Hairline progress rule pinned to the very bottom edge. */
+.intro-bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(246,243,234,.14);z-index:2;}
+.intro-bar span{
+  display:block;height:100%;width:0%;
+  background:linear-gradient(90deg,var(--brass),var(--brass-2));
+  transition:width .35s var(--ease-out);
+}
+/* Leaving state: text lifts away, then the panels sweep up in a stagger. */
+.intro.is-leaving .intro-inner{opacity:0;transform:translateY(-22px);}
+.intro.is-leaving .intro-bar{opacity:0;transition:opacity .3s;}
+.intro.is-leaving{background:transparent;}
+.intro.is-leaving .intro-panels span{transform:translateY(-101%);}
+.intro.is-leaving .intro-panels span:nth-child(1){transition-delay:.02s;}
+.intro.is-leaving .intro-panels span:nth-child(2){transition-delay:.08s;}
+.intro.is-leaving .intro-panels span:nth-child(3){transition-delay:.14s;}
+.intro.is-leaving .intro-panels span:nth-child(4){transition-delay:.20s;}
+.intro.is-leaving .intro-panels span:nth-child(5){transition-delay:.26s;}
+/* The app itself eases up behind the curtain as it lifts. */
+body.intro-active{overflow:hidden;}
+body.intro-active .topbar,body.intro-active nav.tabs,body.intro-active .shell{
+  opacity:0;transform:translateY(26px) scale(.988);
+}
+body.intro-done .topbar,body.intro-done nav.tabs,body.intro-done .shell{
+  opacity:1;transform:none;
+  transition:opacity .8s var(--ease-out), transform 1s cubic-bezier(.22,1,.36,1);
+}
+body.intro-done nav.tabs{transition-delay:.06s;}
+body.intro-done .shell{transition-delay:.12s;}
+@media (prefers-reduced-motion: reduce){
+  .intro-eyebrow,.intro-title,.intro-count{animation:none;opacity:1;}
+  .intro-panels span,.intro-inner,.intro-bar span{transition:none;}
+  body.intro-done .topbar,body.intro-done nav.tabs,body.intro-done .shell{transition:none;}
+}
 body{
   background:var(--ink);
   background-image:
@@ -740,6 +811,122 @@ textarea.essay{
 </head>
 <body>
 
+<!-- Intro curtain. Sits first in the body so it paints before anything else,
+     and is removed from the DOM once the reveal finishes. -->
+<div id="intro" class="intro" role="status" aria-live="polite" aria-label="Loading">
+  <div class="intro-panels" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="intro-inner">
+    <div class="intro-mark">
+      <p class="intro-eyebrow">Teacher Esteban Yepes · Mock Examination</p>
+      <h1 class="intro-title">IELTS Academic Simulator</h1>
+    </div>
+    <div class="intro-count">
+      <span id="introPct">0</span><i>%</i>
+    </div>
+  </div>
+  <div class="intro-bar"><span id="introBar"></span></div>
+</div>
+
+<script>
+/* =========================================================================
+   INTRO CURTAIN
+   The percentage tracks REAL load milestones — parsing, webfonts, the CDN
+   scripts, and the app's own boot — rather than counting a fake timer, so it
+   finishes when the app is genuinely ready. The displayed number eases toward
+   the target and never moves backwards, which is what makes it feel smooth
+   even though the underlying events land in lumps.
+
+   Two guards matter more than the animation: a floor so a warm cache does not
+   flash the curtain for 80ms, and a ceiling so a blocked CDN or a boot
+   exception can never leave a student staring at a cover they cannot dismiss.
+   ========================================================================= */
+(function(){
+  var intro = document.getElementById("intro");
+  if(!intro) return;
+
+  // Once per tab session. The app reloads itself (e.g. "Restore original"),
+  // and replaying a two-second intro on every reload would wear thin fast.
+  var seen = false;
+  try{ seen = sessionStorage.getItem("ielts:intro-seen") === "1"; }catch(e){}
+  if(seen){ intro.parentNode.removeChild(intro); document.body.classList.add("intro-done"); return; }
+
+  document.body.classList.add("intro-active");
+
+  var pctEl = document.getElementById("introPct");
+  var barEl = document.getElementById("introBar");
+  var MIN_MS = 1100;      // never flash by faster than this
+  var MAX_MS = 7000;      // never trap the user, whatever fails
+  var started = Date.now();
+
+  // Weighted milestones. Weights are rough shares of perceived load time.
+  var steps = { dom:22, fonts:18, load:34, app:26 };
+  var done  = { dom:false, fonts:false, load:false, app:false };
+  function target(){
+    var t = 0;
+    for(var k in steps){ if(done[k]) t += steps[k]; }
+    return t;
+  }
+
+  var shown = 0, finished = false, raf = null;
+  function tick(){
+    var goal = target();
+    // Ease toward the goal, but always creep forward a little so the number
+    // never sits perfectly still while something slow is in flight.
+    var drift = Math.min(goal, shown + 0.35);
+    shown = Math.max(drift, shown + (goal - shown) * 0.08);
+    if(shown > 99.4 && goal >= 100) shown = 100;
+    var v = Math.min(100, Math.floor(shown));
+    pctEl.textContent = v;
+    barEl.style.width = v + "%";
+    if(v >= 100 && Date.now() - started >= MIN_MS){ finish(); return; }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function finish(){
+    if(finished) return;
+    finished = true;
+    if(raf) cancelAnimationFrame(raf);
+    pctEl.textContent = "100";
+    barEl.style.width = "100%";
+    try{ sessionStorage.setItem("ielts:intro-seen","1"); }catch(e){}
+    // Let 100% register for a beat, then lift the curtain.
+    setTimeout(function(){
+      intro.classList.add("is-leaving");
+      document.body.classList.remove("intro-active");
+      document.body.classList.add("intro-done");
+      setTimeout(function(){
+        if(intro.parentNode) intro.parentNode.removeChild(intro);
+      }, 1500);
+    }, 260);
+  }
+
+  function mark(k){ done[k] = true; }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", function(){ mark("dom"); });
+  } else { mark("dom"); }
+
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){ mark("fonts"); });
+    setTimeout(function(){ mark("fonts"); }, 3000);   // webfont CDN may be blocked
+  } else { mark("fonts"); }
+
+  if(document.readyState === "complete"){ mark("load"); }
+  else { window.addEventListener("load", function(){ mark("load"); }); }
+
+  // Fired by the boot handler once the app has restored content and rendered.
+  window.addEventListener("app:ready", function(){ mark("app"); });
+  setTimeout(function(){ mark("app"); }, MAX_MS - 1200);
+
+  // Hard ceiling: whatever is still pending, the curtain goes up.
+  setTimeout(finish, MAX_MS);
+
+  raf = requestAnimationFrame(tick);
+})();
+</script>
+
 <header class="topbar">
   <div class="brand-block">
     <p class="eyebrow">Teacher Esteban Yepes · Mock Examination</p>
@@ -1389,6 +1576,10 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   await restoreGeneratedContent();
   await loadHistory();
   render();
+  // Tells the intro curtain the app is genuinely ready. Fired before auth so a
+  // slow or unreachable Supabase never holds the curtain down; the account UI
+  // fills in behind it.
+  window.dispatchEvent(new Event("app:ready"));
   // Accounts are optional; this no-ops when supabase-config.js is unset.
   try{ await initAuth(); }catch(e){ console.error("auth init", e); }
   if(AUTH.enabled && AUTH.profile) render();
