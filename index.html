@@ -3131,38 +3131,9 @@ function renderListening(){
       <b style="color:var(--ink);">About audio files:</b> official IELTS recordings (Cambridge, IDP, British Council) are copyrighted, so they can't be bundled inside this file or downloaded by the app. Instead, attach the MP3/WAV files you legally own — from your Cambridge IELTS book CDs/downloads or other licensed practice materials — under each section below, or drop four of them into the generator to build a brand-new test around them.
     </div>
 
-    ${(()=>{
-      const d = L.drive || {};
-      const lib = d.library;
-      const ready = driveConfigured();
-      let libLine;
-      if(!ready){
-        libLine = `Add a Drive folder ID and OAuth Client ID in <b>⚙ AI engine</b> to draw sections at random from your own library.`;
-      }else if(!lib){
-        libLine = `Folder configured. Press <b>Read folder</b> — Google will ask you to sign in once, read-only.`;
-      }else if(lib.mode === "sections"){
-        libLine = `<b>${lib.total}</b> audio files across four section folders — `
-          + [1,2,3,4].map(n=>`S${n}: ${lib.sections[n].length}`).join(" · ")
-          + `. Each section is drawn from its own folder, so formats stay correct.`;
-      }else{
-        libLine = `<b>${lib.total}</b> audio files in a flat folder. All four sections are drawn from the same pool — `
-          + `add <b>Section 1</b>–<b>Section 4</b> subfolders if you want each section to keep its proper format.`;
-      }
-      return `
-    <div style="background:linear-gradient(180deg,var(--surface),var(--surface-1)); border:1px solid var(--line); border-radius:18px; padding:18px 20px; margin-bottom:20px; box-shadow:var(--elev-2);">
-      <b>☁️ Random test from your Google Drive library</b>
-      <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${libLine}</p>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <button class="btn brass small" id="driveGenerateBtn" ${(!ready || !geminiOn) ? "disabled" : ""}>🎲 Pick 4 at random &amp; generate</button>
-        <button class="btn ghost small" id="driveRefreshBtn" ${!ready ? "disabled" : ""}>${lib ? "Re-read folder" : "Read folder"}</button>
-        ${driveHasToken() ? `<button class="btn ghost small" id="driveSignOutBtn" title="Forget the Google access token for this session">Disconnect</button>` : ""}
-        <span style="font-size:12px;color:var(--slate);" id="driveStatus">${!geminiOn && ready ? "Add a Gemini API key to enable generation." : ""}</span>
-      </div>
-    </div>`;
-    })()}
-
     <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:24px;">
-      <b>🎧 New Listening Test Generator (from your own official audios)</b>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);">Option 1 · works now</span><br>
+      <b>🎧 Generate from audios on this computer</b>
       <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${geminiOn ? "Attach a different official recording for each of the four sections. The AI listens to each audio, transcribes it, and writes 10 fresh IELTS-style questions per section (40 total) — replacing the current test. Your audios become the playable tracks." : "Add a Gemini API key in ⚙ AI engine to enable question generation from audio."}</p>
       <div class="gen-slots">
         ${[1,2,3,4].map(i=>{
@@ -3184,6 +3155,37 @@ function renderListening(){
         <div class="gen-progress-label"></div>
       </div>
     </div>
+
+    ${(()=>{
+      const d = L.drive || {};
+      const lib = d.library;
+      const ready = driveConfigured();
+      let libLine;
+      if(!ready){
+        libLine = `Add a Drive folder ID and OAuth Client ID in <b>⚙ AI engine</b> to draw sections at random from your own library.`;
+      }else if(!lib){
+        libLine = `Folder configured. Press <b>Read folder</b> — Google will ask you to sign in once, read-only.`;
+      }else if(lib.mode === "sections"){
+        libLine = `<b>${lib.total}</b> audio files across four section folders — `
+          + [1,2,3,4].map(n=>`S${n}: ${lib.sections[n].length}`).join(" · ")
+          + `. Each section is drawn from its own folder, so formats stay correct.`;
+      }else{
+        libLine = `<b>${lib.total}</b> audio files in a flat folder. All four sections are drawn from the same pool — `
+          + `add <b>Section 1</b>–<b>Section 4</b> subfolders if you want each section to keep its proper format.`;
+      }
+      return `
+    <div style="background:linear-gradient(180deg,var(--surface),var(--surface-1)); border:1px solid var(--line); border-radius:18px; padding:18px 20px; margin-bottom:20px; box-shadow:var(--elev-2);">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);">Option 2 · optional, needs Google setup</span><br>
+      <b>☁️ Random test from your Google Drive library</b>
+      <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${libLine}</p>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button class="btn brass small" id="driveGenerateBtn" ${(!ready || !geminiOn) ? "disabled" : ""}>🎲 Pick 4 at random &amp; generate</button>
+        <button class="btn ghost small" id="driveRefreshBtn" ${!ready ? "disabled" : ""}>${lib ? "Re-read folder" : "Read folder"}</button>
+        ${driveHasToken() ? `<button class="btn ghost small" id="driveSignOutBtn" title="Forget the Google access token for this session">Disconnect</button>` : ""}
+        <span style="font-size:12px;color:var(--slate);" id="driveStatus">${!geminiOn && ready ? "Add a Gemini API key to enable generation." : ""}</span>
+      </div>
+    </div>`;
+    })()}
 
     <div id="listeningContainer"></div>
     ${rubricPanel("listening")}
@@ -3207,7 +3209,7 @@ function renderListening(){
     block.style.marginBottom = "34px";
     block.innerHTML = `
       <h3 class="display" style="font-size:18px;margin-bottom:4px;color:var(--ink);">${part.title}</h3>
-      <p style="font-size:13.5px;color:var(--slate);margin:0 0 14px;line-height:1.6;">${part.context}</p>
+      <p style="font-size:13.5px;color:var(--slate);margin:0 0 14px;line-height:1.6;">${part.context || ""}</p>
       
       <div class="audio-player">
         <button class="playbtn" data-pid="${part.id}" ${!custom ? 'style="opacity:.35;cursor:not-allowed;"' : ''}>${isPlaying ? "⏸" : "▶"}</button>
@@ -3235,7 +3237,7 @@ function renderListening(){
             <button class="btn ghost small" data-toggle-transcript="${part.id}" style="padding:3px 10px;font-size:11px;" ${!played ? "disabled" : ""}>${transcriptOpen ? "🙈 Hide transcript" : "👁 Show transcript"}</button>
           </div>
           <div style="display:${(played && transcriptOpen)?'block':'none'};">
-            ${part.script.replace(/\n/g,"<br>")}
+            ${(part.script || "(transcript unavailable)").replace(/\n/g,"<br>")}
           </div>
           ${!played ? `<span style="opacity:.6;">Play the audio at least once to unlock the transcript.</span>` : (!transcriptOpen ? `<span style="opacity:.6;">Transcript hidden — click "Show transcript" to reveal it.</span>` : "")}
         </div>
