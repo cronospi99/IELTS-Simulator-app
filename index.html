@@ -16,6 +16,9 @@
      the app falls back to offline mode and keeps working exactly as before. -->
 <script src="supabase-config.js" onerror="window.__noSupabaseConfig=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<!-- Google Identity Services — only needed for the optional Drive audio library.
+     Harmless when unconfigured; the Drive card simply stays disabled. -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
   --ink:#131b2e;
@@ -961,12 +964,16 @@ textarea.essay{
     <hr class="rule" style="margin:18px 0;">
     <label style="font-size:12px;font-weight:600;color:var(--slate);">Google Drive audio library <span style="font-weight:400;">(optional — for the random Listening generator)</span></label>
     <p style="font-size:11.5px;color:var(--slate);line-height:1.6;margin:6px 0 10px;">
-      Share a Drive folder as <b>“Anyone with the link — Viewer”</b> and paste its ID below (the long string in the folder URL after <code>/folders/</code>).
-      For correct section formats, put four subfolders inside it named <b>Section 1</b> … <b>Section 4</b>; the generator then picks one audio at random from each.
+      Paste the folder ID below (the long string in the folder URL after <code>/folders/</code>) and your <b>OAuth Client ID</b> (ends in <code>.apps.googleusercontent.com</code>).
+      Drive's file-listing endpoint does not accept plain API keys, so this signs you in to your own Google account instead — read-only, once per session, and nothing is stored.
+      For correct section formats, put four subfolders inside the folder named <b>Section 1</b> … <b>Section 4</b>; the generator then picks one audio at random from each.
       A flat folder also works, but every section is drawn from the same pool.
     </p>
     <input type="text" id="driveFolderInput" placeholder="Drive folder ID" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:0 0 8px;">
-    <input type="password" id="driveKeyInput" placeholder="Google API key with the Drive API enabled" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:0 0 14px;">
+    <input type="text" id="driveClientInput" placeholder="123456-abc.apps.googleusercontent.com" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:0 0 8px;">
+    <p style="font-size:11px;color:var(--slate);line-height:1.55;margin:0 0 14px;">
+      In Google Cloud → <b>APIs &amp; Services</b>: enable the <b>Google Drive API</b>, then under <b>Credentials → OAuth 2.0 Client IDs</b> create a <b>Web application</b> client and add this site to <b>Authorised JavaScript origins</b>. On the OAuth consent screen (External / Testing) add your own Google address as a test user. Requires https — it will not work from a local <code>file://</code> copy.
+    </p>
 
     <div class="disclaimer" style="margin-top:0;">
       ⚠️ Important: this key is used directly from your browser and is visible to anyone who inspects this page's network traffic. That's fine for your own personal use, but <b>never share this exported HTML file with your key already saved in it</b> — if you want students to use Speaking scoring too, each of them should add their own key, or you should route requests through a small server you control that holds the key instead.
@@ -1442,7 +1449,7 @@ const state = {
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
   speaking: { part:"part1", transcripts:{}, metrics:{}, report:null, loading:false, recording:false, audioB64:{}, audioMime:{}, language:{}, hesitation:{}, bandVersions:{} },
-  settings: { geminiKey:"", geminiModel:"gemini-3.5-flash-lite", driveFolderId:"", driveApiKey:"" }
+  settings: { geminiKey:"", geminiModel:"gemini-3.5-flash-lite", driveFolderId:"", driveClientId:"" }
 };
 
 /* =========================================================================
@@ -1581,7 +1588,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   document.getElementById("geminiKeyInput").value = state.settings.geminiKey || "";
   document.getElementById("geminiModelInput").value = state.settings.geminiModel || "gemini-3.5-flash-lite";
   document.getElementById("driveFolderInput").value = state.settings.driveFolderId || "";
-  document.getElementById("driveKeyInput").value = state.settings.driveApiKey || "";
+  document.getElementById("driveClientInput").value = state.settings.driveClientId || "";
   // Restore generated content FIRST: it must precede the first render, and it
   // must not sit behind anything that can fail. Ordering it after loadHistory
   // meant a single throw in the dashboard render silently skipped it.
@@ -2401,9 +2408,9 @@ document.getElementById("saveSettings").addEventListener("click", async ()=>{
   state.settings.geminiKey = document.getElementById("geminiKeyInput").value.trim();
   state.settings.geminiModel = document.getElementById("geminiModelInput").value.trim() || "gemini-3.5-flash-lite";
   const dFolder = document.getElementById("driveFolderInput");
-  const dKey = document.getElementById("driveKeyInput");
+  const dKey = document.getElementById("driveClientInput");
   if(dFolder) state.settings.driveFolderId = parseDriveFolderId(dFolder.value);
-  if(dKey) state.settings.driveApiKey = dKey.value.trim();
+  if(dKey) state.settings.driveClientId = dKey.value.trim();
   state.listening.drive = null;   // library must be re-listed against the new config
   try{
     await window.storage.set("ielts-settings", JSON.stringify(state.settings), false);
@@ -2883,6 +2890,76 @@ function drawDashCharts(){
 
 const DRIVE_API = "https://www.googleapis.com/drive/v3/files";
 const DRIVE_MAX_BYTES = 18 * 1024 * 1024;   // Gemini inline-audio ceiling
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
+
+/* Auth note, because this is easy to get wrong:
+   Drive's files.list endpoint does NOT accept an API key. It answers
+   401 "API keys are not supported by this API. Expected OAuth2 access token…"
+   no matter how the folder is shared. Downloading a file by ID with alt=media
+   does work with a key, but listing a folder never does — so the whole feature
+   needs OAuth. We use Google Identity Services' token flow: a read-only scope,
+   granted once per session, held in memory only. The token is deliberately not
+   persisted; it expires in about an hour and storing it buys nothing. */
+let driveToken = null, driveTokenExp = 0, driveTokenClient = null;
+
+function driveHasToken(){ return !!driveToken && Date.now() < driveTokenExp - 60000; }
+
+function driveRequestToken(interactive){
+  return new Promise((resolve, reject)=>{
+    if(driveHasToken()) return resolve(driveToken);
+    const gis = window.google && window.google.accounts && window.google.accounts.oauth2;
+    if(!gis) return reject(new Error("Google sign-in library hasn't loaded. Check your connection and reload the page."));
+    if(!state.settings.driveClientId) return reject(new Error("Add your OAuth Client ID in ⚙ AI engine settings first."));
+    try{
+      driveTokenClient = gis.initTokenClient({
+        client_id: state.settings.driveClientId,
+        scope: DRIVE_SCOPE,
+        callback: (resp)=>{
+          if(resp && resp.access_token){
+            driveToken = resp.access_token;
+            driveTokenExp = Date.now() + (Number(resp.expires_in || 3600) * 1000);
+            resolve(driveToken);
+          } else {
+            reject(new Error("Google did not return an access token."));
+          }
+        },
+        error_callback: (err)=>{
+          const t = (err && err.type) || "";
+          if(t === "popup_closed") return reject(new Error("Sign-in window was closed before access was granted."));
+          if(t === "popup_failed_to_open") return reject(new Error("The sign-in popup was blocked. Allow popups for this site and try again."));
+          reject(new Error("Google sign-in failed" + (err && err.message ? ": " + err.message : ".")));
+        }
+      });
+      // Empty prompt reuses an existing grant, so it only shows the consent
+      // screen the first time.
+      driveTokenClient.requestAccessToken({ prompt: interactive ? "consent" : "" });
+    }catch(e){ reject(e); }
+  });
+}
+
+function driveSignOut(){
+  const tok = driveToken;
+  driveToken = null; driveTokenExp = 0;
+  try{
+    if(tok && window.google && google.accounts && google.accounts.oauth2){
+      google.accounts.oauth2.revoke(tok, ()=>{});
+    }
+  }catch(e){}
+}
+
+// Single place that talks to Drive, so token refresh and error translation
+// live in one spot.
+async function driveFetch(url){
+  await driveRequestToken(false);
+  let r = await fetch(url, { headers:{ Authorization: "Bearer " + driveToken } });
+  if(r.status === 401){
+    // Token expired mid-session — get a fresh one and retry once.
+    driveToken = null; driveTokenExp = 0;
+    await driveRequestToken(false);
+    r = await fetch(url, { headers:{ Authorization: "Bearer " + driveToken } });
+  }
+  return r;
+}
 
 // Accepts a bare ID or a pasted folder URL.
 function parseDriveFolderId(v){
@@ -2892,25 +2969,24 @@ function parseDriveFolderId(v){
 }
 
 function driveConfigured(){
-  return !!(state.settings.driveFolderId && state.settings.driveApiKey);
+  return !!(state.settings.driveFolderId && state.settings.driveClientId);
 }
 
 async function driveListFolder(folderId){
-  const key = state.settings.driveApiKey;
   const files = [];
   let pageToken = "";
   do{
     const url = `${DRIVE_API}?q=${encodeURIComponent(`'${folderId}' in parents and trashed=false`)}`
-      + `&key=${encodeURIComponent(key)}`
       + `&fields=${encodeURIComponent("nextPageToken,files(id,name,mimeType,size)")}`
       + `&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true`
       + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : "");
-    const r = await fetch(url);
+    const r = await driveFetch(url);
     if(!r.ok){
       let detail = "";
       try{ const j = await r.json(); detail = j.error && j.error.message ? ` — ${j.error.message}` : ""; }catch(e){}
-      if(r.status === 403) throw new Error(`Drive refused the request${detail}. Check the API key has the Drive API enabled and any referrer restriction allows this site.`);
-      if(r.status === 404) throw new Error(`Folder not found${detail}. Check the folder ID and that it is shared as "Anyone with the link".`);
+      if(r.status === 401) throw new Error(`Google rejected the sign-in${detail}. Sign in again, and check the Drive API is enabled on the same Google Cloud project as your OAuth client.`);
+      if(r.status === 403) throw new Error(`Drive refused the request${detail}. Check the Google Drive API is enabled on the project, and that this site is listed under the OAuth client's Authorised JavaScript origins.`);
+      if(r.status === 404) throw new Error(`Folder not found${detail}. Check the folder ID, and that the signed-in Google account can open that folder.`);
       throw new Error(`Drive returned HTTP ${r.status}${detail}`);
     }
     const j = await r.json();
@@ -2976,8 +3052,8 @@ async function driveDownloadB64(file){
   if(file.size && Number(file.size) > DRIVE_MAX_BYTES){
     throw new Error(`"${file.name}" is ${(Number(file.size)/1048576).toFixed(1)} MB — over the ${(DRIVE_MAX_BYTES/1048576)|0} MB inline limit. Compress it (mono 64 kbps MP3) or remove it from the folder.`);
   }
-  const url = `${DRIVE_API}/${encodeURIComponent(file.id)}?alt=media&key=${encodeURIComponent(state.settings.driveApiKey)}&supportsAllDrives=true`;
-  const r = await fetch(url);
+  const url = `${DRIVE_API}/${encodeURIComponent(file.id)}?alt=media&supportsAllDrives=true`;
+  const r = await driveFetch(url);
   if(!r.ok) throw new Error(`Couldn't download "${file.name}" (HTTP ${r.status}).`);
   const blob = await r.blob();
   if(blob.size > DRIVE_MAX_BYTES){
@@ -2991,7 +3067,7 @@ async function driveDownloadB64(file){
 async function generateListeningFromDrive(){
   const L = state.listening;
   if(!state.settings.geminiKey){ alert("Add a Gemini API key in ⚙ AI engine settings first."); return; }
-  if(!driveConfigured()){ alert("Add your Drive folder ID and API key in ⚙ AI engine settings first."); return; }
+  if(!driveConfigured()){ alert("Add your Drive folder ID and OAuth Client ID in ⚙ AI engine settings first."); return; }
 
   const btn = document.getElementById("driveGenerateBtn");
   const status = document.getElementById("driveStatus");
@@ -3029,7 +3105,7 @@ async function generateListeningFromDrive(){
 
 async function refreshDriveLibrary(){
   const status = document.getElementById("driveStatus");
-  if(!driveConfigured()){ alert("Add your Drive folder ID and API key in ⚙ AI engine settings first."); return; }
+  if(!driveConfigured()){ alert("Add your Drive folder ID and OAuth Client ID in ⚙ AI engine settings first."); return; }
   try{
     if(status) status.textContent = "Reading your Drive folder…";
     state.listening.drive = state.listening.drive || {};
@@ -3061,9 +3137,9 @@ function renderListening(){
       const ready = driveConfigured();
       let libLine;
       if(!ready){
-        libLine = `Add a Drive folder ID and API key in <b>⚙ AI engine</b> to draw sections at random from your own library.`;
+        libLine = `Add a Drive folder ID and OAuth Client ID in <b>⚙ AI engine</b> to draw sections at random from your own library.`;
       }else if(!lib){
-        libLine = `Folder connected. Press <b>Read folder</b> to load your audio library.`;
+        libLine = `Folder configured. Press <b>Read folder</b> — Google will ask you to sign in once, read-only.`;
       }else if(lib.mode === "sections"){
         libLine = `<b>${lib.total}</b> audio files across four section folders — `
           + [1,2,3,4].map(n=>`S${n}: ${lib.sections[n].length}`).join(" · ")
@@ -3079,6 +3155,7 @@ function renderListening(){
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <button class="btn brass small" id="driveGenerateBtn" ${(!ready || !geminiOn) ? "disabled" : ""}>🎲 Pick 4 at random &amp; generate</button>
         <button class="btn ghost small" id="driveRefreshBtn" ${!ready ? "disabled" : ""}>${lib ? "Re-read folder" : "Read folder"}</button>
+        ${driveHasToken() ? `<button class="btn ghost small" id="driveSignOutBtn" title="Forget the Google access token for this session">Disconnect</button>` : ""}
         <span style="font-size:12px;color:var(--slate);" id="driveStatus">${!geminiOn && ready ? "Add a Gemini API key to enable generation." : ""}</span>
       </div>
     </div>`;
@@ -3238,6 +3315,12 @@ function renderListening(){
   if(dGen) dGen.addEventListener("click", generateListeningFromDrive);
   const dRef = document.getElementById("driveRefreshBtn");
   if(dRef) dRef.addEventListener("click", refreshDriveLibrary);
+  const dOut = document.getElementById("driveSignOutBtn");
+  if(dOut) dOut.addEventListener("click", ()=>{
+    driveSignOut();
+    state.listening.drive = null;   // library was read under the old grant
+    renderListening();
+  });
 
   container.querySelectorAll("[data-rate]").forEach(sel=>{
     sel.addEventListener("change", ()=>{
