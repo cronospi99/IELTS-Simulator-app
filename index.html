@@ -958,6 +958,16 @@ textarea.essay{
     <input type="password" id="geminiKeyInput" placeholder="AIza..." style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
     <label style="font-size:12px;font-weight:600;color:var(--slate);">Text model (hints, scoring, paragraph feedback)</label>
     <input type="text" id="geminiModelInput" value="gemini-3.5-flash-lite" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
+    <hr class="rule" style="margin:18px 0;">
+    <label style="font-size:12px;font-weight:600;color:var(--slate);">Google Drive audio library <span style="font-weight:400;">(optional — for the random Listening generator)</span></label>
+    <p style="font-size:11.5px;color:var(--slate);line-height:1.6;margin:6px 0 10px;">
+      Share a Drive folder as <b>“Anyone with the link — Viewer”</b> and paste its ID below (the long string in the folder URL after <code>/folders/</code>).
+      For correct section formats, put four subfolders inside it named <b>Section 1</b> … <b>Section 4</b>; the generator then picks one audio at random from each.
+      A flat folder also works, but every section is drawn from the same pool.
+    </p>
+    <input type="text" id="driveFolderInput" placeholder="Drive folder ID" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:0 0 8px;">
+    <input type="password" id="driveKeyInput" placeholder="Google API key with the Drive API enabled" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:0 0 14px;">
+
     <div class="disclaimer" style="margin-top:0;">
       ⚠️ Important: this key is used directly from your browser and is visible to anyone who inspects this page's network traffic. That's fine for your own personal use, but <b>never share this exported HTML file with your key already saved in it</b> — if you want students to use Speaking scoring too, each of them should add their own key, or you should route requests through a small server you control that holds the key instead.
     </div>
@@ -1432,7 +1442,7 @@ const state = {
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
   speaking: { part:"part1", transcripts:{}, metrics:{}, report:null, loading:false, recording:false, audioB64:{}, audioMime:{}, language:{}, hesitation:{}, bandVersions:{} },
-  settings: { geminiKey:"", geminiModel:"gemini-3.5-flash-lite" }
+  settings: { geminiKey:"", geminiModel:"gemini-3.5-flash-lite", driveFolderId:"", driveApiKey:"" }
 };
 
 /* =========================================================================
@@ -1570,6 +1580,8 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   }
   document.getElementById("geminiKeyInput").value = state.settings.geminiKey || "";
   document.getElementById("geminiModelInput").value = state.settings.geminiModel || "gemini-3.5-flash-lite";
+  document.getElementById("driveFolderInput").value = state.settings.driveFolderId || "";
+  document.getElementById("driveKeyInput").value = state.settings.driveApiKey || "";
   // Restore generated content FIRST: it must precede the first render, and it
   // must not sit behind anything that can fail. Ordering it after loadHistory
   // meant a single throw in the dashboard render silently skipped it.
@@ -2388,6 +2400,11 @@ document.getElementById("closeSettings").addEventListener("click", ()=>sOverlay.
 document.getElementById("saveSettings").addEventListener("click", async ()=>{
   state.settings.geminiKey = document.getElementById("geminiKeyInput").value.trim();
   state.settings.geminiModel = document.getElementById("geminiModelInput").value.trim() || "gemini-3.5-flash-lite";
+  const dFolder = document.getElementById("driveFolderInput");
+  const dKey = document.getElementById("driveKeyInput");
+  if(dFolder) state.settings.driveFolderId = parseDriveFolderId(dFolder.value);
+  if(dKey) state.settings.driveApiKey = dKey.value.trim();
+  state.listening.drive = null;   // library must be re-listed against the new config
   try{
     await window.storage.set("ielts-settings", JSON.stringify(state.settings), false);
   }catch(e){}
@@ -2848,6 +2865,183 @@ function drawDashCharts(){
    LISTENING
    ========================================================================= */
 
+/* =========================================================================
+   GOOGLE DRIVE AUDIO LIBRARY
+   -------------------------------------------------------------------------
+   Reads a PUBLIC ("anyone with the link") Drive folder with a plain API key —
+   no OAuth, no consent screen, no backend, which keeps this a static file.
+   Both endpoints used here send CORS headers, so the browser can list the
+   folder and pull the bytes directly.
+
+   Structure matters more than it looks. IELTS sections have distinct formats:
+   Section 1 is a transactional conversation, Section 4 an academic lecture.
+   Drawing four files at random from one flat pool would routinely put a
+   lecture in Section 1 and generate structurally wrong questions. So if the
+   folder contains subfolders named "Section 1".."Section 4" we pick one at
+   random FROM EACH; a flat folder still works but is reported as such.
+   ========================================================================= */
+
+const DRIVE_API = "https://www.googleapis.com/drive/v3/files";
+const DRIVE_MAX_BYTES = 18 * 1024 * 1024;   // Gemini inline-audio ceiling
+
+// Accepts a bare ID or a pasted folder URL.
+function parseDriveFolderId(v){
+  const t = String(v || "").trim();
+  const m = t.match(/\/folders\/([A-Za-z0-9_-]+)/) || t.match(/[?&]id=([A-Za-z0-9_-]+)/);
+  return m ? m[1] : t;
+}
+
+function driveConfigured(){
+  return !!(state.settings.driveFolderId && state.settings.driveApiKey);
+}
+
+async function driveListFolder(folderId){
+  const key = state.settings.driveApiKey;
+  const files = [];
+  let pageToken = "";
+  do{
+    const url = `${DRIVE_API}?q=${encodeURIComponent(`'${folderId}' in parents and trashed=false`)}`
+      + `&key=${encodeURIComponent(key)}`
+      + `&fields=${encodeURIComponent("nextPageToken,files(id,name,mimeType,size)")}`
+      + `&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true`
+      + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : "");
+    const r = await fetch(url);
+    if(!r.ok){
+      let detail = "";
+      try{ const j = await r.json(); detail = j.error && j.error.message ? ` — ${j.error.message}` : ""; }catch(e){}
+      if(r.status === 403) throw new Error(`Drive refused the request${detail}. Check the API key has the Drive API enabled and any referrer restriction allows this site.`);
+      if(r.status === 404) throw new Error(`Folder not found${detail}. Check the folder ID and that it is shared as "Anyone with the link".`);
+      throw new Error(`Drive returned HTTP ${r.status}${detail}`);
+    }
+    const j = await r.json();
+    (j.files || []).forEach(f=>files.push(f));
+    pageToken = j.nextPageToken || "";
+  } while(pageToken);
+  return files;
+}
+
+const isFolder = f => f.mimeType === "application/vnd.google-apps.folder";
+const isAudio  = f => /^audio\//.test(f.mimeType || "") || /\.(mp3|m4a|wav|ogg|aac|flac)$/i.test(f.name || "");
+
+// Builds {sections:{1:[...],2:[...],3:[...],4:[...]}, flat:[...], mode}
+async function driveLoadLibrary(){
+  const rootId = state.settings.driveFolderId;
+  const root = await driveListFolder(rootId);
+  const subs = root.filter(isFolder);
+  const sections = {1:[],2:[],3:[],4:[]};
+  let matched = 0;
+
+  for(const d of subs){
+    const m = String(d.name).match(/(?:^|\D)([1-4])(?:\D|$)/);
+    if(!m || !/sec|part/i.test(d.name)) continue;
+    const n = Number(m[1]);
+    const kids = (await driveListFolder(d.id)).filter(isAudio);
+    if(kids.length){ sections[n] = kids; matched++; }
+  }
+
+  const flat = root.filter(isAudio);
+  const mode = matched === 4 ? "sections" : "flat";
+  if(mode === "flat" && !flat.length && !matched){
+    throw new Error("No audio files found in that folder. Check it contains MP3/WAV files, or Section 1–4 subfolders that do.");
+  }
+  return { mode, sections, flat, total: mode === "sections"
+    ? [1,2,3,4].reduce((a,n)=>a+sections[n].length,0) : flat.length, loadedAt: Date.now() };
+}
+
+// Picks four, avoiding the previous roll's files so consecutive rolls differ.
+function drivePickFour(lib, avoid){
+  const skip = new Set(avoid || []);
+  const one = pool=>{
+    if(!pool.length) return null;
+    const fresh = pool.filter(f=>!skip.has(f.id));
+    const from = fresh.length ? fresh : pool;      // fall back if the pool is tiny
+    return from[Math.floor(Math.random()*from.length)];
+  };
+  if(lib.mode === "sections"){
+    const out = [];
+    for(let n=1;n<=4;n++){
+      const f = one(lib.sections[n]);
+      if(!f) throw new Error(`The "Section ${n}" subfolder has no audio files in it.`);
+      out.push(f); skip.add(f.id);
+    }
+    return out;
+  }
+  if(lib.flat.length < 4) throw new Error(`Only ${lib.flat.length} audio file(s) in that folder — four are needed, one per section.`);
+  const out = [];
+  for(let n=0;n<4;n++){ const f = one(lib.flat); out.push(f); skip.add(f.id); }
+  return out;
+}
+
+async function driveDownloadB64(file){
+  if(file.size && Number(file.size) > DRIVE_MAX_BYTES){
+    throw new Error(`"${file.name}" is ${(Number(file.size)/1048576).toFixed(1)} MB — over the ${(DRIVE_MAX_BYTES/1048576)|0} MB inline limit. Compress it (mono 64 kbps MP3) or remove it from the folder.`);
+  }
+  const url = `${DRIVE_API}/${encodeURIComponent(file.id)}?alt=media&key=${encodeURIComponent(state.settings.driveApiKey)}&supportsAllDrives=true`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error(`Couldn't download "${file.name}" (HTTP ${r.status}).`);
+  const blob = await r.blob();
+  if(blob.size > DRIVE_MAX_BYTES){
+    throw new Error(`"${file.name}" is ${(blob.size/1048576).toFixed(1)} MB — over the inline limit. Compress it and try again.`);
+  }
+  return { b64: await blobToBase64(blob), mime: blob.type || file.mimeType || "audio/mpeg", name: file.name };
+}
+
+// Roll four audios, load them into the generator slots, then hand off to the
+// existing pipeline that transcribes each and writes the 40 questions.
+async function generateListeningFromDrive(){
+  const L = state.listening;
+  if(!state.settings.geminiKey){ alert("Add a Gemini API key in ⚙ AI engine settings first."); return; }
+  if(!driveConfigured()){ alert("Add your Drive folder ID and API key in ⚙ AI engine settings first."); return; }
+
+  const btn = document.getElementById("driveGenerateBtn");
+  const status = document.getElementById("driveStatus");
+  const setStatus = t => { if(status) status.textContent = t; };
+  if(btn) btn.disabled = true;
+
+  try{
+    L.drive = L.drive || {};
+    if(!L.drive.library){
+      setStatus("Reading your Drive folder…");
+      L.drive.library = await driveLoadLibrary();
+    }
+    const lib = L.drive.library;
+    const picks = drivePickFour(lib, L.drive.lastPick || []);
+    L.drive.lastPick = picks.map(f=>f.id);
+
+    L.genAudio = L.genAudio || {};
+    for(let i=0;i<4;i++){
+      setStatus(`Downloading ${i+1} of 4 — ${picks[i].name}`);
+      L.genAudio[i+1] = await driveDownloadB64(picks[i]);
+    }
+    setStatus(`Selected: ${picks.map(f=>f.name).join(" · ")}`);
+    renderListening();
+    // The existing generator takes it from here (transcribe + 40 questions).
+    await generateNewListeningWithAI();
+  }catch(e){
+    console.error(e);
+    setStatus("");
+    alert("Drive generation failed:\n\n" + e.message);
+  }finally{
+    const b = document.getElementById("driveGenerateBtn");
+    if(b) b.disabled = false;
+  }
+}
+
+async function refreshDriveLibrary(){
+  const status = document.getElementById("driveStatus");
+  if(!driveConfigured()){ alert("Add your Drive folder ID and API key in ⚙ AI engine settings first."); return; }
+  try{
+    if(status) status.textContent = "Reading your Drive folder…";
+    state.listening.drive = state.listening.drive || {};
+    state.listening.drive.library = await driveLoadLibrary();
+    renderListening();
+  }catch(e){
+    console.error(e);
+    if(status) status.textContent = "";
+    alert("Couldn't read that Drive folder:\n\n" + e.message);
+  }
+}
+
 function renderListening(){
   const L = state.listening;
   const geminiOn = !!state.settings.geminiKey;
@@ -2860,6 +3054,35 @@ function renderListening(){
     <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-bottom:20px; font-size:12.5px; color:var(--slate); line-height:1.6;">
       <b style="color:var(--ink);">About audio files:</b> official IELTS recordings (Cambridge, IDP, British Council) are copyrighted, so they can't be bundled inside this file or downloaded by the app. Instead, attach the MP3/WAV files you legally own — from your Cambridge IELTS book CDs/downloads or other licensed practice materials — under each section below, or drop four of them into the generator to build a brand-new test around them.
     </div>
+
+    ${(()=>{
+      const d = L.drive || {};
+      const lib = d.library;
+      const ready = driveConfigured();
+      let libLine;
+      if(!ready){
+        libLine = `Add a Drive folder ID and API key in <b>⚙ AI engine</b> to draw sections at random from your own library.`;
+      }else if(!lib){
+        libLine = `Folder connected. Press <b>Read folder</b> to load your audio library.`;
+      }else if(lib.mode === "sections"){
+        libLine = `<b>${lib.total}</b> audio files across four section folders — `
+          + [1,2,3,4].map(n=>`S${n}: ${lib.sections[n].length}`).join(" · ")
+          + `. Each section is drawn from its own folder, so formats stay correct.`;
+      }else{
+        libLine = `<b>${lib.total}</b> audio files in a flat folder. All four sections are drawn from the same pool — `
+          + `add <b>Section 1</b>–<b>Section 4</b> subfolders if you want each section to keep its proper format.`;
+      }
+      return `
+    <div style="background:linear-gradient(180deg,var(--surface),var(--surface-1)); border:1px solid var(--line); border-radius:18px; padding:18px 20px; margin-bottom:20px; box-shadow:var(--elev-2);">
+      <b>☁️ Random test from your Google Drive library</b>
+      <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${libLine}</p>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button class="btn brass small" id="driveGenerateBtn" ${(!ready || !geminiOn) ? "disabled" : ""}>🎲 Pick 4 at random &amp; generate</button>
+        <button class="btn ghost small" id="driveRefreshBtn" ${!ready ? "disabled" : ""}>${lib ? "Re-read folder" : "Read folder"}</button>
+        <span style="font-size:12px;color:var(--slate);" id="driveStatus">${!geminiOn && ready ? "Add a Gemini API key to enable generation." : ""}</span>
+      </div>
+    </div>`;
+    })()}
 
     <div style="background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:24px;">
       <b>🎧 New Listening Test Generator (from your own official audios)</b>
@@ -3011,6 +3234,10 @@ function renderListening(){
   });
   const genBtn = document.getElementById("generateListeningBtn");
   if(genBtn) genBtn.addEventListener("click", generateNewListeningWithAI);
+  const dGen = document.getElementById("driveGenerateBtn");
+  if(dGen) dGen.addEventListener("click", generateListeningFromDrive);
+  const dRef = document.getElementById("driveRefreshBtn");
+  if(dRef) dRef.addEventListener("click", refreshDriveLibrary);
 
   container.querySelectorAll("[data-rate]").forEach(sel=>{
     sel.addEventListener("change", ()=>{
@@ -3365,7 +3592,9 @@ async function generateNewListeningWithAI(){
     saveGeneratedContent();
     const keptAudio = {};
     for(let i=1;i<=4;i++) keptAudio[i] = { b64: L.genAudio[i].b64, mime: L.genAudio[i].mime };
-    state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: keptAudio, genAudio: L.genAudio };
+    // Carry the Drive library across the reset, or every roll would re-list the
+    // folder (and lose the "don't repeat last pick" memory).
+    state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: keptAudio, genAudio: L.genAudio, drive: L.drive };
     genProgressDone("listeningGen", "Done — 40 new questions generated.");
     alert("✨ New 4-section Listening test generated from your audios. Each section now plays the recording you attached.");
     renderListening();
