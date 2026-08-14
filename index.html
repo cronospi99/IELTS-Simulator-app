@@ -22,6 +22,9 @@
      the app falls back to offline mode and keeps working exactly as before. -->
 <script src="supabase-config.js" onerror="window.__noSupabaseConfig=true"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<!-- Google Identity Services — only needed for the optional Drive audio library.
+     Harmless when unconfigured; the Drive card simply stays disabled. -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
   --ink:#131b2e;
@@ -39,9 +42,99 @@
   --paper-line:rgba(246,243,234,0.14);
   --radius:14px;
   --shadow:0 20px 50px -20px rgba(19,27,46,0.45);
+
+  /* Material Design 3 elevation. Two shadows per level — a tight key light for
+     the contact edge and a wide ambient light for the spread — which is what
+     reads as depth rather than a single blurry drop shadow. */
+  --elev-1:0 1px 2px rgba(19,27,46,.30), 0 1px 3px 1px rgba(19,27,46,.12);
+  --elev-2:0 1px 2px rgba(19,27,46,.30), 0 2px 6px 2px rgba(19,27,46,.13);
+  --elev-3:0 1px 3px rgba(19,27,46,.30), 0 4px 8px 3px rgba(19,27,46,.13);
+  --elev-4:0 2px 3px rgba(19,27,46,.30), 0 6px 10px 4px rgba(19,27,46,.13);
+  --elev-5:0 4px 4px rgba(19,27,46,.30), 0 8px 12px 6px rgba(19,27,46,.13);
+
+  /* MD3 tonal surfaces: higher elevation reads as a lighter tonal overlay. */
+  --surface:#ffffff;
+  --surface-1:#fdfcf8;
+  --surface-2:#faf8f1;
+  --surface-3:#f5f2e8;
+
+  /* Apple's standard easing curves. */
+  --ease-out:cubic-bezier(.25,.46,.45,.94);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
+
+/* ---------- intro curtain ----------
+   A full-bleed ink cover with a live percentage, which then leaves as five
+   vertical panels sweeping upward in a stagger. The panels are separate from
+   the cover so the counter can fade out first and the reveal reads as the
+   room opening rather than a box disappearing. */
+.intro{
+  position:fixed;inset:0;z-index:9999;background:var(--ink);
+  display:flex;align-items:flex-end;justify-content:center;
+  overflow:hidden;
+}
+.intro-panels{position:absolute;inset:0;display:flex;}
+.intro-panels span{
+  flex:1;background:var(--ink);
+  transform:translateY(0);
+  transition:transform 1.05s cubic-bezier(.76,0,.24,1);
+}
+.intro-inner{
+  position:relative;z-index:2;width:100%;max-width:1080px;padding:0 24px 46px;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;
+  transition:opacity .45s var(--ease-out), transform .45s var(--ease-out);
+}
+.intro-eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--brass);margin:0 0 8px;opacity:0;animation:introUp .8s var(--ease-out) .15s forwards;
+}
+.intro-title{
+  font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,4.6vw,46px);line-height:1.05;
+  color:var(--paper);margin:0;opacity:0;animation:introUp .9s var(--ease-out) .28s forwards;
+}
+.intro-count{
+  font-family:'Fraunces',serif;font-weight:600;color:var(--brass-2);
+  font-size:clamp(52px,11vw,116px);line-height:.9;letter-spacing:-.03em;
+  display:flex;align-items:flex-start;font-variant-numeric:tabular-nums;
+  opacity:0;animation:introUp .8s var(--ease-out) .4s forwards;
+}
+.intro-count i{font-size:.32em;font-style:normal;margin-top:.35em;margin-left:.12em;opacity:.65;}
+@keyframes introUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+/* Hairline progress rule pinned to the very bottom edge. */
+.intro-bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(246,243,234,.14);z-index:2;}
+.intro-bar span{
+  display:block;height:100%;width:0%;
+  background:linear-gradient(90deg,var(--brass),var(--brass-2));
+  transition:width .35s var(--ease-out);
+}
+/* Leaving state: text lifts away, then the panels sweep up in a stagger. */
+.intro.is-leaving .intro-inner{opacity:0;transform:translateY(-22px);}
+.intro.is-leaving .intro-bar{opacity:0;transition:opacity .3s;}
+.intro.is-leaving{background:transparent;}
+.intro.is-leaving .intro-panels span{transform:translateY(-101%);}
+.intro.is-leaving .intro-panels span:nth-child(1){transition-delay:.02s;}
+.intro.is-leaving .intro-panels span:nth-child(2){transition-delay:.08s;}
+.intro.is-leaving .intro-panels span:nth-child(3){transition-delay:.14s;}
+.intro.is-leaving .intro-panels span:nth-child(4){transition-delay:.20s;}
+.intro.is-leaving .intro-panels span:nth-child(5){transition-delay:.26s;}
+/* The app itself eases up behind the curtain as it lifts. */
+body.intro-active{overflow:hidden;}
+body.intro-active .topbar,body.intro-active nav.tabs,body.intro-active .shell{
+  opacity:0;transform:translateY(26px) scale(.988);
+}
+body.intro-done .topbar,body.intro-done nav.tabs,body.intro-done .shell{
+  opacity:1;transform:none;
+  transition:opacity .8s var(--ease-out), transform 1s cubic-bezier(.22,1,.36,1);
+}
+body.intro-done nav.tabs{transition-delay:.06s;}
+body.intro-done .shell{transition-delay:.12s;}
+@media (prefers-reduced-motion: reduce){
+  .intro-eyebrow,.intro-title,.intro-count{animation:none;opacity:1;}
+  .intro-panels span,.intro-inner,.intro-bar span{transition:none;}
+  body.intro-done .topbar,body.intro-done nav.tabs,body.intro-done .shell{transition:none;}
+}
 body{
   background:var(--ink);
   background-image:
@@ -91,6 +184,7 @@ header.topbar .topbar-btn{border-color:var(--paper-line);color:var(--paper);}
 .gen-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
 .gen-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .gen-actions-row{gap:12px;margin-top:12px;}
+.drive-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .gen-select{border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:13px;}
 .key-cols{columns:2;column-gap:24px;}
 .q-item input[type=text].match-input{min-width:40px;max-width:50px;text-align:center;}
@@ -108,11 +202,19 @@ nav.tabs button{
 }
 nav.tabs button.active{opacity:1;background:var(--paper);color:var(--ink);}
 nav.tabs button:hover{opacity:.9;}
+/* Reference tab — sits right after Speaking, tinted brass so it reads as a
+   reference rather than a fifth test module. */
+nav.tabs button.tab-ref{margin-left:14px;border-color:var(--brass);color:var(--brass-2);opacity:.8;}
+nav.tabs button.tab-ref:hover{opacity:1;}
+nav.tabs button.tab-ref.active{background:var(--paper);color:var(--ink);border-color:var(--paper);opacity:1;}
 
 main{padding-top:0;}
 .panel{
-  background:var(--paper);color:var(--ink);border-radius:2px 14px 14px 14px;
-  box-shadow:var(--shadow);padding:36px;margin-top:0;min-height:400px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 220px),
+    var(--paper);
+  color:var(--ink);border-radius:2px 20px 20px 20px;
+  box-shadow:var(--shadow), var(--elev-5);padding:36px;margin-top:0;min-height:400px;
 }
 @media(max-width:640px){.panel{padding:22px;}}
 
@@ -160,30 +262,81 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
 .overall-text .big{font-family:'Fraunces',serif;font-size:15px;color:var(--slate);}
 .skill-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px;}
 .skill-card{
-  border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:#fff;
+  border:1px solid var(--line);border-radius:16px;padding:16px 18px;
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));
   display:flex;justify-content:space-between;align-items:center;
+  box-shadow:var(--elev-1);
+  transition:transform .25s var(--ease-out), box-shadow .25s var(--ease-out);
 }
+.skill-card:hover{transform:translateY(-3px);box-shadow:var(--elev-3);}
+@media (prefers-reduced-motion: reduce){.skill-card,.skill-card:hover{transition:none;transform:none;}}
 .skill-card .name{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate);font-weight:600;}
 .skill-card .band{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--ink);}
 .skill-card .go{
   font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);
   border:1px solid var(--teal);padding:6px 10px;border-radius:8px;background:transparent;
 }
-.chart-box{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fff;}
-.chart-box h3{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);}
-
-/* ---------- buttons ---------- */
-.btn{
-  border-radius:9px;padding:11px 20px;font-size:13.5px;font-weight:600;border:1px solid var(--ink);
-  background:var(--ink);color:var(--paper);transition:transform .12s, opacity .12s;
+.chart-box{
+  border:1px solid var(--line);border-radius:18px;padding:20px;
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));
+  box-shadow:var(--elev-2);
+  transition:box-shadow .25s var(--ease-out);
 }
-.btn:hover{transform:translateY(-1px);}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
-.btn.secondary{background:transparent;color:var(--ink);}
-.btn.ghost{background:transparent;color:var(--slate);border-color:var(--line);}
-.btn.brass{background:var(--brass);border-color:var(--brass);color:var(--ink);}
-.btn.coral{background:var(--coral);border-color:var(--coral);color:#fff;}
-.btn.small{padding:7px 13px;font-size:12px;}
+.chart-box:hover{box-shadow:var(--elev-3);}
+.chart-box h3{margin:0 0 14px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate);font-weight:700;}
+/* responsive:false aspect handling needs a sized parent, or the canvas grows
+   on every resize tick. */
+.chart-canvas{position:relative;width:100%;}
+.chart-canvas canvas{position:absolute;inset:0;width:100%!important;height:100%!important;}
+
+/* ---------- buttons (Apple-style) ----------
+   Full pill radius, a soft top-to-bottom gradient with an inner highlight for
+   the lit-from-above look, and the springy scale-down on press that iOS uses
+   instead of a colour change. Elevation lifts on hover, settles on press. */
+.btn{
+  position:relative;border-radius:980px;padding:11px 22px;font-size:13.5px;font-weight:600;
+  letter-spacing:-.01em;border:1px solid var(--ink);
+  background:linear-gradient(180deg,var(--ink-2),var(--ink));
+  color:var(--paper);box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.14);
+  transition:transform .22s var(--ease-spring), box-shadow .22s var(--ease-out),
+             opacity .15s var(--ease-out), filter .15s var(--ease-out);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--elev-3), inset 0 1px 0 rgba(255,255,255,.18);filter:brightness(1.06);}
+.btn:active{transform:scale(.96);box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.10);filter:brightness(.97);transition-duration:.09s;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;filter:none;}
+.btn.secondary{background:transparent;color:var(--ink);box-shadow:none;}
+.btn.secondary:hover{background:rgba(19,27,46,.06);box-shadow:var(--elev-1);}
+.btn.ghost{
+  background:linear-gradient(180deg,#fff,var(--surface-2));color:var(--slate);border-color:var(--line);
+  box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.btn.ghost:hover{color:var(--ink);box-shadow:var(--elev-2), inset 0 1px 0 #fff;}
+.btn.brass{
+  background:linear-gradient(180deg,var(--brass-2),var(--brass));border-color:var(--brass);color:var(--ink);
+  box-shadow:var(--elev-2), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.btn.brass:hover{box-shadow:0 6px 16px -4px rgba(201,162,39,.5), var(--elev-2), inset 0 1px 0 rgba(255,255,255,.55);}
+.btn.coral{
+  background:linear-gradient(180deg,#d4574f,var(--coral));border-color:var(--coral);color:#fff;
+  box-shadow:var(--elev-2), inset 0 1px 0 rgba(255,255,255,.28);
+}
+.btn.coral:hover{box-shadow:0 6px 16px -4px rgba(193,68,60,.5), var(--elev-2), inset 0 1px 0 rgba(255,255,255,.35);}
+/* Ghost buttons sitting on the dark topbar need the inverse treatment — the
+   light ghost gradient would put pale text on a near-white pill. */
+.btn.ghost.on-dark{
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.06));
+  color:var(--paper);border-color:var(--paper-line);
+  box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.16);
+}
+.btn.ghost.on-dark:hover{
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.10));
+  color:#fff;box-shadow:var(--elev-2), inset 0 1px 0 rgba(255,255,255,.22);
+}
+.btn.small{padding:8px 15px;font-size:12px;}
+@media (prefers-reduced-motion: reduce){
+  .btn,.btn:hover,.btn:active{transition:none;transform:none;}
+}
 
 /* ---------- test intro cards ---------- */
 .module-hero{
@@ -205,15 +358,33 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
 .timerbar .time.warn{color:var(--coral);}
 
 /* ---------- reading / listening ---------- */
+/* Reading passages are read for 20 minutes at a stretch, so they get real
+   book typography: a looser leading, wider paragraph rhythm, a measure capped
+   near 70 characters, and generous gutters so the text never touches the edge. */
 .passage{
-  columns:1;line-height:1.85;font-size:15px;color:#2a3145;background:#fff;
-  border:1px solid var(--line);border-radius:12px;padding:26px 28px;max-height:900px;overflow-y:auto;
+  /* No `columns` here. A multi-column container with a constrained height
+     fragments its overflow into further columns sideways instead of scrolling,
+     so long passages spilled out to the right — worse now that the text is set
+     larger and looser. Plain block flow scrolls vertically as intended. */
+  line-height:2.0;font-size:16.5px;color:#2a3145;overflow-x:hidden;
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));
+  border:1px solid var(--line);border-radius:18px;padding:38px 44px;
+  max-height:900px;overflow-y:auto;box-shadow:var(--elev-2);
+  letter-spacing:.003em;scroll-behavior:smooth;
 }
-.passage p{margin:0 0 16px;}
+.passage > *{max-width:70ch;}
+.passage p{margin:0 0 1.6em;}
+.passage .passage-title{
+  font-size:21px;font-weight:600;line-height:1.35;color:var(--ink);
+  margin:0 0 1.1em;padding-bottom:.7em;border-bottom:1px solid var(--line);
+}
+.passage p + p{margin-top:0;}
+.passage h4,.passage h3{margin:2em 0 .85em;line-height:1.4;}
 .passage .para-label{
   display:inline-block;font-family:'IBM Plex Mono',monospace;color:var(--brass);
-  font-weight:600;margin-right:8px;
+  font-weight:700;margin-right:12px;font-size:13px;letter-spacing:.04em;
 }
+@media(max-width:640px){.passage{padding:24px 22px;font-size:16px;line-height:1.9;}}
 .two-col{display:grid;grid-template-columns:1.2fr 0.9fr;gap:24px;}
 @media(max-width:960px){.two-col{grid-template-columns:1fr;}}
 #readingQuestions{max-height:900px;overflow-y:auto;}
@@ -269,7 +440,8 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
 
 /* answer key reveal */
 .key-box{
-  border:1px dashed var(--brass);border-radius:10px;padding:16px 18px;background:#fbf4de;margin-top:10px;
+  border:1px dashed var(--brass);border-radius:16px;padding:20px 22px;background:#fbf4de;margin-top:12px;
+  box-shadow:var(--elev-1);
 }
 .key-box h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;color:#8a6c11;letter-spacing:.06em;}
 .key-line{font-size:13.5px;margin-bottom:4px;display:flex;gap:8px;}
@@ -288,8 +460,9 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
 }
 .write-tabs button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .prompt-card{
-  background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px;
-  font-size:14.5px;line-height:1.7;
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));border:1px solid var(--line);
+  border-radius:18px;padding:24px 26px;margin-bottom:18px;
+  font-size:15px;line-height:1.75;box-shadow:var(--elev-2);
 }
 .prompt-card .task-tag{
   font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--brass);text-transform:uppercase;letter-spacing:.08em;
@@ -368,13 +541,61 @@ textarea.essay{
 .cue-card ul{margin:10px 0 0;padding-left:18px;}
 .rec-controls{display:flex;align-items:center;gap:14px;margin:20px 0;flex-wrap:wrap;}
 .rec-dot{
-  width:12px;height:12px;border-radius:50%;background:var(--coral);opacity:0;
+  position:relative;width:12px;height:12px;border-radius:50%;background:var(--coral);opacity:0;
+  flex-shrink:0;
 }
 .rec-dot.live{opacity:1;animation:pulse 1.1s infinite;}
+/* Concentric rings radiating from the dot while the take is running. */
+.rec-dot.live::before,.rec-dot.live::after{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  border:2px solid var(--coral);animation:recRing 1.8s var(--ease-out) infinite;
+}
+.rec-dot.live::after{animation-delay:.9s;}
+@keyframes recRing{
+  0%{transform:scale(1);opacity:.55;}
+  100%{transform:scale(3.4);opacity:0;}
+}
+/* Paused: solid, no pulse, no rings — the recording is held, not running. */
+.rec-dot.paused{opacity:1;animation:none;background:var(--brass);}
+.rec-dot.paused::before,.rec-dot.paused::after{display:none;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ---------- live recording waveform ----------
+   Twelve bars driven by the real microphone level via an AnalyserNode, with a
+   CSS keyframe fallback so the control still looks alive if Web Audio is
+   unavailable. Collapsed to zero width until a take starts. */
+.rec-wave{
+  display:inline-flex;align-items:center;gap:3px;height:30px;
+  max-width:0;opacity:0;overflow:hidden;
+  transition:max-width .45s var(--ease-out), opacity .3s var(--ease-out);
+}
+.rec-wave.active{max-width:180px;opacity:1;}
+.rec-wave span{
+  display:block;width:3.5px;height:5px;border-radius:999px;
+  background:linear-gradient(180deg,var(--coral),#e0736b);
+  transform-origin:center;transition:height .08s linear;
+}
+.rec-wave.fallback span{animation:recBar 1s ease-in-out infinite;}
+.rec-wave.fallback span:nth-child(2n){animation-duration:.75s;}
+.rec-wave.fallback span:nth-child(3n){animation-duration:1.25s;}
+.rec-wave.fallback span:nth-child(4n){animation-duration:.9s;}
+@keyframes recBar{0%,100%{height:5px;}50%{height:26px;}}
+/* Held: bars freeze flat and desaturate to brass, matching the paused dot. */
+.rec-wave.paused span{
+  height:5px!important;animation-play-state:paused;
+  background:linear-gradient(180deg,var(--brass),var(--brass-2));
+}
+@media (prefers-reduced-motion: reduce){
+  .rec-dot.live::before,.rec-dot.live::after{animation:none;opacity:0;}
+  .rec-wave.fallback span{animation:none;height:14px;}
+  .rec-wave{transition:none;}
+}
+.rec-paused-tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--brass);font-family:'IBM Plex Mono',monospace;}
 .transcript-box{
-  border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:#fff;min-height:90px;
-  font-size:14px;line-height:1.7;color:#2a3145;white-space:pre-wrap;
+  border:1px solid var(--line);border-radius:16px;padding:18px 20px;min-height:90px;
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));box-shadow:var(--elev-1);
+  font-size:14.5px;line-height:1.8;color:#2a3145;white-space:pre-wrap;
 }
 .metrics-row{display:flex;gap:22px;margin-top:14px;flex-wrap:wrap;}
 .metric{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate);}
@@ -425,6 +646,45 @@ textarea.essay{
 .rubric-name{font-weight:700;font-size:13px;color:var(--ink);margin-bottom:4px;}
 .rubric-desc{font-size:12.5px;color:var(--slate);line-height:1.55;}
 .rubric-note{font-size:11.5px;color:var(--slate);font-style:italic;margin:14px 0 0;}
+
+/* ---------- official band descriptor chart ---------- */
+.bd-launch{display:inline-flex;align-items:center;gap:7px;background:var(--ink);color:var(--paper);border:1px solid var(--ink);
+  border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;line-height:1;}
+.bd-launch:hover{background:var(--ink-2);}
+.bd-launch .bd-launch-ico{font-size:13px;}
+.bd-panel{background:#fff;border:1px solid var(--line);border-radius:14px;margin:0 0 22px;overflow:hidden;box-shadow:0 12px 30px -22px rgba(19,27,46,.5);}
+.bd-panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding:16px 20px;background:linear-gradient(180deg,#fbf9f2,#f2eddd);border-bottom:1px solid var(--line);}
+.bd-panel-head h3{font-family:'Fraunces',serif;font-size:17px;margin:0;color:var(--ink);}
+.bd-panel-head p{margin:3px 0 0;font-size:11.5px;color:var(--slate);}
+.bd-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 20px 0;}
+.bd-tab{border:1px solid var(--line);background:#fff;color:var(--slate);border-radius:999px;padding:6px 13px;
+  font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.bd-tab:hover{border-color:var(--azure-2);color:var(--ink);}
+.bd-tab.active{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+.bd-scroll{overflow-x:auto;padding:14px 20px 4px;}
+.bd-table{border-collapse:collapse;width:100%;min-width:860px;font-size:12px;}
+.bd-table th,.bd-table td{border:1px solid var(--line);vertical-align:top;padding:8px 10px;text-align:left;}
+.bd-table thead th{background:var(--ink);color:var(--paper);font-size:11px;letter-spacing:.05em;
+  text-transform:uppercase;font-family:'IBM Plex Mono',monospace;font-weight:600;position:sticky;top:0;}
+.bd-table thead th:first-child{width:52px;text-align:center;}
+.bd-table tbody tr:nth-child(even) td{background:#fbfaf6;}
+.bd-band{text-align:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;color:var(--ink);
+  background:var(--paper-2)!important;width:52px;}
+.bd-table ul{margin:0;padding-left:15px;}
+.bd-table li{margin:0 0 3px;line-height:1.45;color:var(--slate);}
+.bd-table li:last-child{margin-bottom:0;}
+.bd-global td{font-style:italic;color:var(--slate);background:#fbfaf6!important;}
+.bd-foot{padding:6px 20px 16px;font-size:11px;color:var(--slate);font-style:italic;line-height:1.6;}
+.bd-conv{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:14px 20px 4px;}
+@media(max-width:640px){.bd-conv{grid-template-columns:1fr;}.bd-table{min-width:620px;}}
+.bd-conv h4{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  font-family:'IBM Plex Mono',monospace;color:var(--ink);}
+.bd-conv table{border-collapse:collapse;width:100%;font-size:12.5px;}
+.bd-conv td{border:1px solid var(--line);padding:5px 10px;}
+.bd-conv td:first-child{font-family:'IBM Plex Mono',monospace;color:var(--slate);}
+.bd-conv td:last-child{text-align:right;font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--ink);width:64px;}
+.bd-conv tr.bd-diff td{background:#fdf6e3;}
 /* ---------- listening generator slots ---------- */
 .gen-slots{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 @media(max-width:640px){.gen-slots{grid-template-columns:1fr;}}
@@ -452,7 +712,8 @@ textarea.essay{
 .heard-box p{font-size:13px;color:var(--slate);line-height:1.6;margin:6px 0 0;font-style:italic;}
 
 /* ---------- grammar check ---------- */
-.grammar-box{background:#fff;border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:0 10px 10px 0;padding:16px 18px;margin-top:14px;}
+.grammar-box{background:linear-gradient(180deg,var(--surface),var(--surface-1));border:1px solid var(--line);
+  border-left:4px solid var(--teal);border-radius:6px 16px 16px 6px;padding:20px 22px;margin-top:16px;box-shadow:var(--elev-2);}
 .grammar-box .g-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
 .grammar-box .g-head b{font-size:13.5px;color:var(--ink);}
 .grammar-summary{font-size:12.5px;color:var(--slate);font-style:italic;}
@@ -531,7 +792,7 @@ textarea.essay{
 .hes-foot{font-size:11px;color:var(--slate);line-height:1.5;margin:10px 0 0;}
 
 /* ---------- band-score model versions ---------- */
-.band-versions{background:linear-gradient(180deg,#fbf9f2,#f2eddd);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin-top:20px;}
+.band-versions{background:linear-gradient(180deg,#fbf9f2,#f2eddd);border:1px solid var(--line);border-radius:20px;padding:22px 24px;margin-top:22px;box-shadow:var(--elev-2);}
 .band-versions h3{font-family:'Fraunces',serif;font-size:18px;margin:0 0 4px;color:var(--ink);}
 .band-versions .bv-intro{font-size:12.5px;color:var(--slate);line-height:1.6;margin:0 0 14px;}
 .band-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
@@ -669,8 +930,19 @@ textarea.essay{
   nav.tabs button[data-mod="reading"]::before{content:"📖";}
   nav.tabs button[data-mod="writing"]::before{content:"✍️";}
   nav.tabs button[data-mod="speaking"]::before{content:"🎙";}
+  nav.tabs button[data-mod="descriptors"]::before{content:"📐";}
+  /* "📋 Band descriptors" is far too long for a sixth bar slot: the label is
+     zeroed out and replaced with a short one (the ::before/::after keep their
+     own explicit sizes, so only the button's own text collapses). */
+  nav.tabs button[data-mod="descriptors"]{font-size:0;}
+  nav.tabs button[data-mod="descriptors"]::after{
+    content:"Bands";font-size:9.5px;font-weight:600;line-height:1.2;
+  }
   nav.tabs button[data-mod="class"]::before{content:"👥";}
   nav.tabs button.active{background:rgba(201,162,39,0.16);color:var(--brass-2);opacity:1;}
+  /* the reference tab is set apart on desktop; in the bar it is just another slot */
+  nav.tabs button.tab-ref{margin-left:0;color:var(--paper);opacity:.5;}
+  nav.tabs button.tab-ref.active{background:rgba(201,162,39,0.16);color:var(--brass-2);border-color:transparent;opacity:1;}
   nav.tabs button.active::before{filter:none;}
   nav.tabs button:hover{opacity:.75;}
   nav.tabs button.active:hover{opacity:1;}
@@ -751,6 +1023,9 @@ textarea.essay{
   .gen-actions .btn{width:100%;}
   .gen-actions-row{margin-top:12px;}
   .gen-actions-row span{text-align:center;}
+  .drive-actions{flex-direction:column;align-items:stretch;gap:10px;}
+  .drive-actions>.btn{width:100%;}
+  .drive-actions>span{text-align:center;}
   .gen-slots{gap:10px;}
   .gen-slot{padding:12px 13px;border-radius:12px;}
   .rubric-card,.band-versions{padding:16px 14px;border-radius:14px;margin-top:22px;}
@@ -883,10 +1158,16 @@ textarea.essay{
   .para-fb-block,.grammar-box,.hint-box,.hes-box{padding:13px 14px;}
 
   /* ---- speaking ---- */
-  .rec-controls{gap:10px;}
+  /* Recorder transport, one row per job: take · pause+stop · meter · score. */
+  .rec-controls{gap:10px;margin:16px 0;}
   .rec-controls #recBtn{flex:1 1 100%;justify-content:center;}
-  .rec-controls #stopBtn{flex:1 1 0;}
-  .rec-controls #speakScoreBtn{flex:1 1 100%;}
+  .rec-controls #pauseBtn,.rec-controls #stopBtn{flex:1 1 0;justify-content:center;}
+  .rec-controls #recWave{flex:0 1 auto;order:5;height:34px;}
+  .rec-controls #recWave.active{max-width:none;}
+  .rec-controls #recWave span{width:4px;}
+  .rec-controls #recTimer{order:6;font-size:15px !important;margin-left:auto;}
+  .rec-controls #recPausedTag{order:7;}
+  .rec-controls #speakScoreBtn{flex:1 1 100%;order:8;}
   .rec-controls>div[style*="flex:1"]{display:none;}
   .cue-card{padding:16px 16px;font-size:15px;box-shadow:3px 3px 0 var(--brass);}
   .metrics-row{
@@ -932,7 +1213,9 @@ textarea.essay{
   #passageTabs button{font-size:12px;padding:9px 4px;}
   .skill-cards{grid-template-columns:1fr;}
   .hes-grid{grid-template-columns:repeat(2,1fr);}
-  nav.tabs button{font-size:9px;min-width:52px;}
+  nav.tabs button{font-size:9px;min-width:47px;}
+  nav.tabs button::before{font-size:17px;}
+  nav.tabs button[data-mod="descriptors"]::after{font-size:9px;}
   header.topbar .brand-block h1{font-size:17px;}
 }
 @keyframes sheetUp{from{transform:translateY(16px);opacity:.6;}to{transform:translateY(0);opacity:1;}}
@@ -940,6 +1223,122 @@ textarea.essay{
 </style>
 </head>
 <body>
+
+<!-- Intro curtain. Sits first in the body so it paints before anything else,
+     and is removed from the DOM once the reveal finishes. -->
+<div id="intro" class="intro" role="status" aria-live="polite" aria-label="Loading">
+  <div class="intro-panels" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="intro-inner">
+    <div class="intro-mark">
+      <p class="intro-eyebrow">Teacher Esteban Yepes · Mock Examination</p>
+      <h1 class="intro-title">IELTS Academic Simulator</h1>
+    </div>
+    <div class="intro-count">
+      <span id="introPct">0</span><i>%</i>
+    </div>
+  </div>
+  <div class="intro-bar"><span id="introBar"></span></div>
+</div>
+
+<script>
+/* =========================================================================
+   INTRO CURTAIN
+   The percentage tracks REAL load milestones — parsing, webfonts, the CDN
+   scripts, and the app's own boot — rather than counting a fake timer, so it
+   finishes when the app is genuinely ready. The displayed number eases toward
+   the target and never moves backwards, which is what makes it feel smooth
+   even though the underlying events land in lumps.
+
+   Two guards matter more than the animation: a floor so a warm cache does not
+   flash the curtain for 80ms, and a ceiling so a blocked CDN or a boot
+   exception can never leave a student staring at a cover they cannot dismiss.
+   ========================================================================= */
+(function(){
+  var intro = document.getElementById("intro");
+  if(!intro) return;
+
+  // Once per tab session. The app reloads itself (e.g. "Restore original"),
+  // and replaying a two-second intro on every reload would wear thin fast.
+  var seen = false;
+  try{ seen = sessionStorage.getItem("ielts:intro-seen") === "1"; }catch(e){}
+  if(seen){ intro.parentNode.removeChild(intro); document.body.classList.add("intro-done"); return; }
+
+  document.body.classList.add("intro-active");
+
+  var pctEl = document.getElementById("introPct");
+  var barEl = document.getElementById("introBar");
+  var MIN_MS = 1100;      // never flash by faster than this
+  var MAX_MS = 7000;      // never trap the user, whatever fails
+  var started = Date.now();
+
+  // Weighted milestones. Weights are rough shares of perceived load time.
+  var steps = { dom:22, fonts:18, load:34, app:26 };
+  var done  = { dom:false, fonts:false, load:false, app:false };
+  function target(){
+    var t = 0;
+    for(var k in steps){ if(done[k]) t += steps[k]; }
+    return t;
+  }
+
+  var shown = 0, finished = false, raf = null;
+  function tick(){
+    var goal = target();
+    // Ease toward the goal, but always creep forward a little so the number
+    // never sits perfectly still while something slow is in flight.
+    var drift = Math.min(goal, shown + 0.35);
+    shown = Math.max(drift, shown + (goal - shown) * 0.08);
+    if(shown > 99.4 && goal >= 100) shown = 100;
+    var v = Math.min(100, Math.floor(shown));
+    pctEl.textContent = v;
+    barEl.style.width = v + "%";
+    if(v >= 100 && Date.now() - started >= MIN_MS){ finish(); return; }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function finish(){
+    if(finished) return;
+    finished = true;
+    if(raf) cancelAnimationFrame(raf);
+    pctEl.textContent = "100";
+    barEl.style.width = "100%";
+    try{ sessionStorage.setItem("ielts:intro-seen","1"); }catch(e){}
+    // Let 100% register for a beat, then lift the curtain.
+    setTimeout(function(){
+      intro.classList.add("is-leaving");
+      document.body.classList.remove("intro-active");
+      document.body.classList.add("intro-done");
+      setTimeout(function(){
+        if(intro.parentNode) intro.parentNode.removeChild(intro);
+      }, 1500);
+    }, 260);
+  }
+
+  function mark(k){ done[k] = true; }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", function(){ mark("dom"); });
+  } else { mark("dom"); }
+
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){ mark("fonts"); });
+    setTimeout(function(){ mark("fonts"); }, 3000);   // webfont CDN may be blocked
+  } else { mark("fonts"); }
+
+  if(document.readyState === "complete"){ mark("load"); }
+  else { window.addEventListener("load", function(){ mark("load"); }); }
+
+  // Fired by the boot handler once the app has restored content and rendered.
+  window.addEventListener("app:ready", function(){ mark("app"); });
+  setTimeout(function(){ mark("app"); }, MAX_MS - 1200);
+
+  // Hard ceiling: whatever is still pending, the curtain goes up.
+  setTimeout(finish, MAX_MS);
+
+  raf = requestAnimationFrame(tick);
+})();
+</script>
 
 <header class="topbar">
   <div class="brand-block">
@@ -952,9 +1351,9 @@ textarea.essay{
       <span class="cc-lbl">Test date:</span> <b id="testDate">—</b><br>
       <span class="cc-lbl">Module:</span> <b id="modLabel">Dashboard</b>
     </div>
-    <button id="accountBtn" class="btn ghost small topbar-btn" style="display:none;">👤 <span class="btn-label">Sign in</span></button>
-    <button id="sessionBtn" class="btn ghost small topbar-btn">💾 <span class="btn-label">Session</span></button>
-    <button id="settingsBtn" class="btn ghost small topbar-btn">⚙ <span class="btn-label">AI engine</span></button>
+    <button id="accountBtn" class="btn ghost on-dark small topbar-btn" style="display:none;">👤 <span class="btn-label">Sign in</span></button>
+    <button id="sessionBtn" class="btn ghost on-dark small topbar-btn">💾 <span class="btn-label">Session</span></button>
+    <button id="settingsBtn" class="btn ghost on-dark small topbar-btn">⚙ <span class="btn-label">AI engine</span></button>
   </div>
 </header>
 
@@ -972,6 +1371,20 @@ textarea.essay{
     <input type="password" id="geminiKeyInput" placeholder="AIza..." style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
     <label style="font-size:12px;font-weight:600;color:var(--slate);">Text model (hints, scoring, paragraph feedback)</label>
     <input type="text" id="geminiModelInput" value="gemini-3.5-flash-lite" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
+    <hr class="rule" style="margin:18px 0;">
+    <label style="font-size:12px;font-weight:600;color:var(--slate);">Google Drive audio library <span style="font-weight:400;">(optional — for the random Listening generator)</span></label>
+    <p style="font-size:11.5px;color:var(--slate);line-height:1.6;margin:6px 0 10px;">
+      Paste the folder ID below (the long string in the folder URL after <code>/folders/</code>) and your <b>OAuth Client ID</b> (ends in <code>.apps.googleusercontent.com</code>).
+      Drive's file-listing endpoint does not accept plain API keys, so this signs you in to your own Google account instead — read-only, once per session, and nothing is stored.
+      For correct section formats, put four subfolders inside the folder named <b>Section 1</b> … <b>Section 4</b>; the generator then picks one audio at random from each.
+      A flat folder also works, but every section is drawn from the same pool.
+    </p>
+    <input type="text" id="driveFolderInput" placeholder="Drive folder ID" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:0 0 8px;">
+    <input type="text" id="driveClientInput" placeholder="123456-abc.apps.googleusercontent.com" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:0 0 8px;">
+    <p style="font-size:11px;color:var(--slate);line-height:1.55;margin:0 0 14px;">
+      In Google Cloud → <b>APIs &amp; Services</b>: enable the <b>Google Drive API</b>, then under <b>Credentials → OAuth 2.0 Client IDs</b> create a <b>Web application</b> client and add this site to <b>Authorised JavaScript origins</b>. On the OAuth consent screen (External / Testing) add your own Google address as a test user. Requires https — it will not work from a local <code>file://</code> copy.
+    </p>
+
     <div class="disclaimer" style="margin-top:0;">
       ⚠️ Important: this key is used directly from your browser and is visible to anyone who inspects this page's network traffic. That's fine for your own personal use, but <b>never share this exported HTML file with your key already saved in it</b> — if you want students to use Speaking scoring too, each of them should add their own key, or you should route requests through a small server you control that holds the key instead.
     </div>
@@ -1086,6 +1499,7 @@ textarea.essay{
   <button data-mod="reading">Reading</button>
   <button data-mod="writing">Writing</button>
   <button data-mod="speaking">Speaking</button>
+  <button data-mod="descriptors" class="tab-ref">📋 Band descriptors</button>
 </nav>
 
 <div class="shell">
@@ -1440,11 +1854,12 @@ const state = {
   candNo: Math.floor(100000 + Math.random()*899999),
   scores: { listening:null, reading:null, writing:null, speaking:null },
   history: [],
+  bdOpen: false,   // official band descriptor chart expanded?
   listening: { answers:{}, submitted:false, playedParts:{}, customAudio:{} },
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
   speaking: { part:"part1", transcripts:{}, metrics:{}, report:null, loading:false, recording:false, audioB64:{}, audioMime:{}, language:{}, hesitation:{}, bandVersions:{} },
-  settings: { geminiKey:"", geminiModel:"gemini-3.5-flash-lite" }
+  settings: { geminiKey:"", geminiModel:"gemini-3.5-flash-lite", driveFolderId:"", driveClientId:"" }
 };
 
 /* =========================================================================
@@ -1460,8 +1875,73 @@ async function loadHistory(){
       state.scores = parsed.scores || state.scores;
     }
   }catch(e){ /* no history yet */ }
-  renderDashboardIfActive();
+  // The dashboard draws with Chart.js, which comes from a CDN. If that script
+  // is blocked the render throws, and because loadHistory is awaited during
+  // boot an uncaught throw here aborts everything after it — including the
+  // restore of generated test content. Never let a chart failure break boot.
+  try{ renderDashboardIfActive(); }catch(e){ console.error("dashboard render failed", e); }
 }
+
+/* -------------------------------------------------------------------------
+   GENERATED TEST CONTENT — persistence
+
+   The four question banks (LISTENING.parts, READING_PASSAGES, WRITING,
+   SPEAKING) are plain module-level variables. Switching modules never touched
+   them, but nothing wrote them to storage either, so a page reload silently
+   dropped a freshly generated test back to the built-in one — hours of
+   generated material gone with an accidental refresh.
+
+   They are now saved whenever a generator succeeds and restored at boot, so a
+   generated set stays put until it is deliberately regenerated.
+   ------------------------------------------------------------------------- */
+const GEN_CONTENT_KEY = "ielts-generated-content";
+
+async function saveGeneratedContent(){
+  try{
+    await window.storage.set(GEN_CONTENT_KEY, JSON.stringify({
+      v: 1,
+      savedAt: new Date().toISOString(),
+      listening: LISTENING.parts,
+      reading: READING_PASSAGES,
+      writing: WRITING,
+      speaking: SPEAKING
+    }), false);
+  }catch(e){ console.error("generated content save failed", e); }
+}
+
+// Structural checks mirror applySessionData: a malformed or half-written blob
+// must leave the built-in test in place rather than break the module.
+async function restoreGeneratedContent(){
+  try{
+    const r = await window.storage.get(GEN_CONTENT_KEY, false);
+    if(!r || !r.value) return;
+    const d = JSON.parse(r.value);
+    if(Array.isArray(d.listening) && d.listening.length) LISTENING.parts = d.listening;
+    if(Array.isArray(d.reading) && d.reading.length) READING_PASSAGES = d.reading;
+    if(d.writing && d.writing.task1 && d.writing.task2) WRITING = d.writing;
+    if(d.speaking && d.speaking.part1 && d.speaking.part2 && d.speaking.part3) SPEAKING = d.speaking;
+  }catch(e){ /* nothing stored yet, or unreadable — keep the built-in test */ }
+}
+
+// Escape hatch. Generated banks overwrite the module-level defaults in place,
+// so the built-in literals only come back by re-running the script — hence the
+// reload rather than an in-memory swap.
+async function resetGeneratedContent(){
+  try{ await window.storage.delete(GEN_CONTENT_KEY, false); }catch(e){}
+  location.reload();
+}
+
+// Rendered beside each module's generator button.
+function restoreBuiltInBtn(){
+  return `<button class="btn ghost small" data-restore-builtin="1" title="Discard the generated test and go back to the built-in one">Restore original</button>`;
+}
+
+document.addEventListener("click", e=>{
+  if(!e.target.closest("[data-restore-builtin]")) return;
+  if(confirm("Discard the generated test content and restore the built-in test?\n\nYour scores and history are kept. Any answers or drafts in progress will be lost.")){
+    resetGeneratedContent();
+  }
+});
 
 async function saveHistory(){
   try{
@@ -1517,8 +1997,18 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   }
   document.getElementById("geminiKeyInput").value = state.settings.geminiKey || "";
   document.getElementById("geminiModelInput").value = state.settings.geminiModel || "gemini-3.5-flash-lite";
+  document.getElementById("driveFolderInput").value = state.settings.driveFolderId || "";
+  document.getElementById("driveClientInput").value = state.settings.driveClientId || "";
+  // Restore generated content FIRST: it must precede the first render, and it
+  // must not sit behind anything that can fail. Ordering it after loadHistory
+  // meant a single throw in the dashboard render silently skipped it.
+  await restoreGeneratedContent();
   await loadHistory();
   render();
+  // Tells the intro curtain the app is genuinely ready. Fired before auth so a
+  // slow or unreachable Supabase never holds the curtain down; the account UI
+  // fills in behind it.
+  window.dispatchEvent(new Event("app:ready"));
   // Accounts are optional; this no-ops when supabase-config.js is unset.
   try{ await initAuth(); }catch(e){ console.error("auth init", e); }
   if(AUTH.enabled && AUTH.profile) render();
@@ -1690,10 +2180,27 @@ function genProgressHide(id){
   if(bar) bar.style.display = "none";
 }
 
-// Approximate IELTS-to-CEFR equivalency, based on the published British
-// Council / Cambridge correspondence tables. The real mapping isn't
-// perfectly linear across all four skills, so treat this as a helpful
-// approximation for study purposes, not an official conversion.
+// IELTS-to-CEFR equivalency, taken from the official IELTS CEFR mapping chart:
+//
+//   C2  9.0        (8.5 sits on the C1/C2 boundary — see below)
+//   C1  7.0 - 8.0
+//   B2  5.5 - 6.5
+//   B1  4.0 - 5.0
+//
+// Two points the chart does not settle, resolved here:
+//
+// 1. Band 8.5 is absent from the chart, which lists 9 against C2 and 8 against
+//    C1. It is treated as C2, matching the widely published C2 = 8.5-9.0 row.
+// 2. The chart's IELTS scale stops at band 4 — A2 and A1 are shown with no
+//    IELTS equivalent at all, because IELTS does not reliably discriminate
+//    below B1. Bands under 4.0 are still labelled A2/A1 here so the UI has
+//    something to show, but that part is an extrapolation beyond the official
+//    chart, and the app's footnotes say so.
+//
+// Note this is deliberately the mapping the chart gives, not a stricter one:
+// band 5.5 is B2 on the official chart even though a 5.5 candidate still
+// relies on repetition and self-correction. CEFR bands are broad, and the
+// bottom of B2 is genuinely where that candidate sits.
 function bandToCEFR(band){
   const b = Number(band);
   if(!isFinite(b)) return "—";
@@ -1701,8 +2208,8 @@ function bandToCEFR(band){
   if(b >= 7.0) return "C1";
   if(b >= 5.5) return "B2";
   if(b >= 4.0) return "B1";
-  if(b >= 3.0) return "A2";
-  return "A1";
+  if(b >= 3.0) return "A2";   // below the official chart's range
+  return "A1";                // below the official chart's range
 }
 
 function officialRound(avg){
@@ -1737,13 +2244,276 @@ function parseJSON(text){
   return JSON.parse(clean);
 }
 
-const WRITING_RUBRIC = `You are an experienced IELTS Academic Writing examiner. Score strictly against the four official criteria: Task Achievement (or Task Response), Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy. IMPORTANT ON PRECISION: each criterion MUST be scored on the full 0-9 scale in 0.5 steps — half-bands (5.5, 6.5, 7.5, etc.) are the norm, not the exception, because real writing rarely sits cleanly on a whole band. Only give a whole number when the performance is unambiguously and consistently at that exact level across the whole response; if it shows a mix of two adjacent levels (which is most responses), score the half-band between them. Do not default to whole numbers out of habit. Be a calibrated examiner: typical competent B2/C1 essays land between band 5.5 and 7.5. Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":""}`;
+/* =========================================================================
+   OFFICIAL IELTS BAND DESCRIPTORS — SINGLE SOURCE OF TRUTH
+   -------------------------------------------------------------------------
+   Transcribed from the public-version descriptor documents published by the
+   British Council, IDP: IELTS Australia and Cambridge English Language
+   Assessment (Speaking; Writing Task 1; Writing Task 2).
+
+   Everything downstream is derived from this one structure: the descriptor
+   chart shown in the app AND the prompts sent to the AI examiner. They cannot
+   drift apart, because there is only one copy of the wording.
+
+   Notes on fidelity to the source documents:
+   - Task 1 uses the Academic (A) variants; the General Training (GT) bullets
+     are omitted because this app only sets Academic tasks.
+   - Coherence & Cohesion is NOT identical across Writing Task 1 and Task 2.
+     Task 2 carries three extra bullets (a clear central topic per paragraph at
+     7, paragraphing at 6 and 5, paragraph use at 4). They are stored
+     separately rather than shared.
+   - Lexical Resource and Grammatical Range & Accuracy ARE identical across
+     Task 1 and Task 2, so they are shared.
+   ========================================================================= */
+
+const DESCRIPTOR_SOURCE = "Public-version band descriptors — British Council, IDP: IELTS Australia and Cambridge English Language Assessment.";
+
+const SPEAKING_CRITERIA_DESCRIPTORS = [
+  { key:"fluency_coherence", name:"Fluency and coherence", bands:{
+    9:["speaks fluently with only rare repetition or self-correction","any hesitation is content-related rather than to find words or grammar","speaks coherently with fully appropriate cohesive features","develops topics fully and appropriately"],
+    8:["speaks fluently with only occasional repetition or self-correction; hesitation is usually content-related and only rarely to search for language","develops topics coherently and appropriately"],
+    7:["speaks at length without noticeable effort or loss of coherence","may demonstrate language-related hesitation at times, or some repetition and/or self-correction","uses a range of connectives and discourse markers with some flexibility"],
+    6:["is willing to speak at length, though may lose coherence at times due to occasional repetition, self-correction or hesitation","uses a range of connectives and discourse markers but not always appropriately"],
+    5:["usually maintains flow of speech but uses repetition, self correction and/or slow speech to keep going","may over-use certain connectives and discourse markers","produces simple speech fluently, but more complex communication causes fluency problems"],
+    4:["cannot respond without noticeable pauses and may speak slowly, with frequent repetition and self-correction","links basic sentences but with repetitious use of simple connectives and some breakdowns in coherence"],
+    3:["speaks with long pauses","has limited ability to link simple sentences","gives only simple responses and is frequently unable to convey basic message"],
+    2:["pauses lengthily before most words","little communication possible"]
+  }},
+  { key:"lexical_resource", name:"Lexical resource", bands:{
+    9:["uses vocabulary with full flexibility and precision in all topics","uses idiomatic language naturally and accurately"],
+    8:["uses a wide vocabulary resource readily and flexibly to convey precise meaning","uses less common and idiomatic vocabulary skilfully, with occasional inaccuracies","uses paraphrase effectively as required"],
+    7:["uses vocabulary resource flexibly to discuss a variety of topics","uses some less common and idiomatic vocabulary and shows some awareness of style and collocation, with some inappropriate choices","uses paraphrase effectively"],
+    6:["has a wide enough vocabulary to discuss topics at length and make meaning clear in spite of inappropriacies","generally paraphrases successfully"],
+    5:["manages to talk about familiar and unfamiliar topics but uses vocabulary with limited flexibility","attempts to use paraphrase but with mixed success"],
+    4:["is able to talk about familiar topics but can only convey basic meaning on unfamiliar topics and makes frequent errors in word choice","rarely attempts paraphrase"],
+    3:["uses simple vocabulary to convey personal information","has insufficient vocabulary for less familiar topics"],
+    2:["only produces isolated words or memorised utterances"]
+  }},
+  { key:"grammar", name:"Grammatical range and accuracy", bands:{
+    9:["uses a full range of structures naturally and appropriately","produces consistently accurate structures apart from 'slips' characteristic of native speaker speech"],
+    8:["uses a wide range of structures flexibly","produces a majority of error-free sentences with only very occasional inappropriacies or basic/non-systematic errors"],
+    7:["uses a range of complex structures with some flexibility","frequently produces error-free sentences, though some grammatical mistakes persist"],
+    6:["uses a mix of simple and complex structures, but with limited flexibility","may make frequent mistakes with complex structures though these rarely cause comprehension problems"],
+    5:["produces basic sentence forms with reasonable accuracy","uses a limited range of more complex structures, but these usually contain errors and may cause some comprehension problems"],
+    4:["produces basic sentence forms and some correct simple sentences but subordinate structures are rare","errors are frequent and may lead to misunderstanding"],
+    3:["attempts basic sentence forms but with limited success, or relies on apparently memorised utterances","makes numerous errors except in memorised expressions"],
+    2:["cannot produce basic sentence forms"]
+  }},
+  { key:"pronunciation", name:"Pronunciation", bands:{
+    9:["uses a full range of pronunciation features with precision and subtlety","sustains flexible use of features throughout","is effortless to understand"],
+    8:["uses a wide range of pronunciation features","sustains flexible use of features, with only occasional lapses","is easy to understand throughout; L1 accent has minimal effect on intelligibility"],
+    7:["shows all the positive features of Band 6 and some, but not all, of the positive features of Band 8"],
+    6:["uses a range of pronunciation features with mixed control","shows some effective use of features but this is not sustained","can generally be understood throughout, though mispronunciation of individual words or sounds reduces clarity at times"],
+    5:["shows all the positive features of Band 4 and some, but not all, of the positive features of Band 6"],
+    4:["uses a limited range of pronunciation features","attempts to control features but lapses are frequent","mispronunciations are frequent and cause some difficulty for the listener"],
+    3:["shows some of the features of Band 2 and some, but not all, of the positive features of Band 4"],
+    2:["speech is often unintelligible"]
+  }}
+];
+
+// Lexical Resource and Grammatical Range are word-for-word identical across
+// Writing Task 1 and Task 2 in the official documents.
+const WRITING_LEXICAL_DESCRIPTOR = { key:"lexical_resource", name:"Lexical resource", bands:{
+  9:["uses a wide range of vocabulary with very natural and sophisticated control of lexical features; rare minor errors occur only as 'slips'"],
+  8:["uses a wide range of vocabulary fluently and flexibly to convey precise meanings","skilfully uses uncommon lexical items but there may be occasional inaccuracies in word choice and collocation","produces rare errors in spelling and/or word formation"],
+  7:["uses a sufficient range of vocabulary to allow some flexibility and precision","uses less common lexical items with some awareness of style and collocation","may produce occasional errors in word choice, spelling and/or word formation"],
+  6:["uses an adequate range of vocabulary for the task","attempts to use less common vocabulary but with some inaccuracy","makes some errors in spelling and/or word formation, but they do not impede communication"],
+  5:["uses a limited range of vocabulary, but this is minimally adequate for the task","may make noticeable errors in spelling and/or word formation that may cause some difficulty for the reader"],
+  4:["uses only basic vocabulary which may be used repetitively or which may be inappropriate for the task","has limited control of word formation and/or spelling; errors may cause strain for the reader"],
+  3:["uses only a very limited range of words and expressions with very limited control of word formation and/or spelling","errors may severely distort the message"],
+  2:["uses an extremely limited range of vocabulary; essentially no control of word formation and/or spelling"],
+  1:["can only use a few isolated words"]
+}};
+
+const WRITING_GRAMMAR_DESCRIPTOR = { key:"grammar", name:"Grammatical range and accuracy", bands:{
+  9:["uses a wide range of structures with full flexibility and accuracy; rare minor errors occur only as 'slips'"],
+  8:["uses a wide range of structures","the majority of sentences are error-free","makes only very occasional errors or inappropriacies"],
+  7:["uses a variety of complex structures","produces frequent error-free sentences","has good control of grammar and punctuation but may make a few errors"],
+  6:["uses a mix of simple and complex sentence forms","makes some errors in grammar and punctuation but they rarely reduce communication"],
+  5:["uses only a limited range of structures","attempts complex sentences but these tend to be less accurate than simple sentences","may make frequent grammatical errors and punctuation may be faulty; errors can cause some difficulty for the reader"],
+  4:["uses only a very limited range of structures with only rare use of subordinate clauses","some structures are accurate but errors predominate, and punctuation is often faulty"],
+  3:["attempts sentence forms but errors in grammar and punctuation predominate and distort the meaning"],
+  2:["cannot use sentence forms except in memorised phrases"],
+  1:["cannot use sentence forms at all"]
+}};
+
+const OFFICIAL_BAND_DESCRIPTORS = {
+  speaking: {
+    label:"Speaking",
+    title:"IELTS Speaking — Band Descriptors (public version)",
+    note:"All four criteria carry equal weight. The four criterion scores are averaged and the result is rounded to the nearest half band (a remainder of .25 rounds up to the half, .75 up to the whole).",
+    criteria: SPEAKING_CRITERIA_DESCRIPTORS,
+    globalRows: { 1:"no communication possible; no rateable language", 0:"does not attend" }
+  },
+  writing_task1: {
+    label:"Writing Task 1",
+    title:"IELTS Writing Task 1 — Band Descriptors (public version, Academic)",
+    note:"Task 1 requires a minimum of 150 words. An under-length response is penalised under Task Achievement. Task 1 contributes one third of the overall Writing band.",
+    criteria: [
+      { key:"task_achievement", name:"Task achievement", bands:{
+        9:["fully satisfies all the requirements of the task","clearly presents a fully developed response"],
+        8:["covers all requirements of the task sufficiently","presents, highlights and illustrates key features/bullet points clearly and appropriately"],
+        7:["covers the requirements of the task","presents a clear overview of main trends, differences or stages","clearly presents and highlights key features/bullet points but could be more fully extended"],
+        6:["addresses the requirements of the task","presents an overview with information appropriately selected","presents and adequately highlights key features/bullet points but details may be irrelevant, inappropriate or inaccurate"],
+        5:["generally addresses the task; the format may be inappropriate in places","recounts detail mechanically with no clear overview; there may be no data to support the description","presents, but inadequately covers, key features/bullet points; there may be a tendency to focus on details"],
+        4:["attempts to address the task but does not cover all key features/bullet points; the format may be inappropriate","may confuse key features/bullet points with detail; parts may be unclear, irrelevant, repetitive or inaccurate"],
+        3:["fails to address the task, which may have been completely misunderstood","presents limited ideas which may be largely irrelevant/repetitive"],
+        2:["answer is barely related to the task"],
+        1:["answer is completely unrelated to the task"]
+      }},
+      { key:"coherence_cohesion", name:"Coherence and cohesion", bands:{
+        9:["uses cohesion in such a way that it attracts no attention","skilfully manages paragraphing"],
+        8:["sequences information and ideas logically","manages all aspects of cohesion well","uses paragraphing sufficiently and appropriately"],
+        7:["logically organises information and ideas; there is clear progression throughout","uses a range of cohesive devices appropriately although there may be some under-/over-use"],
+        6:["arranges information and ideas coherently and there is a clear overall progression","uses cohesive devices effectively, but cohesion within and/or between sentences may be faulty or mechanical","may not always use referencing clearly or appropriately"],
+        5:["presents information with some organisation but there may be a lack of overall progression","makes inadequate, inaccurate or over-use of cohesive devices","may be repetitive because of lack of referencing and substitution"],
+        4:["presents information and ideas but these are not arranged coherently and there is no clear progression in the response","uses some basic cohesive devices but these may be inaccurate or repetitive"],
+        3:["does not organise ideas logically","may use a very limited range of cohesive devices, and those used may not indicate a logical relationship between ideas"],
+        2:["has very little control of organisational features"],
+        1:["fails to communicate any message"]
+      }},
+      WRITING_LEXICAL_DESCRIPTOR,
+      WRITING_GRAMMAR_DESCRIPTOR
+    ],
+    globalRows: { 0:"does not attend; does not attempt the task in any way; writes a totally memorised response" }
+  },
+  writing_task2: {
+    label:"Writing Task 2",
+    title:"IELTS Writing Task 2 — Band Descriptors (public version)",
+    note:"Task 2 requires a minimum of 250 words. An under-length response is penalised under Task Response. Task 2 is worth twice Task 1 in the overall Writing band.",
+    criteria: [
+      { key:"task_achievement", name:"Task response", bands:{
+        9:["fully addresses all parts of the task","presents a fully developed position in answer to the question with relevant, fully extended and well supported ideas"],
+        8:["sufficiently addresses all parts of the task","presents a well-developed response to the question with relevant, extended and supported ideas"],
+        7:["addresses all parts of the task","presents a clear position throughout the response","presents, extends and supports main ideas, but there may be a tendency to over-generalise and/or supporting ideas may lack focus"],
+        6:["addresses all parts of the task although some parts may be more fully covered than others","presents a relevant position although the conclusions may become unclear or repetitive","presents relevant main ideas but some may be inadequately developed/unclear"],
+        5:["addresses the task only partially; the format may be inappropriate in places","expresses a position but the development is not always clear and there may be no conclusions drawn","presents some main ideas but these are limited and not sufficiently developed; there may be irrelevant detail"],
+        4:["responds to the task only in a minimal way or the answer is tangential; the format may be inappropriate","presents a position but this is unclear","presents some main ideas but these are difficult to identify and may be repetitive, irrelevant or not well supported"],
+        3:["does not adequately address any part of the task","does not express a clear position","presents few ideas, which are largely undeveloped or irrelevant"],
+        2:["barely responds to the task","does not express a position","may attempt to present one or two ideas but there is no development"],
+        1:["answer is completely unrelated to the task"]
+      }},
+      { key:"coherence_cohesion", name:"Coherence and cohesion", bands:{
+        9:["uses cohesion in such a way that it attracts no attention","skilfully manages paragraphing"],
+        8:["sequences information and ideas logically","manages all aspects of cohesion well","uses paragraphing sufficiently and appropriately"],
+        7:["logically organises information and ideas; there is clear progression throughout","uses a range of cohesive devices appropriately although there may be some under-/over-use","presents a clear central topic within each paragraph"],
+        6:["arranges information and ideas coherently and there is a clear overall progression","uses cohesive devices effectively, but cohesion within and/or between sentences may be faulty or mechanical","may not always use referencing clearly or appropriately","uses paragraphing, but not always logically"],
+        5:["presents information with some organisation but there may be a lack of overall progression","makes inadequate, inaccurate or over-use of cohesive devices","may be repetitive because of lack of referencing and substitution","may not write in paragraphs, or paragraphing may be inadequate"],
+        4:["presents information and ideas but these are not arranged coherently and there is no clear progression in the response","uses some basic cohesive devices but these may be inaccurate or repetitive","may not write in paragraphs or their use may be confusing"],
+        3:["does not organise ideas logically","may use a very limited range of cohesive devices, and those used may not indicate a logical relationship between ideas"],
+        2:["has very little control of organisational features"],
+        1:["fails to communicate any message"]
+      }},
+      WRITING_LEXICAL_DESCRIPTOR,
+      WRITING_GRAMMAR_DESCRIPTOR
+    ],
+    globalRows: { 0:"does not attend; does not attempt the task in any way; writes a totally memorised response" }
+  }
+};
+
+// Builds the descriptor block embedded in an examiner prompt, straight from the
+// table above, so the AI is always marking against exactly what the app shows.
+function descriptorPromptBlock(setKey){
+  const set = OFFICIAL_BAND_DESCRIPTORS[setKey];
+  return set.criteria.map(c=>{
+    const lines = Object.keys(c.bands).map(Number).sort((a,b)=>b-a)
+      .map(b=>`${b}: ${c.bands[b].join("; ")}.`);
+    return c.name.toUpperCase() + "\n" + lines.join("\n");
+  }).join("\n\n");
+}
+
+const WRITING_SCORING_PROCEDURE = `HOW TO SCORE — for each of the four criteria separately:
+1. Gather the evidence in the response for that criterion, find the single descriptor whose wording it actually matches, and award that band.
+2. Award a half-band ONLY when the response genuinely straddles two adjacent descriptors — clearly beyond one but not yet meeting the next. A half-band is a judgement, not a hedge, and not a way to avoid awarding a low band.
+3. Score the four criteria independently. Do not pull them towards each other or towards an expected average — accurate but simple writing should score visibly differently on Lexical Resource and Grammatical Range than on Coherence.
+4. Judge only what is on the page. Ignore how ambitious the topic is, how much effort the response shows, and whether you agree with the opinion expressed.
+
+LENGTH: Task 1 requires at least 150 words and Task 2 at least 250. An under-length response is penalised under Task Achievement / Task Response, because the task cannot be fully covered — do not additionally punish it under the other three criteria. Do not reward padding, repetition of the prompt wording, or a restated introduction used to inflate the count.
+
+CALIBRATION — do not inflate:
+- Band 5 covers the response that addresses the task only partially, organises with little progression, and whose complex sentences usually contain errors. This is a very common real result.
+- Band 6 is the competent user: task addressed, meaning clear, but with imprecise vocabulary and frequent errors in complex structures.
+- Band 7 requires BOTH frequent error-free sentences AND flexible use of some less common vocabulary. If either is missing, it is not a 7.
+- Band 8+ requires sustained precision and should be rare.
+Awarding a band 7 out of encouragement is a scoring error in exactly the same way unfair severity is.
+
+WRITING THE FEEDBACK:
+- Every "comment" must (a) quote a specific phrase or sentence from the response as evidence, and (b) state plainly what is holding the band where it is and what the next half-band up would require.
+- The wording of every comment must match the number awarded. Never describe the response in terms that belong to a higher descriptor than the band you gave — that incoherence is the most common failure of AI examiners.
+- Never mention CEFR levels (A1-C2) anywhere in your output. You award IELTS bands only; the app derives any CEFR label itself.
+- The "summary" must be consistent with the awarded bands: name the strongest criterion, the weakest, and the single highest-value fix.`;
+
+function writingRubric(task){
+  const isTask1 = task === "task1";
+  const setKey = isTask1 ? "writing_task1" : "writing_task2";
+  const first = isTask1 ? "Task Achievement" : "Task Response";
+  return `You are an experienced, calibrated IELTS Academic Writing examiner marking ${isTask1 ? "TASK 1 (a report describing a visual)" : "TASK 2 (an argumentative essay)"}. Score against the four official criteria: ${first}, Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy.
+
+OFFICIAL BAND DESCRIPTORS — award the band whose wording actually matches the evidence.
+
+${descriptorPromptBlock(setKey)}
+
+${WRITING_SCORING_PROCEDURE}
+
+Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":""}. The "task_achievement" key holds your ${first} score regardless of its name.`;
+}
 
 const WRITING_PARAGRAPH_RUBRIC = `You are an IELTS Writing examiner giving developmental, paragraph-by-paragraph feedback — not a score. You will receive the student's essay already split into numbered paragraphs. For EACH paragraph, in order, find concrete mistakes or weak spots (grammar, word choice, cohesion, task relevance, clarity) and give a short corrected/improved version of each specific problem phrase, plus a one-line reason. If a paragraph has no notable issues, return an empty "issues" array and a positive one-line comment instead. Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"paragraphs":[{"comment":"one short sentence on this paragraph's main strength or weakness","issues":[{"original":"short exact phrase from the paragraph, under 12 words","suggestion":"the corrected or improved phrase","why":"brief reason, under 15 words"}]}]}. Return exactly one entry in "paragraphs" for every numbered paragraph given, in the same order — never merge, skip, or add paragraphs.`;
 
-const SPEAKING_RUBRIC_TRANSCRIPT = `You are an experienced IELTS Speaking examiner. You are given only an un-timed text transcript of the speaker's answers. Score against the criteria: Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy. For Pronunciation, guess an estimate based on spelling anomalies or note that it is estimated. IMPORTANT ON PRECISION: use the full 0-9 scale in 0.5 steps for every criterion — half-bands (5.5, 6.5, 7.5, etc.) should be your default whenever performance sits between two levels, which is most of the time; reserve whole numbers for performance that is consistently and unambiguously at one exact level. Warning: remember that this is from a transcript, not from actual acoustic analysis, and should be verified by a teacher listening to the recording. Be a calibrated examiner: typical competent B2/C1 speech lands between band 5.5 and 7.5. Respond ONLY with raw JSON, no markdown, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":""}.`;
+// The speaking descriptor block is generated from OFFICIAL_BAND_DESCRIPTORS so
+// the examiner marks against exactly the chart the candidate can read in the
+// app. Previously the prompts only said "typical competent B2/C1 speech lands
+// between 5.5 and 7.5", which anchored every candidate into that range and
+// asserted that band 5.5 was B2 — the source of reports whose commentary
+// described B2 performance while awarding 5.5.
+const SPEAKING_BAND_DESCRIPTORS = `OFFICIAL BAND DESCRIPTORS — award the band whose wording actually matches the evidence.
 
-const SPEAKING_RUBRIC_AUDIO = `You are an experienced IELTS Speaking examiner. You have been given the candidate's actual audio recording — listen to it directly. Base your judgement on what you actually hear: real pronunciation (individual sounds, word stress, sentence stress, intonation, chunking/rhythm), true fluency (hesitation, self-correction, pace, natural connected speech), lexical resource and grammatical range as used in speech. Score against the four official IELTS Speaking criteria: Fluency & Coherence, Lexical Resource, Grammatical Range & Accuracy, Pronunciation. IMPORTANT ON PRECISION: use the full 0-9 scale in 0.5 steps for every criterion — half-bands (5.5, 6.5, 7.5, etc.) should be your default whenever performance sits between two levels, which is most of the time; reserve whole numbers for performance that is consistently and unambiguously at one exact level. Be a calibrated examiner: typical competent B2/C1 speech lands between band 5.5 and 7.5, reserve 8+ for genuinely native-like control. Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","heard_transcript":""}. In "heard_transcript", write your own transcription in English of what the candidate said.`;
+${descriptorPromptBlock("speaking")}`;
+
+
+const SPEAKING_SCORING_PROCEDURE = `HOW TO SCORE — follow this procedure for each of the four criteria separately:
+1. Gather the evidence you actually observed for that criterion, then find the single descriptor whose wording it matches. Award that band.
+2. Award a half-band ONLY when the performance genuinely straddles two adjacent descriptors — clearly above one but not yet meeting the one above (e.g. more than "usually maintains flow with repetition" but not yet "willing to speak at length" = 5.5). Half-bands are a real judgement, not a default hedge, and they are not a way to avoid awarding a low band.
+3. Score each criterion independently. Do not pull the four criteria towards each other or towards any expected average — a candidate with accurate but simple grammar and weak fluency should get visibly different numbers.
+4. Judge only the language actually produced. Ignore the length of the answer, the topic, how likeable the ideas are, and how hard the candidate is evidently trying.
+
+CALIBRATION — do not inflate. The reference points are:
+- Band 5 is the candidate who keeps going only through repetition, self-correction and slow speech, and whose complex structures usually contain errors. This is a very common real result.
+- Band 6 is the competent user: speaks at length with visible hesitation, vocabulary adequate but imprecise, complex structures attempted with frequent mistakes.
+- Band 7 requires BOTH frequently error-free sentences AND flexible use of some less common or idiomatic vocabulary. If either is missing it is not a 7.
+- Band 8+ requires near-effortless, sustained, precise performance and should be rare.
+Do not award band 7 or above out of encouragement. Under-supported generosity is a scoring error, exactly like unfair severity.
+
+WRITING THE FEEDBACK:
+- Every "comment" must (a) quote or paraphrase at least one specific thing the candidate actually said as evidence, and (b) state plainly what holds the band where it is and what the next half-band up would require.
+- The wording of every comment must match the number you awarded. Do not describe performance in terms that belong to a higher descriptor than the band you gave — that is the most common failure of AI examiners, and it makes the report incoherent.
+- Never mention CEFR levels (A1-C2) anywhere in your output. You award IELTS bands only; the app derives any CEFR label itself.
+- The "summary" must be consistent with the awarded bands: name the strongest criterion, the weakest, and the single highest-value thing to work on.`;
+
+const SPEAKING_RUBRIC_TRANSCRIPT = `You are an experienced, calibrated IELTS Speaking examiner. You are given only an un-timed text transcript of the speaker's answers.
+
+${SPEAKING_BAND_DESCRIPTORS}
+
+${SPEAKING_SCORING_PROCEDURE}
+
+TRANSCRIPT-SPECIFIC RULES:
+- You cannot hear the candidate. Score Fluency & Coherence from what the transcript does show — repetition, restarts, self-correction, fillers, abandoned sentences, and how ideas are linked — and say in the comment that timing and hesitation could not be measured.
+- Pronunciation cannot be assessed from text. Give a cautious estimate anchored to the rest of the performance, state explicitly in the comment that it is an estimate not based on audio, and do not let it drag the overall band up.
+- The whole report should be treated as provisional and verified by a teacher listening to the recording.
+
+Respond ONLY with raw JSON, no markdown, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":""}.`;
+
+const SPEAKING_RUBRIC_AUDIO = `You are an experienced, calibrated IELTS Speaking examiner. You have been given the candidate's actual audio recording — listen to it directly. Base your judgement on what you actually hear: real pronunciation (individual sounds, word stress, sentence stress, intonation, chunking and rhythm), true fluency (hesitation, self-correction, pace, natural connected speech), and lexical resource and grammatical range as used in speech rather than as they would look on paper.
+
+${SPEAKING_BAND_DESCRIPTORS}
+
+${SPEAKING_SCORING_PROCEDURE}
+
+AUDIO-SPECIFIC RULES:
+- Assess Pronunciation on intelligibility and on control of stress, rhythm and intonation — not on how close the accent is to a native one. A strong L1 accent that remains easy to understand does not cap the band; frequent mispronunciations that make the listener work do.
+- Do not confuse speed with fluency: fast speech full of restarts is not band 7, and a measured, well-organised delivery is not band 5.
+
+Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","heard_transcript":""}. In "heard_transcript", write your own transcription in English of what the candidate said.`;
 
 
 /* =========================================================================
@@ -1753,14 +2523,14 @@ const SPEAKING_RUBRIC_AUDIO = `You are an experienced IELTS Speaking examiner. Y
 const IELTS_RUBRICS = {
   listening: {
     title: "IELTS Listening — how the raw score becomes a band",
-    intro: "Listening (and Reading) are marked out of 40. Each correct answer scores one mark; the raw total is converted to a 9-band scale. There is no half-mark for spelling — an answer must be correctly spelled to be accepted.",
+    intro: "Listening and Reading are each marked out of 40, one mark per correct answer, converted to the 9-band scale — but the two papers use different conversion tables, so the same raw score is not the same band in both. There is no half-mark for spelling: an answer must be correctly spelled to be accepted.",
     criteria: [
       { name:"Band 8 (≈35–36 / 40)", desc:"Very good user. Handles complex language well; only occasional lapses in unfamiliar situations." },
-      { name:"Band 7 (≈30–32 / 40)", desc:"Good user. Follows detailed argument and distinguishes fine differences of meaning, with occasional inaccuracies." },
-      { name:"Band 6 (≈23–26 / 40)", desc:"Competent user. Grasps main ideas and specific factual detail, though may miss some information in fast or complex passages." },
-      { name:"Band 5 (≈16–18 / 40)", desc:"Modest user. Understands the gist and some detail but struggles with connected speech, distraction and paraphrase." }
+      { name:"Band 7 (≈30–31 / 40)", desc:"Good user. Follows detailed argument and distinguishes fine differences of meaning, with occasional inaccuracies." },
+      { name:"Band 6 (≈23–25 / 40)", desc:"Competent user. Grasps main ideas and specific factual detail, though may miss some information in fast or complex passages." },
+      { name:"Band 5 (≈16–17 / 40)", desc:"Modest user. Understands the gist and some detail but struggles with connected speech, distraction and paraphrase." }
     ],
-    note:"Approximate conversions only — the official Academic table varies slightly by test version."
+    note:"Approximate conversions only — the official table varies slightly by test version. Listening is marginally more forgiving than Academic Reading through the middle of the scale."
   },
   reading: {
     title: "IELTS Academic Reading — how the raw score becomes a band",
@@ -1796,6 +2566,182 @@ const IELTS_RUBRICS = {
     note:"Pace (words per minute) is a study aid only, not an official criterion — natural fluency matters more than raw speed. A comfortable IELTS range is roughly 120–160 wpm."
   }
 };
+
+/* =========================================================================
+   OFFICIAL BAND DESCRIPTOR CHART
+   Renders OFFICIAL_BAND_DESCRIPTORS — the same table the AI examiner is
+   prompted with — so a candidate can read the exact wording their band was
+   matched against, plus the Listening/Academic Reading conversion tables
+   read straight out of the scoring functions.
+   ========================================================================= */
+
+const BD_TABS = [
+  { id:"speaking",      label:"Speaking" },
+  { id:"writing_task1", label:"Writing Task 1" },
+  { id:"writing_task2", label:"Writing Task 2" },
+  { id:"conversion",    label:"Listening & Reading" },
+  { id:"cefr",          label:"CEFR" }
+];
+
+let bdActiveTab = "speaking";
+
+function descriptorTableHTML(setKey){
+  const set = OFFICIAL_BAND_DESCRIPTORS[setKey];
+  const bands = [];
+  for(let b=9;b>=0;b--) bands.push(b);
+  const rows = bands.map(b=>{
+    const global = set.globalRows && set.globalRows[b];
+    if(global){
+      return `<tr class="bd-global"><td class="bd-band">${b}</td><td colspan="${set.criteria.length}">${escapeXml(global)}</td></tr>`;
+    }
+    const cells = set.criteria.map(c=>{
+      const items = c.bands[b];
+      if(!items || !items.length) return `<td></td>`;
+      return `<td><ul>${items.map(t=>`<li>${escapeXml(t)}</li>`).join("")}</ul></td>`;
+    }).join("");
+    // Skip a band only when no criterion says anything about it at all.
+    const empty = set.criteria.every(c=>!c.bands[b] || !c.bands[b].length);
+    if(empty) return "";
+    return `<tr><td class="bd-band">${b}</td>${cells}</tr>`;
+  }).join("");
+  return `
+    <div class="bd-scroll">
+      <table class="bd-table">
+        <thead><tr><th>Band</th>${set.criteria.map(c=>`<th>${escapeXml(c.name)}</th>`).join("")}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="bd-foot">${escapeXml(set.note)}<br>${escapeXml(DESCRIPTOR_SOURCE)}</p>`;
+}
+
+// Built by walking the real scoring functions, so this table can never claim a
+// boundary the app does not actually apply.
+function conversionRows(fn){
+  const out = [];
+  for(let raw=40; raw>=0; raw--){
+    const band = fn(raw, 40);
+    if(out.length && out[out.length-1].band === band) out[out.length-1].lo = raw;
+    else out.push({ band, hi:raw, lo:raw });
+  }
+  return out;
+}
+
+function conversionTableHTML(){
+  const l = conversionRows(rawToBandListening);
+  const r = conversionRows(rawToBandReading);
+  const render = rows => rows.map(x=>{
+    // Highlight when ANY raw score in the range converts differently on the
+    // other paper — comparing only the top of the range would miss partial
+    // disagreements such as Listening 32-34 = 7.5 vs Reading 32 = 7.0.
+    const otherFn = rows === l ? rawToBandReading : rawToBandListening;
+    let differs = false;
+    for(let raw=x.lo; raw<=x.hi; raw++){ if(otherFn(raw, 40) !== x.band){ differs = true; break; } }
+    const range = x.lo === x.hi ? `${x.lo}` : `${x.lo}–${x.hi}`;
+    return `<tr class="${differs?"bd-diff":""}"><td>${range} / 40</td><td>${x.band.toFixed(1)}</td></tr>`;
+  }).join("");
+  return `
+    <div class="bd-conv">
+      <div>
+        <h4>Listening</h4>
+        <table><tbody>${render(l)}</tbody></table>
+      </div>
+      <div>
+        <h4>Academic Reading</h4>
+        <table><tbody>${render(r)}</tbody></table>
+      </div>
+    </div>
+    <p class="bd-foot">One mark per correct answer, no half marks — spelling must be correct. Highlighted rows are where the two papers disagree: the same raw score is not the same band in Listening and Academic Reading, which is why they are converted with separate tables. Approximate conversions; the official table varies slightly by test version.</p>`;
+}
+
+// Walks bandToCEFR across the whole scale rather than restating the mapping, so
+// this table always shows what the app actually awards.
+function cefrTableHTML(){
+  const groups = { C2:"Proficient user", C1:"Proficient user", B2:"Independent user",
+                   B1:"Independent user", A2:"Basic user", A1:"Basic user" };
+  const order = ["C2","C1","B2","B1","A2","A1"];
+  const found = {};
+  for(let b=9; b>=0; b-=0.5){
+    const lvl = bandToCEFR(b);
+    (found[lvl] || (found[lvl] = [])).push(b);
+  }
+  const rows = order.map(lvl=>{
+    const bands = found[lvl];
+    if(!bands || !bands.length) return "";
+    const hi = Math.max(...bands), lo = Math.min(...bands);
+    // Below band 4 the official chart shows no IELTS equivalent at all.
+    const offChart = hi < 4;
+    const range = lo === hi ? hi.toFixed(1) : `${lo.toFixed(1)} – ${hi.toFixed(1)}`;
+    return `<tr${offChart?' class="bd-global"':''}>
+      <td class="bd-band">${lvl}</td>
+      <td>${escapeXml(groups[lvl])}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--ink);">${range}</td>
+      <td>${offChart ? "Not mapped on the official chart — shown as an approximation." : ""}</td>
+    </tr>`;
+  }).join("");
+  return `
+    <div class="bd-scroll">
+      <table class="bd-table" style="min-width:560px;">
+        <thead><tr><th>CEFR</th><th>Common European Framework</th><th>IELTS band</th><th>Note</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="bd-foot">Generated from the app's own band-to-CEFR function, so it always matches the badge shown on your results. Based on the official IELTS CEFR mapping chart, whose IELTS scale runs from band 4 to band 9 — A2 and A1 carry no IELTS equivalent there, and band 8.5 is not printed on it (treated as C2 here, matching the published C2 = 8.5–9.0 row). CEFR levels are broad: an indicative equivalence for study, not an official conversion.</p>`;
+}
+
+function descriptorChartHTML(permanent){
+  const tabs = BD_TABS.map(t=>
+    `<button class="bd-tab ${t.id===bdActiveTab?"active":""}" data-bdtab="${t.id}">${t.label}</button>`
+  ).join("");
+  const views = {
+    conversion: { html: conversionTableHTML, title:"Listening & Academic Reading — raw score to band",
+                  sub:"Generated from the app's own conversion functions — exactly what it applies to your raw score." },
+    cefr:       { html: cefrTableHTML, title:"IELTS band to CEFR level",
+                  sub:"The official IELTS CEFR mapping, generated from the function that prints your CEFR badge." }
+  };
+  const view = views[bdActiveTab];
+  const body = view ? view.html() : descriptorTableHTML(bdActiveTab);
+  const title = view ? view.title : OFFICIAL_BAND_DESCRIPTORS[bdActiveTab].title;
+  const sub = view ? view.sub : "The exact wording your responses are marked against — the AI examiner is given this same table.";
+  return `
+    <div class="bd-panel" id="bdPanel">
+      <div class="bd-panel-head">
+        <div>
+          <h3>${escapeXml(title)}</h3>
+          <p>${escapeXml(sub)}</p>
+        </div>
+        ${permanent ? "" : `<button class="bd-launch" data-bdclose="1"><span class="bd-launch-ico">✕</span> Hide</button>`}
+      </div>
+      <div class="bd-tabs">${tabs}</div>
+      ${body}
+    </div>`;
+}
+
+// Delegated once at the document level: the chart is re-rendered into different
+// module panels, so per-render listeners would leak.
+document.addEventListener("click", e=>{
+  const tab = e.target.closest("[data-bdtab]");
+  if(tab){ bdActiveTab = tab.getAttribute("data-bdtab"); refreshDescriptorChart(); return; }
+  if(e.target.closest("[data-bdclose]")){ state.bdOpen = false; refreshDescriptorChart(); return; }
+  if(e.target.closest("[data-bdopen]")){ state.bdOpen = true; refreshDescriptorChart(); }
+});
+
+function refreshDescriptorChart(){
+  const host = document.getElementById("bdHost");
+  if(!host) return;
+  // In the dedicated reference module the chart is always open, so switching
+  // sub-tabs must not collapse it back to the launcher.
+  if(state.mod === "descriptors"){ host.innerHTML = descriptorChartHTML(true); return; }
+  host.innerHTML = state.bdOpen ? descriptorChartHTML() : descriptorLaunchHTML();
+}
+
+function descriptorLaunchHTML(){
+  return `<button class="bd-launch" data-bdopen="1"><span class="bd-launch-ico">📋</span> Official band descriptors</button>`;
+}
+
+// Drop-in for any module panel: renders the launcher, or the open chart.
+function descriptorChartSection(){
+  return `<div id="bdHost" style="margin:0 0 20px;">${state.bdOpen ? descriptorChartHTML() : descriptorLaunchHTML()}</div>`;
+}
 
 function rubricPanel(skill){
   const r = IELTS_RUBRICS[skill];
@@ -1837,7 +2783,7 @@ document.getElementById("tabs").addEventListener("click", (e)=>{
 function setModule(mod){
   state.mod = mod;
   document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.mod===mod));
-  const labels = {dashboard:"Dashboard", listening:"Listening", reading:"Reading", writing:"Writing", speaking:"Speaking", class:"My class"};
+  const labels = {dashboard:"Dashboard", listening:"Listening", reading:"Reading", writing:"Writing", speaking:"Speaking", class:"My class", descriptors:"Band descriptors"};
   document.getElementById("modLabel").textContent = labels[mod] || mod;
   render();
   window.scrollTo({top:0, behavior:"smooth"});
@@ -1854,6 +2800,17 @@ function render(){
   if(state.mod==="reading") return renderReading();
   if(state.mod==="writing") return renderWriting();
   if(state.mod==="speaking") return renderSpeaking();
+  if(state.mod==="descriptors") return renderDescriptors();
+}
+
+// Reference module: the official descriptors, always open (no launcher — the
+// nav tab is the entry point).
+function renderDescriptors(){
+  panel.innerHTML = `
+    <p class="section-title">Official band descriptors</p>
+    <p class="section-sub">The published IELTS criteria your work is marked against, reproduced in full. The AI examiner is given this exact table when it scores your Speaking and Writing, and the Listening &amp; Reading tab is generated from the app's own conversion functions — so what you read here is literally what the app applies.</p>
+    <div id="bdHost">${descriptorChartHTML(true)}</div>
+  `;
 }
 
 /* The AI generator card sits at the END of a module on phones (it is setup,
@@ -1898,6 +2855,11 @@ document.getElementById("closeSettings").addEventListener("click", ()=>sOverlay.
 document.getElementById("saveSettings").addEventListener("click", async ()=>{
   state.settings.geminiKey = document.getElementById("geminiKeyInput").value.trim();
   state.settings.geminiModel = document.getElementById("geminiModelInput").value.trim() || "gemini-3.5-flash-lite";
+  const dFolder = document.getElementById("driveFolderInput");
+  const dKey = document.getElementById("driveClientInput");
+  if(dFolder) state.settings.driveFolderId = parseDriveFolderId(dFolder.value);
+  if(dKey) state.settings.driveClientId = dKey.value.trim();
+  state.listening.drive = null;   // library must be re-listed against the new config
   try{
     await window.storage.set("ielts-settings", JSON.stringify(state.settings), false);
   }catch(e){}
@@ -2031,6 +2993,9 @@ function applySessionData(data){
     }
   }
   saveHistory();
+  // A restored session brings its own question banks; persist them so they
+  // survive a reload the same way freshly generated ones do.
+  saveGeneratedContent();
   render();
 }
 
@@ -2194,7 +3159,7 @@ function renderDashboard(){
             `;
           }).join("")}
         </div>
-        <p style="font-size:11px;color:var(--slate);margin:10px 0 0;font-style:italic;">CEFR badges (A1–C2) are an approximate equivalence based on published IELTS↔CEFR correspondence tables — a study reference, not an official conversion.</p>
+        <p style="font-size:11px;color:var(--slate);margin:10px 0 0;font-style:italic;">CEFR badges (A1–C2) follow the official IELTS CEFR mapping chart: B1 = 4.0–5.0, B2 = 5.5–6.5, C1 = 7.0–8.0, C2 = 8.5–9.0. The official chart maps bands 4–9 only, so anything below band 4 is an approximation. An indicative equivalence for study, not an official conversion.</p>
 
         <hr class="rule">
         <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);margin-bottom:12px;">Recent history</h3>
@@ -2215,11 +3180,11 @@ function renderDashboard(){
       <div>
         <div class="chart-box">
           <h3>Skill profile</h3>
-          <canvas id="radarCanvas" height="220"></canvas>
+          <div class="chart-canvas" style="height:250px;"><canvas id="radarCanvas"></canvas></div>
         </div>
         <div class="chart-box" style="margin-top:16px;">
           <h3>Band history</h3>
-          <canvas id="barCanvas" height="180"></canvas>
+          <div class="chart-canvas" style="height:190px;"><canvas id="barCanvas"></canvas></div>
         </div>
       </div>
     </div>
@@ -2259,38 +3224,78 @@ function drawDashCharts(){
   const labels = ["Listening","Reading","Writing","Speaking"];
   const data = ["listening","reading","writing","speaking"].map(m=>state.scores[m]||0);
 
+  // Shared chart styling: Inter throughout, hairline grids that sit behind the
+  // data rather than competing with it, and dark rounded tooltips.
+  Chart.defaults.font.family = "'Inter', sans-serif";
+  Chart.defaults.color = "#5b6478";
+  const TOOLTIP = {
+    backgroundColor:"rgba(19,27,46,.94)", padding:12, cornerRadius:10, displayColors:false,
+    titleFont:{size:12,weight:"600"}, bodyFont:{size:13,weight:"700"}, caretSize:6,
+    callbacks:{ label:ctx=>` Band ${Number(ctx.parsed.r ?? ctx.parsed.y).toFixed(1)}` }
+  };
+
+  // Radar: a soft vertical gradient fill instead of a flat wash, so the shape
+  // reads as a solid volume.
+  const radarFill = rc.getContext("2d").createLinearGradient(0,0,0,240);
+  radarFill.addColorStop(0,"rgba(201,162,39,.42)");
+  radarFill.addColorStop(1,"rgba(201,162,39,.08)");
+
   radarChart = new Chart(rc, {
     type:"radar",
     data:{
       labels,
       datasets:[{
-        label:"Band",
-        data,
-        backgroundColor:"rgba(201,162,39,0.22)",
-        borderColor:"#c9a227",
-        pointBackgroundColor:"#131b2e"
+        label:"Band", data,
+        backgroundColor:radarFill,
+        borderColor:"#c9a227", borderWidth:2.5,
+        pointBackgroundColor:"#fff", pointBorderColor:"#131b2e", pointBorderWidth:2,
+        pointRadius:5, pointHoverRadius:7,
+        pointHoverBackgroundColor:"#c9a227", pointHoverBorderColor:"#131b2e",
+        fill:true, tension:.05
       }]},
     options:{
-      scales:{ r:{ min:0, max:9, ticks:{stepSize:3}, pointLabels:{font:{size:11}} } },
-      plugins:{legend:{display:false}}
+      responsive:true, maintainAspectRatio:false,
+      animation:{duration:900, easing:"easeOutQuart"},
+      layout:{padding:6},
+      scales:{ r:{
+        min:0, max:9, beginAtZero:true,
+        ticks:{stepSize:3, backdropColor:"transparent", color:"#98a0b0", font:{size:10}},
+        grid:{color:"rgba(19,27,46,.09)"},
+        angleLines:{color:"rgba(19,27,46,.09)"},
+        pointLabels:{font:{size:11.5,weight:"600"}, color:"#131b2e"}
+      }},
+      plugins:{legend:{display:false}, tooltip:TOOLTIP}
     }
   });
 
   const hist = [...state.history].reverse().slice(-10);
+  // Bars get a vertical gradient and a fully rounded cap.
+  const barFill = bc.getContext("2d").createLinearGradient(0,0,0,180);
+  barFill.addColorStop(0,"#3f8b7b");
+  barFill.addColorStop(1,"#2f6f62");
+
   barChart = new Chart(bc, {
     type:"bar",
     data:{
       labels: hist.map(h=>new Date(h.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})),
       datasets:[{
-        label:"Module Score",
-        data: hist.map(h=>h.band),
-        backgroundColor:"#2f6f62",
-        borderRadius:4
+        label:"Module Score", data: hist.map(h=>h.band),
+        backgroundColor:barFill, hoverBackgroundColor:"#c9a227",
+        borderRadius:{topLeft:8,topRight:8,bottomLeft:2,bottomRight:2},
+        borderSkipped:false, maxBarThickness:34
       }]
     },
     options:{
-      scales:{ y:{ min:0, max:9, ticks:{stepSize:2} } },
-      plugins:{legend:{display:false}}
+      responsive:true, maintainAspectRatio:false,
+      animation:{duration:800, easing:"easeOutQuart"},
+      scales:{
+        y:{ min:0, max:9, ticks:{stepSize:3, color:"#98a0b0", font:{size:10}},
+            grid:{color:"rgba(19,27,46,.07)", drawTicks:false},
+            border:{display:false} },
+        x:{ grid:{display:false}, border:{display:false},
+            ticks:{color:"#98a0b0", font:{size:10.5}, maxRotation:0} }
+      },
+      plugins:{legend:{display:false}, tooltip:TOOLTIP}
     }
   });
 
@@ -2315,6 +3320,252 @@ function drawDashCharts(){
    LISTENING
    ========================================================================= */
 
+/* =========================================================================
+   GOOGLE DRIVE AUDIO LIBRARY
+   -------------------------------------------------------------------------
+   Reads a PUBLIC ("anyone with the link") Drive folder with a plain API key —
+   no OAuth, no consent screen, no backend, which keeps this a static file.
+   Both endpoints used here send CORS headers, so the browser can list the
+   folder and pull the bytes directly.
+
+   Structure matters more than it looks. IELTS sections have distinct formats:
+   Section 1 is a transactional conversation, Section 4 an academic lecture.
+   Drawing four files at random from one flat pool would routinely put a
+   lecture in Section 1 and generate structurally wrong questions. So if the
+   folder contains subfolders named "Section 1".."Section 4" we pick one at
+   random FROM EACH; a flat folder still works but is reported as such.
+   ========================================================================= */
+
+const DRIVE_API = "https://www.googleapis.com/drive/v3/files";
+const DRIVE_MAX_BYTES = 18 * 1024 * 1024;   // Gemini inline-audio ceiling
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
+
+/* Auth note, because this is easy to get wrong:
+   Drive's files.list endpoint does NOT accept an API key. It answers
+   401 "API keys are not supported by this API. Expected OAuth2 access token…"
+   no matter how the folder is shared. Downloading a file by ID with alt=media
+   does work with a key, but listing a folder never does — so the whole feature
+   needs OAuth. We use Google Identity Services' token flow: a read-only scope,
+   granted once per session, held in memory only. The token is deliberately not
+   persisted; it expires in about an hour and storing it buys nothing. */
+let driveToken = null, driveTokenExp = 0, driveTokenClient = null;
+
+function driveHasToken(){ return !!driveToken && Date.now() < driveTokenExp - 60000; }
+
+function driveRequestToken(interactive){
+  return new Promise((resolve, reject)=>{
+    if(driveHasToken()) return resolve(driveToken);
+    const gis = window.google && window.google.accounts && window.google.accounts.oauth2;
+    if(!gis) return reject(new Error("Google sign-in library hasn't loaded. Check your connection and reload the page."));
+    if(!state.settings.driveClientId) return reject(new Error("Add your OAuth Client ID in ⚙ AI engine settings first."));
+    try{
+      driveTokenClient = gis.initTokenClient({
+        client_id: state.settings.driveClientId,
+        scope: DRIVE_SCOPE,
+        callback: (resp)=>{
+          if(resp && resp.access_token){
+            driveToken = resp.access_token;
+            driveTokenExp = Date.now() + (Number(resp.expires_in || 3600) * 1000);
+            resolve(driveToken);
+          } else {
+            reject(new Error("Google did not return an access token."));
+          }
+        },
+        error_callback: (err)=>{
+          const t = (err && err.type) || "";
+          if(t === "popup_closed") return reject(new Error("Sign-in window was closed before access was granted."));
+          if(t === "popup_failed_to_open") return reject(new Error("The sign-in popup was blocked. Allow popups for this site and try again."));
+          reject(new Error("Google sign-in failed" + (err && err.message ? ": " + err.message : ".")));
+        }
+      });
+      // Empty prompt reuses an existing grant, so it only shows the consent
+      // screen the first time.
+      driveTokenClient.requestAccessToken({ prompt: interactive ? "consent" : "" });
+    }catch(e){ reject(e); }
+  });
+}
+
+function driveSignOut(){
+  const tok = driveToken;
+  driveToken = null; driveTokenExp = 0;
+  try{
+    if(tok && window.google && google.accounts && google.accounts.oauth2){
+      google.accounts.oauth2.revoke(tok, ()=>{});
+    }
+  }catch(e){}
+}
+
+// Single place that talks to Drive, so token refresh and error translation
+// live in one spot.
+async function driveFetch(url){
+  await driveRequestToken(false);
+  let r = await fetch(url, { headers:{ Authorization: "Bearer " + driveToken } });
+  if(r.status === 401){
+    // Token expired mid-session — get a fresh one and retry once.
+    driveToken = null; driveTokenExp = 0;
+    await driveRequestToken(false);
+    r = await fetch(url, { headers:{ Authorization: "Bearer " + driveToken } });
+  }
+  return r;
+}
+
+// Accepts a bare ID or a pasted folder URL.
+function parseDriveFolderId(v){
+  const t = String(v || "").trim();
+  const m = t.match(/\/folders\/([A-Za-z0-9_-]+)/) || t.match(/[?&]id=([A-Za-z0-9_-]+)/);
+  return m ? m[1] : t;
+}
+
+function driveConfigured(){
+  return !!(state.settings.driveFolderId && state.settings.driveClientId);
+}
+
+async function driveListFolder(folderId){
+  const files = [];
+  let pageToken = "";
+  do{
+    const url = `${DRIVE_API}?q=${encodeURIComponent(`'${folderId}' in parents and trashed=false`)}`
+      + `&fields=${encodeURIComponent("nextPageToken,files(id,name,mimeType,size)")}`
+      + `&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true`
+      + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : "");
+    const r = await driveFetch(url);
+    if(!r.ok){
+      let detail = "";
+      try{ const j = await r.json(); detail = j.error && j.error.message ? ` — ${j.error.message}` : ""; }catch(e){}
+      if(r.status === 401) throw new Error(`Google rejected the sign-in${detail}. Sign in again, and check the Drive API is enabled on the same Google Cloud project as your OAuth client.`);
+      if(r.status === 403) throw new Error(`Drive refused the request${detail}. Check the Google Drive API is enabled on the project, and that this site is listed under the OAuth client's Authorised JavaScript origins.`);
+      if(r.status === 404) throw new Error(`Folder not found${detail}. Check the folder ID, and that the signed-in Google account can open that folder.`);
+      throw new Error(`Drive returned HTTP ${r.status}${detail}`);
+    }
+    const j = await r.json();
+    (j.files || []).forEach(f=>files.push(f));
+    pageToken = j.nextPageToken || "";
+  } while(pageToken);
+  return files;
+}
+
+const isFolder = f => f.mimeType === "application/vnd.google-apps.folder";
+const isAudio  = f => /^audio\//.test(f.mimeType || "") || /\.(mp3|m4a|wav|ogg|aac|flac)$/i.test(f.name || "");
+
+// Builds {sections:{1:[...],2:[...],3:[...],4:[...]}, flat:[...], mode}
+async function driveLoadLibrary(){
+  const rootId = state.settings.driveFolderId;
+  const root = await driveListFolder(rootId);
+  const subs = root.filter(isFolder);
+  const sections = {1:[],2:[],3:[],4:[]};
+  let matched = 0;
+
+  for(const d of subs){
+    const m = String(d.name).match(/(?:^|\D)([1-4])(?:\D|$)/);
+    if(!m || !/sec|part/i.test(d.name)) continue;
+    const n = Number(m[1]);
+    const kids = (await driveListFolder(d.id)).filter(isAudio);
+    if(kids.length){ sections[n] = kids; matched++; }
+  }
+
+  const flat = root.filter(isAudio);
+  const mode = matched === 4 ? "sections" : "flat";
+  if(mode === "flat" && !flat.length && !matched){
+    throw new Error("No audio files found in that folder. Check it contains MP3/WAV files, or Section 1–4 subfolders that do.");
+  }
+  return { mode, sections, flat, total: mode === "sections"
+    ? [1,2,3,4].reduce((a,n)=>a+sections[n].length,0) : flat.length, loadedAt: Date.now() };
+}
+
+// Picks four, avoiding the previous roll's files so consecutive rolls differ.
+function drivePickFour(lib, avoid){
+  const skip = new Set(avoid || []);
+  const one = pool=>{
+    if(!pool.length) return null;
+    const fresh = pool.filter(f=>!skip.has(f.id));
+    const from = fresh.length ? fresh : pool;      // fall back if the pool is tiny
+    return from[Math.floor(Math.random()*from.length)];
+  };
+  if(lib.mode === "sections"){
+    const out = [];
+    for(let n=1;n<=4;n++){
+      const f = one(lib.sections[n]);
+      if(!f) throw new Error(`The "Section ${n}" subfolder has no audio files in it.`);
+      out.push(f); skip.add(f.id);
+    }
+    return out;
+  }
+  if(lib.flat.length < 4) throw new Error(`Only ${lib.flat.length} audio file(s) in that folder — four are needed, one per section.`);
+  const out = [];
+  for(let n=0;n<4;n++){ const f = one(lib.flat); out.push(f); skip.add(f.id); }
+  return out;
+}
+
+async function driveDownloadB64(file){
+  if(file.size && Number(file.size) > DRIVE_MAX_BYTES){
+    throw new Error(`"${file.name}" is ${(Number(file.size)/1048576).toFixed(1)} MB — over the ${(DRIVE_MAX_BYTES/1048576)|0} MB inline limit. Compress it (mono 64 kbps MP3) or remove it from the folder.`);
+  }
+  const url = `${DRIVE_API}/${encodeURIComponent(file.id)}?alt=media&supportsAllDrives=true`;
+  const r = await driveFetch(url);
+  if(!r.ok) throw new Error(`Couldn't download "${file.name}" (HTTP ${r.status}).`);
+  const blob = await r.blob();
+  if(blob.size > DRIVE_MAX_BYTES){
+    throw new Error(`"${file.name}" is ${(blob.size/1048576).toFixed(1)} MB — over the inline limit. Compress it and try again.`);
+  }
+  return { b64: await blobToBase64(blob), mime: blob.type || file.mimeType || "audio/mpeg", name: file.name };
+}
+
+// Roll four audios, load them into the generator slots, then hand off to the
+// existing pipeline that transcribes each and writes the 40 questions.
+async function generateListeningFromDrive(){
+  const L = state.listening;
+  if(!state.settings.geminiKey){ alert("Add a Gemini API key in ⚙ AI engine settings first."); return; }
+  if(!driveConfigured()){ alert("Add your Drive folder ID and OAuth Client ID in ⚙ AI engine settings first."); return; }
+
+  const btn = document.getElementById("driveGenerateBtn");
+  const status = document.getElementById("driveStatus");
+  const setStatus = t => { if(status) status.textContent = t; };
+  if(btn) btn.disabled = true;
+
+  try{
+    L.drive = L.drive || {};
+    if(!L.drive.library){
+      setStatus("Reading your Drive folder…");
+      L.drive.library = await driveLoadLibrary();
+    }
+    const lib = L.drive.library;
+    const picks = drivePickFour(lib, L.drive.lastPick || []);
+    L.drive.lastPick = picks.map(f=>f.id);
+
+    L.genAudio = L.genAudio || {};
+    for(let i=0;i<4;i++){
+      setStatus(`Downloading ${i+1} of 4 — ${picks[i].name}`);
+      L.genAudio[i+1] = await driveDownloadB64(picks[i]);
+    }
+    setStatus(`Selected: ${picks.map(f=>f.name).join(" · ")}`);
+    renderListening();
+    // The existing generator takes it from here (transcribe + 40 questions).
+    await generateNewListeningWithAI();
+  }catch(e){
+    console.error(e);
+    setStatus("");
+    alert("Drive generation failed:\n\n" + e.message);
+  }finally{
+    const b = document.getElementById("driveGenerateBtn");
+    if(b) b.disabled = false;
+  }
+}
+
+async function refreshDriveLibrary(){
+  const status = document.getElementById("driveStatus");
+  if(!driveConfigured()){ alert("Add your Drive folder ID and OAuth Client ID in ⚙ AI engine settings first."); return; }
+  try{
+    if(status) status.textContent = "Reading your Drive folder…";
+    state.listening.drive = state.listening.drive || {};
+    state.listening.drive.library = await driveLoadLibrary();
+    renderListening();
+  }catch(e){
+    console.error(e);
+    if(status) status.textContent = "";
+    alert("Couldn't read that Drive folder:\n\n" + e.message);
+  }
+}
+
 function renderListening(){
   const L = state.listening;
   const geminiOn = !!state.settings.geminiKey;
@@ -2329,7 +3580,8 @@ function renderListening(){
     </div>
 
     <div class="gen-card" style="margin-bottom:24px;">
-      <b>🎧 New Listening Test Generator (from your own official audios)</b>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);">Option 1 · works now</span><br>
+      <b>🎧 Generate from audios on this computer</b>
       <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${geminiOn ? "Attach a different official recording for each of the four sections. The AI listens to each audio, transcribes it, and writes 10 fresh IELTS-style questions per section (40 total) — replacing the current test. Your audios become the playable tracks." : "Add a Gemini API key in ⚙ AI engine to enable question generation from audio."}</p>
       <div class="gen-slots">
         ${[1,2,3,4].map(i=>{
@@ -2343,6 +3595,7 @@ function renderListening(){
       </div>
       <div class="gen-actions gen-actions-row">
         <button class="btn brass small" id="generateListeningBtn" ${(!geminiOn || genReady<4) ? "disabled" : ""}>Generate 4-section test from these audios</button>
+        ${restoreBuiltInBtn()}
         <span style="font-size:12px;color:var(--slate);" id="genListeningStatus">${genReady}/4 audios attached${genReady<4?" — attach all four to enable generation":""}</span>
       </div>
       <div class="gen-progress" id="listeningGenBar" style="display:none;">
@@ -2350,6 +3603,37 @@ function renderListening(){
         <div class="gen-progress-label"></div>
       </div>
     </div>
+
+    ${(()=>{
+      const d = L.drive || {};
+      const lib = d.library;
+      const ready = driveConfigured();
+      let libLine;
+      if(!ready){
+        libLine = `Add a Drive folder ID and OAuth Client ID in <b>⚙ AI engine</b> to draw sections at random from your own library.`;
+      }else if(!lib){
+        libLine = `Folder configured. Press <b>Read folder</b> — Google will ask you to sign in once, read-only.`;
+      }else if(lib.mode === "sections"){
+        libLine = `<b>${lib.total}</b> audio files across four section folders — `
+          + [1,2,3,4].map(n=>`S${n}: ${lib.sections[n].length}`).join(" · ")
+          + `. Each section is drawn from its own folder, so formats stay correct.`;
+      }else{
+        libLine = `<b>${lib.total}</b> audio files in a flat folder. All four sections are drawn from the same pool — `
+          + `add <b>Section 1</b>–<b>Section 4</b> subfolders if you want each section to keep its proper format.`;
+      }
+      return `
+    <div class="gen-card" style="background:linear-gradient(180deg,var(--surface),var(--surface-1)); border:1px solid var(--line); border-radius:18px; padding:18px 20px; margin-bottom:20px; box-shadow:var(--elev-2);">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);">Option 2 · optional, needs Google setup</span><br>
+      <b>☁️ Random test from your Google Drive library</b>
+      <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${libLine}</p>
+      <div class="drive-actions">
+        <button class="btn brass small" id="driveGenerateBtn" ${(!ready || !geminiOn) ? "disabled" : ""}>🎲 Pick 4 at random &amp; generate</button>
+        <button class="btn ghost small" id="driveRefreshBtn" ${!ready ? "disabled" : ""}>${lib ? "Re-read folder" : "Read folder"}</button>
+        ${driveHasToken() ? `<button class="btn ghost small" id="driveSignOutBtn" title="Forget the Google access token for this session">Disconnect</button>` : ""}
+        <span style="font-size:12px;color:var(--slate);" id="driveStatus">${!geminiOn && ready ? "Add a Gemini API key to enable generation." : ""}</span>
+      </div>
+    </div>`;
+    })()}
 
     <div id="listeningContainer"></div>
     ${rubricPanel("listening")}
@@ -2373,7 +3657,7 @@ function renderListening(){
     block.style.marginBottom = "34px";
     block.innerHTML = `
       <h3 class="display" style="font-size:18px;margin-bottom:4px;color:var(--ink);">${part.title}</h3>
-      <p style="font-size:13.5px;color:var(--slate);margin:0 0 14px;line-height:1.6;">${part.context}</p>
+      <p style="font-size:13.5px;color:var(--slate);margin:0 0 14px;line-height:1.6;">${part.context || ""}</p>
       
       <div class="audio-player">
         <button class="playbtn" data-pid="${part.id}" ${!custom ? 'style="opacity:.35;cursor:not-allowed;"' : ''}>${isPlaying ? "⏸" : "▶"}</button>
@@ -2401,7 +3685,7 @@ function renderListening(){
             <button class="btn ghost small" data-toggle-transcript="${part.id}" style="padding:3px 10px;font-size:11px;" ${!played ? "disabled" : ""}>${transcriptOpen ? "🙈 Hide transcript" : "👁 Show transcript"}</button>
           </div>
           <div style="display:${(played && transcriptOpen)?'block':'none'};">
-            ${part.script.replace(/\n/g,"<br>")}
+            ${(part.script || "(transcript unavailable)").replace(/\n/g,"<br>")}
           </div>
           ${!played ? `<span style="opacity:.6;">Play the audio at least once to unlock the transcript.</span>` : (!transcriptOpen ? `<span style="opacity:.6;">Transcript hidden — click "Show transcript" to reveal it.</span>` : "")}
         </div>
@@ -2477,6 +3761,16 @@ function renderListening(){
   });
   const genBtn = document.getElementById("generateListeningBtn");
   if(genBtn) genBtn.addEventListener("click", generateNewListeningWithAI);
+  const dGen = document.getElementById("driveGenerateBtn");
+  if(dGen) dGen.addEventListener("click", generateListeningFromDrive);
+  const dRef = document.getElementById("driveRefreshBtn");
+  if(dRef) dRef.addEventListener("click", refreshDriveLibrary);
+  const dOut = document.getElementById("driveSignOutBtn");
+  if(dOut) dOut.addEventListener("click", ()=>{
+    driveSignOut();
+    state.listening.drive = null;   // library was read under the old grant
+    renderListening();
+  });
 
   container.querySelectorAll("[data-rate]").forEach(sel=>{
     sel.addEventListener("change", ()=>{
@@ -2564,10 +3858,16 @@ function listeningAnswerText(q){
   return clean.length ? clean.join(" OR ") : "—";
 }
 
+// IELTS requires correct spelling, so matching stays exact — but the same
+// normalisation must be applied to BOTH sides. Previously punctuation was
+// stripped from the candidate's answer only, so a stored key like "the bank."
+// or one with a stray double space could never be matched.
 function checkGap(userVal, answers){
   if(!userVal) return false;
-  const v = userVal.trim().toLowerCase().replace(/[.,]/g,"");
-  return answers.some(a=>a.toLowerCase()===v);
+  const norm = s => String(s).trim().toLowerCase().replace(/[.,]/g,"").replace(/\s+/g," ");
+  const v = norm(userVal);
+  if(!v) return false;
+  return answers.some(a => norm(a) === v);
 }
 
 function submitListening(){
@@ -2583,7 +3883,7 @@ function submitListening(){
     }
   }));
   L.submitted = true;
-  const band = rawToBandListening(correct);
+  const band = rawToBandListening(correct, total);
   recordScore("listening", band, `${correct}/${total} correct`);
   renderListening();
 }
@@ -2609,16 +3909,50 @@ function showListeningResult(){
   const rows = lines.map(l=>`<div class="key-line"><span class="${l.ok?'ok':'bad'}">${l.ok?'✓':'✗'}</span> Q${l.n}: <span class="correct-answer">${l.answer}</span></div>`).join("");
   box.innerHTML = `
     <div class="key-box">
-      <h4>Score Evaluation: ${correct} / ${total} → Band ${rawToBandListening(correct).toFixed(1)}<span class="cefr-tag">${bandToCEFR(rawToBandListening(correct))}</span></h4>
+      <h4>Score Evaluation: ${correct} / ${total} → Band ${rawToBandListening(correct, total).toFixed(1)}<span class="cefr-tag">${bandToCEFR(rawToBandListening(correct, total))}</span></h4>
       <div class="key-cols">${rows}</div>
     </div>
   `;
 }
 
-function rawToBandListening(c){
+// Raw score (out of 40) to band. Listening and ACADEMIC Reading use DIFFERENT
+// published conversion tables, and Reading was previously scored with the
+// Listening one. Through the upper-middle of the scale — exactly where most
+// candidates sit — that awarded half a band too much: a raw 32 is 7.5 on
+// listening but only 7.0 on academic reading, 26 is 6.5 vs 6.0, and 18 is 5.5
+// vs 5.0. (The two tables cross over at the bottom, where reading is marginally
+// the softer of the two, but that range matters far less.)
+//
+// Both tables assume a 40-question paper; the generators enforce 4 sections x
+// 10 questions, but if a paper ever has a different total the raw score is
+// scaled to a 40-question equivalent first so the band still means something.
+//
+// One judgement call: the reference conversion chart lists Listening 6.5 as
+// "25-29" and Listening 6.0 as "23-25", which overlap at a raw score of 25.
+// Raw 25 is resolved here as 6.5, following the explicitly stated lower bound
+// of the 6.5 row. It affects exactly one raw score; flip the 6.5 threshold to
+// 26 if the intended reading was the other way round.
+function scaleRawTo40(correct, total){
+  const c = Number(correct) || 0;
+  const t = Number(total);
+  if(!isFinite(t) || t <= 0 || t === 40) return c;
+  return Math.round((c / t) * 40);
+}
+
+function rawToBandListening(correct, total){
+  const c = scaleRawTo40(correct, total);
   if(c>=39) return 9.0; if(c>=37) return 8.5; if(c>=35) return 8.0; if(c>=32) return 7.5;
-  if(c>=30) return 7.0; if(c>=27) return 6.5; if(c>=23) return 6.0; if(c>=18) return 5.5;
-  if(c>=14) return 5.0; if(c>=10) return 4.5; if(c>=7) return 4.0; return 3.5;
+  if(c>=30) return 7.0; if(c>=25) return 6.5; if(c>=23) return 6.0; if(c>=18) return 5.5;
+  if(c>=16) return 5.0; if(c>=13) return 4.5; if(c>=10) return 4.0; if(c>=8) return 3.5;
+  if(c>=6) return 3.0; if(c>=4) return 2.5; return 2.0;
+}
+
+function rawToBandReading(correct, total){
+  const c = scaleRawTo40(correct, total);
+  if(c>=39) return 9.0; if(c>=37) return 8.5; if(c>=35) return 8.0; if(c>=33) return 7.5;
+  if(c>=30) return 7.0; if(c>=27) return 6.5; if(c>=23) return 6.0; if(c>=19) return 5.5;
+  if(c>=15) return 5.0; if(c>=13) return 4.5; if(c>=10) return 4.0; if(c>=8) return 3.5;
+  if(c>=6) return 3.0; if(c>=4) return 2.5; return 2.0;
 }
 
 let activeListeningAudio=null;
@@ -2789,9 +4123,12 @@ async function generateNewListeningWithAI(){
       });
     }
     LISTENING.parts = newParts;
+    saveGeneratedContent();
     const keptAudio = {};
     for(let i=1;i<=4;i++) keptAudio[i] = { b64: L.genAudio[i].b64, mime: L.genAudio[i].mime };
-    state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: keptAudio, genAudio: L.genAudio };
+    // Carry the Drive library across the reset, or every roll would re-list the
+    // folder (and lose the "don't repeat last pick" memory).
+    state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: keptAudio, genAudio: L.genAudio, drive: L.drive };
     genProgressDone("listeningGen", "Done — 40 new questions generated.");
     alert("✨ New 4-section Listening test generated from your audios. Each section now plays the recording you attached.");
     renderListening();
@@ -2844,6 +4181,7 @@ function renderReading(){
           <option value="Renewable Energy & Engineering">Energy & Engineering</option>
         </select>
         <button id="generateReadingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate Exam Sections</button>
+        ${restoreBuiltInBtn()}
       </div>
       </div>
       <div class="gen-progress" id="readingGenBar" style="display:none;">
@@ -3008,6 +4346,7 @@ Double-check before returning: every section's paragraphs are long and academica
         p.id = idx + 1;
         return p;
       });
+      saveGeneratedContent();
       genProgressDone("readingGen", "Done — 40 questions across 4 sections.");
       alert(`✨ Success! Full exam reloaded with 4 new, longer academic sections (40 questions, mixed question types).`);
       state.reading.activePassage = 0;
@@ -3141,7 +4480,7 @@ function renderReadingPassage(p, sectionNumber){
       <div class="two-col">
         <div class="rd-pane rd-pane-passage">
           <div class="passage">
-            <p class="display" style="font-size:18px;font-weight:600;margin-bottom:12px;">Section ${sectionNumber}: ${p.title}</p>
+            <p class="display passage-title">Section ${sectionNumber}: ${p.title}</p>
             ${Object.entries(p.paras).map(([k,v])=>`<p><span class="para-label">${k}</span>${v}</p>`).join("")}
           </div>
         </div>
@@ -3330,7 +4669,7 @@ function gradeReading(){
 function submitReading(){
   state.reading.submitted = true;
   const {correct,total} = gradeReading();
-  const band = rawToBandListening(correct);
+  const band = rawToBandReading(correct, total);
   recordScore("reading", band, `${correct}/${total} correct`);
   renderReading();
 }
@@ -3339,7 +4678,7 @@ function showReadingResult(){
   const {correct,total,lines} = gradeReading();
   const box = document.getElementById("readingResult");
   const rows = lines.map(l=>`<div class="key-line"><span class="${l.ok?'ok':'bad'}">${l.ok?'✓':'✗'}</span> Q${l.n}: <span class="correct-answer">${l.correct}</span></div>`).join("");
-  box.innerHTML = `<div class="key-box" style="margin-top:20px;"><h4>Score: ${correct} / ${total} → Band ${rawToBandListening(correct).toFixed(1)}<span class="cefr-tag">${bandToCEFR(rawToBandListening(correct))}</span></h4><div class="key-cols">${rows}</div></div>`;
+  box.innerHTML = `<div class="key-box" style="margin-top:20px;"><h4>Score: ${correct} / ${total} → Band ${rawToBandReading(correct, total).toFixed(1)}<span class="cefr-tag">${bandToCEFR(rawToBandReading(correct, total))}</span></h4><div class="key-cols">${rows}</div></div>`;
 }
 
 /* =========================================================================
@@ -3397,6 +4736,7 @@ function renderWriting(){
             <option value="Globalisation & International Affairs">Globalisation</option>
           </select>
           <button id="generateWritingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate New Writing Exam</button>
+          ${restoreBuiltInBtn()}
         </div>
       </div>
       <div class="gen-progress" id="writingGenBar" style="display:none;">
@@ -3550,6 +4890,7 @@ Follow the graph-type guidance above when populating chartData. Give every serie
     const parsedObj = parseJSON(rawText);
     if(parsedObj.task1 && parsedObj.task2) {
       WRITING = parsedObj;
+      saveGeneratedContent();
       genProgressDone("writingGen", "Done — new Task 1 and Task 2 ready.");
       alert("✨ Success! Writing Task 1 and Task 2 prompts re-generated successfully.");
       state.writing.drafts = {task1:"", task2:""};
@@ -4219,20 +5560,27 @@ async function requestWritingScore(task){
       alert("Add a Gemini API key in AI engine settings first.");
       btn.textContent = original; btn.disabled = false; return;
     }
-    const text = await callGemini(WRITING_RUBRIC, user, null, null);
+    const text = await callGemini(writingRubric(task), user, null, null);
     const json = parseJSON(text);
     json.overall_band = officialRound([json.task_achievement.band, json.coherence_cohesion.band, json.lexical_resource.band, json.grammar.band].map(Number).reduce((a,b)=>a+b,0)/4);
     W.reports[task] = json;
     showWritingReport(task, json);
 
-    const other = task==="task1" ? W.reports.task2 : W.reports.task1;
-    const combined = other ? (json.overall_band * 2 + other.overall_band)/3 : json.overall_band;
-    let finalBand = Math.floor(combined);
-    const rem = combined - finalBand;
-    if(rem>=0.75) finalBand += 1.0;
-    else if(rem>=0.25) finalBand += 0.5;
+    // Task 2 is worth twice Task 1 in the official Writing band. The weighting
+    // used to double whichever task had just been scored, so marking Task 2
+    // first and Task 1 second silently doubled Task 1 instead.
+    const t1 = W.reports.task1, t2 = W.reports.task2;
+    let finalBand, note;
+    if(t1 && t2){
+      finalBand = officialRound((t1.overall_band + t2.overall_band * 2) / 3);
+      note = `Task 1 ${fmtBand(t1.overall_band)} + Task 2 ${fmtBand(t2.overall_band)} (weighted 1:2)`;
+    } else {
+      const only = t1 || t2;
+      finalBand = only.overall_band;
+      note = `${t1 ? "Task 1" : "Task 2"} only — provisional until both tasks are scored`;
+    }
 
-    recordScore("writing", finalBand, `Task 1/2 weighted breakdown estimation`);
+    recordScore("writing", finalBand, note);
     saveSubmission("writing", task, WRITING[task].prompt, draft, json.overall_band, json);
   }catch(e){
     console.error(e);
@@ -4275,6 +5623,14 @@ function showWritingReport(task, r){
 
 const WRITING_GRAMMAR_SYS = `You are an IELTS Writing examiner acting as a strict grammar proofreader for an academic Task 1 or Task 2 response.
 Correct ONLY grammar and mechanics — verb tense, subject–verb agreement, articles, prepositions, plurals, word form, pronouns, run-ons/fragments, punctuation and capitalisation. Do NOT paraphrase, upgrade vocabulary, change the writer's ideas, or restructure sentences for style. Preserve the writer's wording wherever it is already correct.
+
+COVERAGE — this is the part that is most often done badly, so follow it literally:
+1. Work through the response SENTENCE BY SENTENCE, from the first word to the last, paragraph by paragraph. Do not stop once you have found a few problems, and do not lose attention toward the end — the final paragraph must be checked as carefully as the first.
+2. Report EVERY error you find. Do not skip one because it is minor, because it is the same type as an earlier one, or because the meaning is still clear. If the writer makes the same mistake five times, that is five entries.
+3. The "corrected" text must contain NO remaining errors. After you write it, proofread it once more as if it were someone else's work, and fix anything you left behind before you answer.
+4. "corrected" and "errors" must agree with each other. Every difference between the writer's original wording and your corrected version must appear as an entry in "errors", and every entry in "errors" must actually be applied in "corrected". A correction that appears in one but not the other is a defect.
+5. Quote "original" exactly as the writer wrote it, so the phrase can be found in the response. Keep each quoted phrase short — just the part that is wrong plus any words needed to make it findable.
+
 Respond with ONLY raw JSON in this exact shape:
 {
   "summary": "one short sentence, e.g. '6 corrections: 3 verb tense, 2 articles, 1 punctuation'",
@@ -4365,7 +5721,7 @@ function showGrammar(task){
    MODEL ANSWERS BY BAND — rewrites the response at each target band
    ========================================================================= */
 
-const BAND_TARGETS = ["4.5","5.0","5.5","6.0","6.5","7.0","7.5","8.0","9.0"];
+const BAND_TARGETS = ["4.5","5.0","5.5","6.0","6.5","7.0","7.5","8.0","8.5","9.0"];
 const BAND_NOTES = {
   "4.5":"Band 4.5 — frequent grammar and vocabulary errors that often strain meaning; limited task coverage and weak organisation.",
   "5.0":"Band 5.0 — meaning generally gets across but errors are frequent; limited range, basic linkers, partial task response.",
@@ -4375,20 +5731,61 @@ const BAND_NOTES = {
   "7.0":"Band 7.0 — clear position/overview, logical cohesion, flexible vocabulary and frequent error-free complex sentences.",
   "7.5":"Band 7.5 — well-developed and cohesive; precise vocabulary and strong grammatical control with very few errors.",
   "8.0":"Band 8.0 — fully developed, seamlessly cohesive, wide and precise lexis, and a wide range of structures with rare minor errors.",
+  "8.5":"Band 8.5 — sustained precision and full flexibility across every criterion; rare minor errors read as slips rather than mistakes.",
   "9.0":"Band 9.0 — fully extended, effortless cohesion, natural and sophisticated language, and complete grammatical accuracy."
 };
 
-function bandVersionPrompt(task, band){
-  const kind = task==="task1"
+// Mirrors speakingBandPrompt: when the student has written something, this
+// rewrites THEIR essay at the target band rather than producing an unrelated
+// model answer, so they can see what their own argument looks like a band up.
+function bandVersionPrompt(task, band, draft){
+  const isTask1 = task === "task1";
+  const kind = isTask1
     ? "IELTS Academic Writing Task 1 (a report describing the visual/data in the prompt, ~150–180 words, no personal opinion)"
     : "IELTS Academic Writing Task 2 (an argumentative/discursive essay, ~250–290 words, with a clear position)";
+  const own = (draft || "").trim();
+
+  const calibration = `- Calibrate ${isTask1 ? "task achievement" : "task response"}, coherence & cohesion, lexical resource and grammatical range & accuracy so they are genuinely characteristic of band ${band} against the official IELTS descriptors — this means deliberately including realistic weaknesses/errors for lower bands, and only near-flawless language for the highest bands.
+- Keep it realistic in length for the task.
+- Return ONLY the essay text itself. No preamble, no band label, no markdown, no quotation marks.`;
+
+  if(own){
+    return `${kind}.
+Task prompt: ${WRITING[task].prompt}
+
+This is what the candidate actually wrote:
+"""
+${own}
+"""
+
+Rewrite THE CANDIDATE'S OWN RESPONSE so that it would be awarded EXACTLY IELTS band ${band}.
+
+This is a rewrite, not a new answer. Absolutely required:
+- Keep their content. ${isTask1
+      ? "The same data points, comparisons and trends they chose to report stay selected — do not swap in different figures from the visual, and do not add data they did not mention."
+      : "The same position, the same arguments, the same examples and the same conclusion. If they argued that remote work harms junior staff and used their own first job as the example, the band " + band + " version still argues that, with that example."}
+- Keep the same paragraph structure and order of ideas, and roughly the same length. Only where the target band genuinely requires fuller development may you extend a point, and then only by developing what they already wrote.
+- Change ONLY the language: grammatical range and accuracy, vocabulary, cohesion, and how clearly the ${isTask1 ? "overview and key features are presented" : "position is stated and supported"}.
+- If the target band is BELOW their current level, degrade the language honestly — simplify the structures, narrow the vocabulary, introduce the errors and clumsy cohesion typical of band ${band} — while keeping the same content.
+- If the target band is ABOVE their current level, upgrade the language — more flexible structures, more precise and less common vocabulary, smoother cohesion — while keeping the same content.
+${calibration}`;
+  }
+
   return `Write a model answer for the following ${kind} that would be awarded EXACTLY IELTS band ${band}.
 Task prompt: ${WRITING[task].prompt}
 
 Requirements:
-- Calibrate task response, coherence & cohesion, lexical resource and grammatical range & accuracy so they are genuinely characteristic of band ${band} against the official IELTS descriptors — this means deliberately including realistic weaknesses/errors for lower bands, and only near-flawless language for the highest bands.
-- Keep it realistic in length for the task.
-- Return ONLY the essay text itself. No preamble, no band label, no markdown, no quotation marks.`;
+${calibration}`;
+}
+
+// Cached band versions are tied to the answer they were rewritten from. Editing
+// a draft, or recording a new take, must invalidate them — otherwise a student
+// is shown "their" response rewritten from work they have since replaced.
+function contentFingerprint(text){
+  const t = (text || "").trim();
+  let h = 0;
+  for(let i=0;i<t.length;i++){ h = ((h<<5) - h + t.charCodeAt(i)) | 0; }
+  return t.length + ":" + h;
 }
 
 function stripFences(t){
@@ -4400,10 +5797,13 @@ function renderBandVersions(task){
   if(!area) return;
   const store = state.writing.bandVersions[task] || (state.writing.bandVersions[task] = {});
   const active = store.__active || null;
+  const hasOwn = !!(state.writing.drafts[task] || "").trim();
   area.innerHTML = `
     <div class="band-versions">
-      <h3>Model answers by band score</h3>
-      <p class="bv-intro">See how this same task looks written at each IELTS band. Pick a band — the model answer is generated on demand and then saved here.</p>
+      <h3>${hasOwn ? "Your response at each band score" : "Model answers by band score"}</h3>
+      <p class="bv-intro">${hasOwn
+        ? "Your own response rewritten at each IELTS band — same position, same arguments, same examples, only the language changes. Pick a band; it is generated on demand and saved here. Editing your draft clears these."
+        : "Write your response first and these become your own response rewritten at each band. Until then they are generic model answers for this task."}</p>
       <div class="band-tabs">
         ${BAND_TARGETS.map(b=>`
           <button class="band-tab ${b===active?"active":""} ${store[b]?"ready":""}" data-band="${b}">
@@ -4420,6 +5820,13 @@ function renderBandVersions(task){
 
 async function selectBandVersion(task, band){
   const store = state.writing.bandVersions[task] || (state.writing.bandVersions[task] = {});
+  const draft = state.writing.drafts[task] || "";
+  const fp = contentFingerprint(draft);
+  if(store.__fp !== fp){
+    // The draft changed — drop versions rewritten from the previous one.
+    Object.keys(store).forEach(k=>{ if(k !== "__active") delete store[k]; });
+    store.__fp = fp;
+  }
   store.__active = band;
   // reflect active state on tabs
   const area = document.getElementById("bandVersionsArea");
@@ -4432,11 +5839,15 @@ async function selectBandVersion(task, band){
       `<div class="band-version-note" style="border-color:var(--coral);color:var(--coral);background:#fdecea;">Add a Gemini API key in ⚙ AI engine settings to generate model answers.</div>`;
     return;
   }
+  const adapting = !!draft.trim();
   const body = document.getElementById("bandVersionBody");
   body.innerHTML = `<div class="band-version-note">${escapeXml(BAND_NOTES[band]||("Band "+band))}</div>
-    <div class="band-version-box"><span class="loader"><span></span><span></span><span></span></span> Writing a band ${escapeXml(band)} model answer…</div>`;
+    <div class="band-version-box"><span class="loader"><span></span><span></span><span></span></span> ${adapting ? `Rewriting your response at band ${escapeXml(band)}…` : `Writing a band ${escapeXml(band)} model answer…`}</div>`;
   try{
-    const text = await callGemini("You are an expert IELTS examiner who writes calibrated model answers at a requested band.", bandVersionPrompt(task, band), null, null);
+    const sys = adapting
+      ? "You are an expert IELTS examiner who rewrites a candidate's own response at a requested band, preserving their content, argument and examples exactly and changing only the language."
+      : "You are an expert IELTS examiner who writes calibrated model answers at a requested band.";
+    const text = await callGemini(sys, bandVersionPrompt(task, band, draft), null, null);
     store[band] = stripFences(text);
     showBandVersionBody(task, band);
     // mark the tab as ready
@@ -4474,12 +5885,99 @@ function showBandVersionBody(task, band){
    ========================================================================= */
 
 let mediaRecorder=null, mediaChunks=[], recStartTime=null, recognizer=null, speechFirstTs=null, speechLastTs=null, speechPauses=[];
+
+/* -------------------------------------------------------------------------
+   Pause state.
+
+   Paused wall-clock time must not leak into any of the three things that read
+   the clock, or pausing would silently corrupt the metrics:
+     - the on-screen timer and reported duration,
+     - the words-per-minute figure (speaking span),
+     - the hesitation analysis (a 3-minute pause is not a 3-minute hesitation).
+   pausedTotalMs accumulates completed pauses; pauseStartedAt marks a pause in
+   progress. Every elapsed-time calculation goes through the helpers below
+   rather than subtracting recStartTime directly.
+   ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------
+   Live waveform. An AnalyserNode on the same MediaStream drives the bar
+   heights, so the animation reflects what the microphone is actually picking
+   up rather than looping regardless of input — a student can see at a glance
+   that they are being heard. Falls back to a CSS keyframe animation wherever
+   Web Audio is unavailable or blocked.
+   ------------------------------------------------------------------------- */
+let audioCtx=null, analyser=null, waveRAF=null, waveSourceNode=null;
+
+function startWaveform(stream){
+  const wave = document.getElementById("recWave");
+  if(!wave) return;
+  wave.classList.add("active");
+  const bars = Array.from(wave.children);
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC){ wave.classList.add("fallback"); return; }
+  try{
+    audioCtx = new AC();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 64;
+    analyser.smoothingTimeConstant = 0.75;
+    waveSourceNode = audioCtx.createMediaStreamSource(stream);
+    waveSourceNode.connect(analyser);          // analyser only — never to the
+                                               // destination, or the candidate
+                                               // hears themselves echo back.
+    const bins = new Uint8Array(analyser.frequencyBinCount);
+    const draw = ()=>{
+      waveRAF = requestAnimationFrame(draw);
+      if(isPaused) return;                     // hold the bars where they are
+      analyser.getByteFrequencyData(bins);
+      for(let i=0;i<bars.length;i++){
+        const v = bins[Math.floor(i * bins.length / bars.length)] / 255;
+        bars[i].style.height = (5 + Math.pow(v, 0.65) * 24).toFixed(1) + "px";
+      }
+    };
+    draw();
+  }catch(e){
+    console.error("waveform unavailable", e);
+    wave.classList.add("fallback");
+  }
+}
+
+function stopWaveform(){
+  if(waveRAF){ cancelAnimationFrame(waveRAF); waveRAF = null; }
+  try{ if(waveSourceNode) waveSourceNode.disconnect(); }catch(e){}
+  try{ if(audioCtx && audioCtx.state !== "closed") audioCtx.close(); }catch(e){}
+  audioCtx = null; analyser = null; waveSourceNode = null;
+  const wave = document.getElementById("recWave");
+  if(wave){
+    wave.classList.remove("active","fallback","paused");
+    Array.from(wave.children).forEach(b=>b.style.height="");
+  }
+}
+
+let isPaused=false, pausedTotalMs=0, pauseStartedAt=null;
+let pausedMsAtFirstSpeech=0, pausedMsAtLastSpeech=0;
+let recognizerRunning=false;
+
+// Total paused time so far, including a pause currently in progress.
+function pausedMsNow(){
+  return pausedTotalMs + (pauseStartedAt !== null ? Date.now() - pauseStartedAt : 0);
+}
+// Recording time with paused stretches removed.
+function recElapsedMs(){
+  if(recStartTime === null) return 0;
+  return Math.max(0, Date.now() - recStartTime - pausedMsNow());
+}
+// First-word to last-word span, with any pauses taken in between removed.
+function speakingSpanMs(){
+  if(speechFirstTs === null || speechLastTs === null) return 0;
+  return Math.max(0, (speechLastTs - speechFirstTs) - (pausedMsAtLastSpeech - pausedMsAtFirstSpeech));
+}
 function renderSpeaking(){
   const S = state.speaking;
   const geminiOn = !!state.settings.geminiKey;
   panel.innerHTML = `
     <p class="section-title">Speaking</p>
     <p class="section-sub">Simulate a fully structured IELTS speaking assessment. Record your response, preview the speech playback stream, and finalize metrics.</p>
+
+    ${descriptorChartSection()}
 
     <div class="gen-card">
       <div class="gen-head">
@@ -4500,6 +5998,7 @@ function renderSpeaking(){
             <option value="Culture & Traditions">Culture & Traditions</option>
           </select>
           <button id="generateSpeakingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate New Speaking Questions</button>
+          ${restoreBuiltInBtn()}
         </div>
       </div>
       <div class="gen-progress" id="speakingGenBar" style="display:none;">
@@ -4566,6 +6065,7 @@ Return ONLY raw JSON, no markdown, no commentary.`;
     const parsedObj = parseJSON(rawText);
     if(parsedObj.part1 && Array.isArray(parsedObj.part1.questions) && parsedObj.part2 && parsedObj.part2.cue && Array.isArray(parsedObj.part2.cue.points) && parsedObj.part3 && Array.isArray(parsedObj.part3.questions)){
       SPEAKING = parsedObj;
+      saveGeneratedContent();
       genProgressDone("speakingGen", "Done — new Part 1, 2 and 3 ready.");
       alert("✨ Success! A new Speaking question set has been generated for all three parts.");
       state.speaking.transcripts = {};
@@ -4611,8 +6111,11 @@ function renderSpeakingPart(part){
     ${promptHtml}
     <div class="rec-controls">
       <button class="btn coral small" id="recBtn"><span class="rec-dot" id="recDot"></span> Record live</button>
+      <button class="btn ghost small" id="pauseBtn" disabled>Pause</button>
       <button class="btn ghost small" id="stopBtn" disabled>Stop</button>
+      <span class="rec-wave" id="recWave" aria-hidden="true">${Array.from({length:12},()=>"<span></span>").join("")}</span>
       <span class="mono" id="recTimer" style="font-size:13px;color:var(--slate);">00:00</span>
+      <span class="rec-paused-tag" id="recPausedTag" style="display:none;">Paused</span>
       <div style="flex:1;"></div>
       <button class="btn small" id="speakScoreBtn" ${S.loading?"disabled":""}>Evaluate Part</button>
     </div>
@@ -4650,6 +6153,7 @@ function renderSpeakingPart(part){
   `;
 
   document.getElementById("recBtn").addEventListener("click", startRecording);
+  document.getElementById("pauseBtn").addEventListener("click", togglePauseRecording);
   document.getElementById("stopBtn").addEventListener("click", stopRecording);
   document.getElementById("speakScoreBtn").addEventListener("click", ()=>scoreSpeaking(part));
   document.getElementById("speakLangBtn").addEventListener("click", ()=>requestSpeakingLanguageCheck(part));
@@ -4715,12 +6219,24 @@ function startRecording(){
     speechFirstTs = null;
     speechLastTs = null;
     speechPauses = [];   // silent gaps between detected speech, in seconds
+    isPaused = false; pausedTotalMs = 0; pauseStartedAt = null;
+    pausedMsAtFirstSpeech = 0; pausedMsAtLastSpeech = 0;
     document.getElementById("recDot").classList.add("live");
+    document.getElementById("recDot").classList.remove("paused");
+    startWaveform(stream);
     document.getElementById("recBtn").disabled = true;
     document.getElementById("stopBtn").disabled = false;
+    // MediaRecorder.pause is not universal; only offer it where it exists.
+    const pauseBtn = document.getElementById("pauseBtn");
+    const canPause = typeof mediaRecorder.pause === "function" && typeof mediaRecorder.resume === "function";
+    pauseBtn.disabled = !canPause;
+    pauseBtn.textContent = "Pause";
+    pauseBtn.title = canPause ? "Hold the recording without ending it" : "This browser cannot pause a recording mid-take";
+    document.getElementById("recPausedTag").style.display = "none";
 
     recTimerInterval = setInterval(()=>{
-      const s = Math.floor((Date.now()-recStartTime)/1000);
+      if(isPaused) return;   // freeze the display while held
+      const s = Math.floor(recElapsedMs()/1000);
       document.getElementById("recTimer").textContent = `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
     }, 500);
 
@@ -4732,16 +6248,22 @@ function startRecording(){
       recognizer.lang = "en-US";
       let finalTrans = "";
       recognizer.onresult = e=>{
+        if(isPaused) return;                            // stray event while held
         const now = Date.now();
-        if(speechFirstTs===null) speechFirstTs = now;   // first detected speech, not the record click
+        if(speechFirstTs===null){                       // first detected speech, not the record click
+          speechFirstTs = now;
+          pausedMsAtFirstSpeech = pausedMsNow();
+        }
         // A gap between consecutive recognition events approximates a silent
         // pause. Interim results fire continuously while speaking, so only real
-        // hesitations open a gap this large.
+        // hesitations open a gap this large. Time spent paused is deducted, so
+        // holding the recording never registers as a hesitation.
         if(speechLastTs !== null){
-          const gap = (now - speechLastTs)/1000;
+          const gap = ((now - speechLastTs) - (pausedMsNow() - pausedMsAtLastSpeech))/1000;
           if(gap >= 0.9) speechPauses.push(Math.round(gap*10)/10);
         }
         speechLastTs = now;                              // last detected speech, excludes trailing silence
+        pausedMsAtLastSpeech = pausedMsNow();
         let interim = "";
         for(let i=e.resultIndex; i<e.results.length; ++i){
           if(e.results[i].isFinal) finalTrans += e.results[i][0].transcript + " ";
@@ -4752,13 +6274,13 @@ function startRecording(){
         S.transcripts[S.part] = full;
 
         const wCount = full.trim() ? full.trim().split(/\s+/).length : 0;
-        const dSec = Math.max(1, Math.floor((now-recStartTime)/1000));
+        const dSec = Math.max(1, Math.floor(recElapsedMs()/1000));
         // WPM over actual speaking span (first→last detected speech), not total
         // elapsed time, so pauses before speaking / after finishing no longer
         // drag the figure down. For very short spans (<5 s) fall back to elapsed
         // time so a single burst doesn't spike to an absurd number.
-        const spanSec = (speechLastTs - speechFirstTs)/1000;
-        const effectiveSec = spanSec >= 5 ? spanSec : Math.max(1,(now-recStartTime)/1000);
+        const spanSec = speakingSpanMs()/1000;
+        const effectiveSec = spanSec >= 5 ? spanSec : Math.max(1, recElapsedMs()/1000);
         const pace = Math.round((wCount / effectiveSec) * 60);
 
         const fillerCount = countFillers(full).total;
@@ -4772,27 +6294,81 @@ function startRecording(){
         S.metrics[S.part] = { words:wCount, duration:dSec, pace, speakingSec: Math.round(spanSec),
                               fillers: fillerCount, longPauses, pauses: speechPauses.slice() };
       };
+      // Restarting a stopped recogniser on resume fires onend first; the flag
+      // keeps start()/stop() calls balanced so we never start a live one.
+      recognizer.onend = ()=>{ recognizerRunning = false; };
       recognizer.start();
+      recognizerRunning = true;
     }
   }).catch(err=>{
     alert("Could not access microphone feed profile.");
   });
 }
 
+// Hold the take without ending it. The audio track keeps its single blob, so a
+// paused-and-resumed recording still produces one continuous file to score.
+function togglePauseRecording(){
+  if(!mediaRecorder || mediaRecorder.state === "inactive") return;
+  const dot = document.getElementById("recDot");
+  const btn = document.getElementById("pauseBtn");
+  const tag = document.getElementById("recPausedTag");
+
+  if(!isPaused){
+    if(mediaRecorder.state !== "recording") return;
+    mediaRecorder.pause();
+    isPaused = true;
+    pauseStartedAt = Date.now();
+    // Speech recognition has no pause; stop it and start a fresh session on
+    // resume. finalTrans lives in the startRecording closure, so the transcript
+    // accumulated so far survives the restart.
+    if(recognizer && recognizerRunning){ try{ recognizer.stop(); }catch(e){} }
+    dot.classList.remove("live"); dot.classList.add("paused");
+    const wave = document.getElementById("recWave"); if(wave) wave.classList.add("paused");
+    btn.textContent = "Resume";
+    tag.style.display = "";
+  } else {
+    mediaRecorder.resume();
+    if(pauseStartedAt !== null){ pausedTotalMs += Date.now() - pauseStartedAt; pauseStartedAt = null; }
+    isPaused = false;
+    if(recognizer && !recognizerRunning){
+      try{ recognizer.start(); recognizerRunning = true; }catch(e){ /* already running */ }
+    }
+    dot.classList.remove("paused"); dot.classList.add("live");
+    const wave = document.getElementById("recWave"); if(wave) wave.classList.remove("paused");
+    btn.textContent = "Pause";
+    tag.style.display = "none";
+  }
+}
+
 function stopRecording(){
+  // Resume first: a MediaRecorder stopped while paused does not reliably flush
+  // its final chunk in every browser.
+  if(mediaRecorder && mediaRecorder.state === "paused"){
+    try{ mediaRecorder.resume(); }catch(e){}
+  }
+  if(pauseStartedAt !== null){ pausedTotalMs += Date.now() - pauseStartedAt; pauseStartedAt = null; }
+  isPaused = false;
+
   if(mediaRecorder && mediaRecorder.state!=="inactive") mediaRecorder.stop();
-  if(recognizer) recognizer.stop();
+  if(recognizer) { try{ recognizer.stop(); }catch(e){} }
+  recognizerRunning = false;
   clearInterval(recTimerInterval);
-  document.getElementById("recDot").classList.remove("live");
+  stopWaveform();
+  const dot = document.getElementById("recDot");
+  if(dot) dot.classList.remove("live", "paused");
   document.getElementById("recBtn").disabled = false;
   document.getElementById("stopBtn").disabled = true;
+  const pauseBtn = document.getElementById("pauseBtn");
+  if(pauseBtn){ pauseBtn.disabled = true; pauseBtn.textContent = "Pause"; }
+  const tag = document.getElementById("recPausedTag");
+  if(tag) tag.style.display = "none";
 
   // Finalise metrics against the true speaking span (excludes trailing silence
-  // between the last word and pressing Stop).
+  // between the last word and pressing Stop, and any time spent paused).
   const S = state.speaking;
   const m = S.metrics[S.part];
   if(m && speechFirstTs!==null && speechLastTs!==null){
-    const spanSec = Math.max(1,(speechLastTs - speechFirstTs)/1000);
+    const spanSec = Math.max(1, speakingSpanMs()/1000);
     if(spanSec >= 5){
       m.pace = Math.round((m.words / spanSec) * 60);
       m.speakingSec = Math.round(spanSec);
@@ -5032,6 +6608,14 @@ function showHesitation(part){
 const SPEAKING_LANGUAGE_SYS = `You are an IELTS Speaking examiner giving corrective language feedback on a candidate's spoken answer (given as a transcript, so ignore missing punctuation and capitalisation unless it changes meaning).
 Correct grammar and usage as a speaking coach: verb tense/aspect, subject-verb agreement, articles, prepositions, plurals, word form, pronouns, word order, and clearly wrong word choice or collocation. Also flag overused basic vocabulary and suggest a stronger natural alternative.
 Do NOT rewrite the candidate's ideas, and do NOT invent content they did not say.
+
+COVERAGE — this is the part that is most often done badly, so follow it literally:
+1. Work through the transcript SENTENCE BY SENTENCE, from the first word to the last. Do not stop once you have found a few problems, and do not lose attention toward the end — the final sentences must be checked as carefully as the first.
+2. Report EVERY error you find. Do not skip one because it is minor, because it is the same type as an earlier one, or because the meaning is still clear. If the candidate makes the same mistake five times, that is five entries.
+3. The "corrected" text must contain NO remaining errors. After you write it, re-read it once against the descriptors above as if you were marking someone else's work, and fix anything you left behind before you answer.
+4. "corrected" and "errors" must agree with each other. Every difference between the candidate's original wording and your corrected version must appear as an entry in "errors", and every entry in "errors" must actually be applied in "corrected". A correction that appears in one but not the other is a defect.
+5. Quote "original" exactly as the candidate said it, so the phrase can be found in the transcript. Keep each quoted phrase short — just the part that is wrong plus any words needed to make it findable.
+
 Respond with ONLY raw JSON in this exact shape:
 {
   "summary": "one short sentence, e.g. '7 issues: 3 verb tense, 2 articles, 2 word choice'",
@@ -5143,24 +6727,57 @@ const SPEAKING_BAND_NOTES = {
   "7.0":"Band 7.0 — speaks at length without noticeable effort, flexible vocabulary including some less common items, frequent error-free sentences.",
   "7.5":"Band 7.5 — fluent and well-developed with natural cohesion, precise and idiomatic word choice, and strong grammatical control.",
   "8.0":"Band 8.0 — effortless, fully extended answers, wide and precise lexis used naturally, with only very occasional slips.",
+  "8.5":"Band 8.5 — sustained, fully flexible and precise throughout, with idiomatic control and only the kind of slip a fluent native speaker makes.",
   "9.0":"Band 9.0 — completely natural and effortless, fully coherent, idiomatic and precise, with total grammatical accuracy."
 };
 
-function speakingBandPrompt(part, band){
+// Builds the band-version prompt. When the candidate has actually spoken, this
+// REWRITES THEIR OWN ANSWER at the target band rather than inventing a fresh
+// one — the point of the feature is to show a student what their answer would
+// sound like higher up, which only works if the ideas stay theirs. It fell back
+// to writing an unrelated model answer because the transcript was never passed
+// in at all.
+function speakingBandPrompt(part, band, transcript){
   const data = SPEAKING[part];
-  let ask;
-  if(part === "part2"){
-    ask = `IELTS Speaking Part 2 (individual long turn). Cue card: "${data.cue.title}" with points: ${data.cue.points.join("; ")}. Write a spoken monologue of roughly 200-260 words (about 1.5-2 minutes of speech).`;
-  }else{
-    const qs = data.questions.slice(0, part==="part1" ? 3 : 2);
-    ask = `IELTS Speaking ${part==="part1"?"Part 1 (interview)":"Part 3 (two-way discussion)"}. Answer these examiner questions in order, each as a spoken answer: ${qs.map((q,i)=>`(${i+1}) ${q}`).join(" ")}. Label each answer with the question number only.`;
+  const own = (transcript || "").trim();
+  const partLabel = part === "part2" ? "Part 2 (individual long turn)"
+                  : part === "part1" ? "Part 1 (interview)" : "Part 3 (two-way discussion)";
+  const task = part === "part2"
+    ? `Cue card: "${data.cue.title}" with points: ${data.cue.points.join("; ")}.`
+    : `Examiner questions: ${data.questions.slice(0, part==="part1" ? 3 : 2).map((q,i)=>`(${i+1}) ${q}`).join(" ")}`;
+
+  const calibration = `- Calibrate fluency, vocabulary, grammar and coherence so they are genuinely characteristic of band ${band} against the official IELTS Speaking descriptors. For lower bands include realistic hesitation markers (um, er), repetition, simple vocabulary and real grammar errors; for the highest bands use natural, idiomatic, error-free speech.
+- Make it sound like spoken English, not a written essay.
+- Return ONLY the spoken answer text. No preamble, no band label, no commentary, no markdown.`;
+
+  if(own){
+    return `IELTS Speaking ${partLabel}. ${task}
+
+This is what the candidate actually said:
+"""
+${own}
+"""
+
+Rewrite THE CANDIDATE'S OWN ANSWER so that it would be awarded EXACTLY IELTS band ${band}.
+
+This is a rewrite, not a new answer. Absolutely required:
+- Keep their ideas, opinions, reasons and examples. If they talked about their brother's café in Medellín, the band ${band} version is still about their brother's café in Medellín.
+- Keep every personal detail they gave — names, places, jobs, numbers, preferences. Invent nothing about their life.
+- Keep the same overall structure and order of points, and roughly the same length. Only where the target band genuinely requires fuller development may you extend a point, and then only by developing what they already said.
+- Change ONLY the language: the grammatical range and accuracy, the vocabulary, the cohesion, and the fluency features.
+- If the target band is BELOW their current level, degrade the language honestly — simplify the structures, narrow the vocabulary, introduce the errors and hesitation typical of band ${band} — while keeping the same content.
+- If the target band is ABOVE their current level, upgrade the language — more flexible structures, more precise and less common vocabulary, smoother cohesion — while keeping the same content.
+${calibration}`;
   }
+
+  // No recording yet: fall back to a model answer built from the prompt itself.
+  const ask = part === "part2"
+    ? `IELTS Speaking Part 2 (individual long turn). ${task} Write a spoken monologue of roughly 200-260 words (about 1.5-2 minutes of speech).`
+    : `IELTS Speaking ${partLabel}. Answer these examiner questions in order, each as a spoken answer: ${data.questions.slice(0, part==="part1" ? 3 : 2).map((q,i)=>`(${i+1}) ${q}`).join(" ")}. Label each answer with the question number only.`;
   return `${ask}
 Write it as a model answer that would be awarded EXACTLY IELTS band ${band}.
 Requirements:
-- Calibrate fluency, vocabulary, grammar and coherence so they are genuinely characteristic of band ${band} against the official IELTS Speaking descriptors. For lower bands include realistic hesitation markers (um, er), repetition, simple vocabulary and real grammar errors; for the highest bands use natural, idiomatic, error-free speech.
-- Make it sound like spoken English, not a written essay.
-- Return ONLY the spoken answer text. No preamble, no band label, no markdown.`;
+${calibration}`;
 }
 
 function renderSpeakingBandVersions(part){
@@ -5169,10 +6786,13 @@ function renderSpeakingBandVersions(part){
   const all = state.speaking.bandVersions || (state.speaking.bandVersions = {});
   const store = all[part] || (all[part] = {});
   const active = store.__active || null;
+  const hasOwn = !!(state.speaking.transcripts[part] || "").trim();
   area.innerHTML = `
     <div class="band-versions">
-      <h3>Model spoken answers by band score</h3>
-      <p class="bv-intro">Hear how this same part sounds at each IELTS band. Pick a band — the model answer is generated on demand and then saved here.</p>
+      <h3>${hasOwn ? "Your answer at each band score" : "Model spoken answers by band score"}</h3>
+      <p class="bv-intro">${hasOwn
+        ? "Your own answer rewritten at each IELTS band — same ideas, same examples, same details, only the language changes. Pick a band; it is generated on demand and saved here. Recording a new answer clears these."
+        : "Record or type an answer first and these become your own answer rewritten at each band. Until then they are generic model answers for this task."}</p>
       <div class="band-tabs">
         ${BAND_TARGETS.map(b=>`
           <button class="band-tab ${b===active?"active":""} ${store[b]?"ready":""}" data-band="${b}">
@@ -5190,6 +6810,13 @@ function renderSpeakingBandVersions(part){
 async function selectSpeakingBandVersion(part, band){
   const all = state.speaking.bandVersions || (state.speaking.bandVersions = {});
   const store = all[part] || (all[part] = {});
+  const transcript = state.speaking.transcripts[part] || "";
+  const fp = contentFingerprint(transcript);
+  if(store.__fp !== fp){
+    // The answer changed — drop versions written against the previous one.
+    Object.keys(store).forEach(k=>{ if(k !== "__active") delete store[k]; });
+    store.__fp = fp;
+  }
   store.__active = band;
   const area = document.getElementById("speakBandVersionsArea");
   if(area) area.querySelectorAll(".band-tab").forEach(b=>b.classList.toggle("active", b.dataset.band===band));
@@ -5201,10 +6828,14 @@ async function selectSpeakingBandVersion(part, band){
     body.innerHTML = `<div class="band-version-note" style="border-color:var(--coral);color:var(--coral);background:#fdecea;">Add a Gemini API key in ⚙ AI engine settings to generate model answers.</div>`;
     return;
   }
+  const adapting = !!transcript.trim();
   body.innerHTML = `<div class="band-version-note">${escapeXml(SPEAKING_BAND_NOTES[band]||("Band "+band))}</div>
-    <div class="band-version-box"><span class="loader"><span></span><span></span><span></span></span> Writing a band ${escapeXml(band)} model answer…</div>`;
+    <div class="band-version-box"><span class="loader"><span></span><span></span><span></span></span> ${adapting ? `Rewriting your answer at band ${escapeXml(band)}…` : `Writing a band ${escapeXml(band)} model answer…`}</div>`;
   try{
-    const text = await callGemini("You are an expert IELTS Speaking examiner who writes calibrated model spoken answers at a requested band.", speakingBandPrompt(part, band), null, null);
+    const sys = adapting
+      ? "You are an expert IELTS Speaking examiner who rewrites a candidate's own spoken answer at a requested band, preserving their ideas and personal details exactly and changing only the language."
+      : "You are an expert IELTS Speaking examiner who writes calibrated model spoken answers at a requested band.";
+    const text = await callGemini(sys, speakingBandPrompt(part, band, transcript), null, null);
     store[band] = stripFences(text);
     showSpeakingBandBody(part, band);
     if(area){ const t = area.querySelector(`.band-tab[data-band="${band}"]`); if(t) t.classList.add("ready"); }
