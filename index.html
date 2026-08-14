@@ -250,6 +250,9 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
 /* Reading Passage/Questions switch — phones only; desktop keeps both panes. */
 .rd-bar{display:none;}
 .rd-pane{min-width:0;}
+/* Shortcut to the AI generator — phones only; on desktop the generator is
+   already the first block on the panel, so there is nothing to jump to. */
+.gen-jump{display:none;}
 
 .audio-player{
   display:flex;align-items:center;gap:14px;background:var(--ink);color:var(--paper);
@@ -728,6 +731,19 @@ textarea.essay{
   .panel>.gen-card{order:2;margin:20px 0 0;}
   .panel>.gen-card~.gen-card{margin-top:10px;}
   .panel>hr.rule:first-of-type{display:none;}
+  .gen-jump{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    width:100%;min-height:48px;margin:0 0 18px;padding:12px 15px;
+    border:1.5px dashed var(--brass);border-radius:13px;background:#fbf4de;
+    color:#8a6c11;font-family:inherit;font-size:13.5px;font-weight:700;text-align:left;
+  }
+  .gen-jump:active{background:#f6ecd0;}
+  .gen-jump-arrow{font-size:15px;opacity:.7;}
+  .gen-flash{animation:genFlash 1.5s ease;}
+  @keyframes genFlash{
+    0%,100%{box-shadow:0 0 0 0 rgba(201,162,39,0);}
+    20%,65%{box-shadow:0 0 0 4px rgba(201,162,39,.45);}
+  }
   .gen-card{padding:15px 14px;border-radius:14px;}
   .gen-head{gap:12px;}
   .gen-head>div:first-child{flex:1 1 100%;}
@@ -1840,6 +1856,38 @@ function render(){
   if(state.mod==="speaking") return renderSpeaking();
 }
 
+/* The AI generator card sits at the END of a module on phones (it is setup,
+   not the exam), which makes it easy to miss. Every module that has one gets
+   a shortcut pinned at the top that jumps straight to it. Desktop shows
+   nothing: there the generator is already the first thing on the panel. */
+const GEN_JUMP_LABELS = {
+  listening: "🎧 Build a new test from your audios",
+  reading:   "✨ Generate new reading sections",
+  writing:   "✨ Generate a new writing exam",
+  speaking:  "🎙 Generate new speaking questions"
+};
+function addMobileGeneratorShortcut(mod){
+  if(!isPhoneLayout() || !GEN_JUMP_LABELS[mod]) return;
+  if(panel.querySelector(".gen-jump")) return;
+  const card = [...panel.querySelectorAll(":scope > .gen-card")]
+    .find(c => !c.classList.contains("note-card"));
+  if(!card) return;
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "gen-jump";
+  btn.innerHTML = `<span>${GEN_JUMP_LABELS[mod]}</span><span class="gen-jump-arrow">↓</span>`;
+  btn.addEventListener("click", ()=>{
+    card.scrollIntoView({behavior:"smooth", block:"start"});
+    card.classList.add("gen-flash");
+    setTimeout(()=>card.classList.remove("gen-flash"), 1500);
+  });
+
+  const anchor = panel.querySelector(".section-sub");
+  if(anchor) anchor.insertAdjacentElement("afterend", btn);
+  else panel.insertBefore(btn, panel.firstChild);
+}
+
 /* =========================================================================
    SETTINGS MODAL
    ========================================================================= */
@@ -2466,6 +2514,7 @@ function renderListening(){
 
   if(L.submitted) showListeningResult();
   if(L.showKey) showListeningAnswerKey();
+  addMobileGeneratorShortcut("listening");
 }
 
 // Answer key — the full correct-answer list, independent of whether the
@@ -2843,6 +2892,7 @@ function renderReading(){
 
   if(R.submitted) showReadingResult();
   if(R.showKey) showReadingAnswerKey();
+  addMobileGeneratorShortcut("reading");
 }
 
 // Full answer key across all 4 sections, independent of submission —
@@ -3439,6 +3489,7 @@ function renderWriting(){
   if(W.grammar && W.grammar[task]) showGrammar(task);
   if(W.paraFeedback[task]) showParagraphFeedback(task);
   if(W.reports[task]) showWritingReport(task, W.reports[task]);
+  addMobileGeneratorShortcut("writing");
 }
 
 async function generateNewWritingWithAI() {
@@ -4475,6 +4526,7 @@ function renderSpeaking(){
   }
 
   renderSpeakingPart(S.part);
+  addMobileGeneratorShortcut("speaking");
 }
 
 async function generateNewSpeakingWithAI(){
