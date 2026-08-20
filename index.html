@@ -876,6 +876,265 @@ textarea.essay{
   color:rgba(246,243,234,0.8);font-size:12.5px;padding:24px;line-height:1.6;
 }
 
+/* ---------- translator ("Language desk") ----------
+   One collapsible card per skill tab. It borrows the .gen-card frame so it
+   sits in the same rhythm as the generators above it, and takes the azure
+   accent — teal already means "works now" and brass "needs Google setup",
+   so a third hue keeps the three card families readable at a glance. */
+.tr-card{
+  background:linear-gradient(180deg,var(--surface),var(--surface-1));
+  border:1px solid var(--line);border-left:3px solid var(--azure);
+  border-radius:12px;margin-bottom:22px;overflow:hidden;
+  box-shadow:var(--elev-1);
+}
+.tr-head{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:14px 18px;background:transparent;border:none;text-align:left;
+  transition:background .18s var(--ease-out);
+}
+.tr-head:hover{background:rgba(53,103,166,.05);}
+.tr-head .tr-glyph{font-size:17px;line-height:1;flex-shrink:0;}
+.tr-head-text{flex:1;min-width:0;}
+.tr-head .tr-eyebrow{
+  display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--azure);margin-bottom:2px;
+}
+.tr-head .tr-title{
+  display:block;font-family:'Fraunces',serif;font-size:15.5px;font-weight:600;color:var(--ink);
+}
+.tr-head .tr-sub{
+  display:block;font-size:11.5px;color:var(--slate);margin-top:2px;line-height:1.45;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.tr-caret{
+  flex-shrink:0;font-size:11px;color:var(--slate);
+  transition:transform .22s var(--ease-out);
+}
+.tr-card.open .tr-caret{transform:rotate(180deg);}
+.tr-body{padding:0 18px 18px;border-top:1px solid var(--line);}
+.tr-card:not(.open) .tr-body{display:none;}
+
+/* language bar */
+.tr-langs{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:14px 0 12px;
+}
+.tr-select{
+  flex:1 1 150px;min-width:0;border:1px solid var(--line);border-radius:9px;
+  padding:9px 11px;font-size:13px;font-family:inherit;color:var(--ink);
+  background:#fff;transition:border-color .16s var(--ease-out);
+}
+.tr-select:focus{border-color:var(--azure);outline:none;box-shadow:0 0 0 3px rgba(53,103,166,.14);}
+.tr-swap{
+  flex:0 0 auto;width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--line);background:linear-gradient(180deg,#fff,var(--surface-2));
+  color:var(--slate);font-size:14px;line-height:1;
+  display:inline-flex;align-items:center;justify-content:center;
+  box-shadow:var(--elev-1);transition:transform .22s var(--ease-spring),color .16s;
+}
+.tr-swap:hover{color:var(--azure);transform:rotate(180deg);}
+.tr-swap:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+
+/* input */
+.tr-input{
+  width:100%;min-height:82px;resize:vertical;padding:12px 14px;
+  border:1px solid var(--line);border-radius:11px;background:#fff;
+  font-family:inherit;font-size:14.5px;line-height:1.6;color:var(--ink);
+  transition:border-color .16s var(--ease-out),box-shadow .16s var(--ease-out);
+}
+.tr-input:focus{border-color:var(--azure);outline:none;box-shadow:0 0 0 3px rgba(53,103,166,.14);}
+.tr-input::placeholder{color:var(--slate);opacity:.65;}
+.tr-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:11px;}
+.tr-count{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--slate);
+  margin-left:auto;letter-spacing:.03em;
+}
+.tr-engine{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--slate);
+  border:1px solid var(--line);border-radius:999px;padding:3px 9px;background:var(--surface-2);
+}
+.tr-engine b{color:var(--azure);font-weight:600;}
+
+/* result */
+.tr-out{
+  margin-top:14px;border:1px solid var(--line);border-radius:11px;
+  background:var(--surface-2);overflow:hidden;
+}
+.tr-out-head{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:8px 14px;border-bottom:1px solid var(--line);background:rgba(53,103,166,.05);
+}
+.tr-out-lang{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--azure);
+}
+.tr-out-tools{display:flex;gap:6px;margin-left:auto;}
+.tr-icon-btn{
+  border:1px solid var(--line);background:#fff;border-radius:8px;
+  width:30px;height:26px;font-size:12px;line-height:1;color:var(--slate);
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:color .16s,border-color .16s,transform .18s var(--ease-spring);
+}
+.tr-icon-btn:hover{color:var(--azure);border-color:var(--azure);}
+.tr-icon-btn:active{transform:scale(.9);}
+.tr-icon-btn.on{color:var(--brass);border-color:var(--brass);background:rgba(201,162,39,.10);}
+.tr-out-text{
+  padding:14px;font-size:16px;line-height:1.65;color:var(--ink);
+  font-family:'Fraunces',serif;white-space:pre-wrap;word-break:break-word;
+}
+.tr-out-back{
+  padding:0 14px 12px;font-size:12px;color:var(--slate);line-height:1.55;
+}
+.tr-out-back b{color:var(--ink);font-weight:600;}
+
+/* alternative renderings returned by the engine */
+.tr-alts{padding:0 14px 13px;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;}
+.tr-alts-lbl{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--slate);width:100%;margin-bottom:1px;
+}
+.tr-chip{
+  border:1px solid var(--line);background:#fff;border-radius:999px;
+  padding:5px 12px;font-size:12.5px;color:var(--ink);
+  transition:border-color .16s,background .16s,transform .18s var(--ease-spring);
+}
+.tr-chip:hover{border-color:var(--azure);background:rgba(53,103,166,.07);}
+.tr-chip:active{transform:scale(.94);}
+.tr-chip .tr-chip-note{color:var(--slate);font-size:11px;margin-left:5px;}
+
+/* word studio — conjugation + synonym drill-down */
+.tr-studio{margin-top:14px;}
+.tr-studio-empty{
+  border:1px dashed var(--line);border-radius:11px;padding:13px 15px;
+  font-size:12.5px;color:var(--slate);line-height:1.6;
+}
+.tr-studio-card{
+  border:1px solid var(--line);border-radius:11px;background:#fff;
+  box-shadow:var(--elev-1);overflow:hidden;
+}
+.tr-studio-top{
+  padding:14px 16px 12px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(201,162,39,.10),rgba(201,162,39,0));
+}
+.tr-word{
+  font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--ink);
+  line-height:1.2;margin:0;
+}
+.tr-word-meta{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:5px;
+  font-size:12px;color:var(--slate);
+}
+.tr-pos{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--teal);
+  border:1px solid rgba(47,111,98,.35);border-radius:999px;padding:2px 8px;
+}
+.tr-ipa{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate);}
+.tr-sec{padding:13px 16px;border-top:1px solid var(--line);}
+.tr-sec:first-of-type{border-top:none;}
+.tr-sec-h{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--slate);margin:0 0 9px;
+}
+.tr-sense{
+  padding:8px 0;border-top:1px dotted var(--line);font-size:13.5px;line-height:1.6;
+}
+.tr-sense:first-child{border-top:none;padding-top:0;}
+.tr-sense-tr{font-weight:600;color:var(--ink);}
+.tr-sense-gloss{color:var(--slate);font-size:12.5px;}
+.tr-sense-ex{
+  display:block;margin-top:4px;padding-left:10px;border-left:2px solid var(--line);
+  font-family:'Fraunces',serif;font-size:13px;color:var(--ink);line-height:1.55;
+}
+.tr-sense-ex i{display:block;font-family:'Inter',sans-serif;font-size:11.5px;color:var(--slate);font-style:normal;margin-top:2px;}
+.tr-reg{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--azure);margin-left:6px;
+}
+
+/* conjugation grid */
+.tr-conj{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:10px;}
+.tr-tense{
+  border:1px solid var(--line);border-radius:9px;background:var(--surface-2);
+  padding:9px 11px;
+}
+.tr-tense-n{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--brass);margin-bottom:6px;
+}
+.tr-tense-rows{display:flex;flex-direction:column;gap:2px;}
+.tr-tense-row{
+  display:flex;gap:8px;font-size:12.5px;line-height:1.5;
+}
+.tr-tense-row span:first-child{color:var(--slate);flex:0 0 62px;font-size:11.5px;}
+.tr-tense-row span:last-child{color:var(--ink);font-weight:500;min-width:0;word-break:break-word;}
+.tr-conj-inf{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--slate);margin-bottom:9px;
+}
+.tr-conj-inf b{color:var(--ink);}
+
+.tr-colls{display:flex;flex-wrap:wrap;gap:6px;}
+.tr-coll{
+  border:1px solid var(--line);border-radius:7px;background:var(--surface-2);
+  padding:4px 9px;font-size:12px;color:var(--ink);font-family:'Fraunces',serif;
+}
+.tr-tip{
+  margin:0;padding:11px 16px;background:rgba(201,162,39,.09);
+  border-top:1px solid var(--line);font-size:12.5px;color:var(--ink);line-height:1.6;
+}
+.tr-tip b{color:var(--brass);}
+
+/* saved words (phrasebook) */
+.tr-saved{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;}
+.tr-saved-h{
+  display:flex;align-items:center;gap:8px;
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--slate);margin-bottom:9px;
+}
+.tr-saved-list{display:flex;flex-wrap:wrap;gap:6px;}
+.tr-saved-item{
+  display:inline-flex;align-items:center;gap:7px;
+  border:1px solid var(--line);border-radius:999px;background:#fff;
+  padding:4px 6px 4px 12px;font-size:12.5px;color:var(--ink);
+}
+.tr-saved-item .tr-saved-tr{color:var(--slate);font-size:11.5px;}
+.tr-saved-x{
+  border:none;background:transparent;color:var(--slate);font-size:13px;line-height:1;
+  padding:2px 4px;border-radius:50%;transition:color .16s;
+}
+.tr-saved-x:hover{color:var(--coral);}
+
+/* status line */
+.tr-status{font-size:12px;line-height:1.55;margin:11px 0 0;color:var(--slate);}
+.tr-status.err{color:var(--coral);}
+.tr-status.ok{color:var(--teal);}
+.tr-spin{
+  display:inline-block;width:11px;height:11px;margin-right:6px;vertical-align:-1px;
+  border:2px solid rgba(53,103,166,.28);border-top-color:var(--azure);border-radius:50%;
+  animation:trspin .7s linear infinite;
+}
+@keyframes trspin{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion: reduce){
+  .tr-spin{animation-duration:2.4s;}
+  .tr-swap:hover{transform:none;}
+  .tr-chip:active,.tr-icon-btn:active{transform:none;}
+}
+
+/* floating "translate selection" bubble */
+.tr-bubble{
+  position:absolute;z-index:70;transform:translate(-50%,-100%);
+  display:inline-flex;align-items:center;gap:6px;
+  background:linear-gradient(180deg,var(--ink-2),var(--ink));color:var(--paper);
+  border:1px solid var(--ink);border-radius:999px;padding:7px 14px;
+  font-size:12px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;
+  box-shadow:var(--elev-3);
+  animation:trPop .16s var(--ease-spring);
+}
+.tr-bubble:hover{filter:brightness(1.1);}
+@keyframes trPop{from{opacity:0;transform:translate(-50%,-90%) scale(.9);}to{opacity:1;transform:translate(-50%,-100%) scale(1);}}
+@media (prefers-reduced-motion: reduce){.tr-bubble{animation:none;}}
+
 /* =========================================================================
    MOBILE LAYER — iOS / Android browsers (≤820px).
    Everything below is scoped to the phone breakpoint, so the desktop
@@ -1232,6 +1491,27 @@ textarea.essay{
   #sessionLabelInput{width:100%;}
   .class-code-box .code{font-size:21px;}
   .footer-note{padding:0 16px;font-size:10.5px;}
+
+  /* ---- translator: one column, 44px touch targets ---- */
+  .tr-head{padding:12px 14px;gap:10px;min-height:48px;}
+  .tr-head .tr-title{font-size:14.5px;}
+  .tr-head .tr-sub{display:none;}
+  .tr-body{padding:0 14px 16px;}
+  .tr-langs{gap:7px;padding:12px 0 10px;}
+  .tr-select{flex:1 1 100%;min-height:44px;font-size:15px;}
+  .tr-swap{
+    order:3;width:100%;height:36px;border-radius:10px;font-size:13px;
+  }
+  .tr-swap::after{content:"\00a0\00a0Swap languages";font-size:12px;font-weight:600;}
+  .tr-swap:hover{transform:none;}
+  .tr-input{font-size:16px;min-height:96px;}  /* 16px stops iOS zoom-on-focus */
+  .tr-actions>.btn{min-height:44px;}
+  .tr-count{width:100%;margin-left:0;text-align:right;}
+  .tr-out-text{font-size:16.5px;}
+  .tr-icon-btn{width:38px;height:34px;font-size:14px;}
+  .tr-conj{grid-template-columns:1fr;}
+  .tr-word{font-size:20px;}
+  .tr-bubble{padding:9px 16px;font-size:13px;}
 }
 
 /* Very narrow phones (320–360px): tighten the few rows that run out of room. */
@@ -1413,6 +1693,32 @@ textarea.essay{
     <p style="font-size:11px;color:var(--slate);line-height:1.55;margin:0 0 14px;">
       In Google Cloud → <b>APIs &amp; Services</b>: enable the <b>Google Drive API</b>, then under <b>Credentials → OAuth 2.0 Client IDs</b> create a <b>Web application</b> client and add this site to <b>Authorised JavaScript origins</b>. On the OAuth consent screen (External / Testing) add your own Google address as a test user. Requires https — it will not work from a local <code>file://</code> copy.
     </p>
+
+    <hr class="rule" style="margin:18px 0;">
+    <label style="font-size:12px;font-weight:600;color:var(--slate);">Translator engine <span style="font-weight:400;">(the 🌐 Language desk on every skill tab)</span></label>
+    <p style="font-size:11.5px;color:var(--slate);line-height:1.6;margin:6px 0 10px;">
+      <b>Auto</b> uses the best engine you have configured, in this order: DeepL proxy → Google → Gemini → MyMemory.
+      <b>MyMemory</b> needs no setup at all and is what runs out of the box, so the translator works before you configure anything.
+      Conjugation tables, register-ranked alternatives and collocations always run on the <b>Gemini</b> key above — no translation API on the market returns verb forms.
+    </p>
+    <select id="trProviderInput" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;margin:0 0 12px;background:#fff;">
+      <option value="auto">Auto — best engine configured</option>
+      <option value="google">Google Cloud Translation (needs its own key)</option>
+      <option value="deepl">DeepL (needs a proxy you run)</option>
+      <option value="gemini">Gemini (uses the key above)</option>
+      <option value="mymemory">MyMemory (free, no key, ~480 characters)</option>
+    </select>
+    <label style="font-size:12px;font-weight:600;color:var(--slate);">Google Cloud Translation API key <span style="font-weight:400;">(optional)</span></label>
+    <p style="font-size:11px;color:var(--slate);line-height:1.55;margin:5px 0 6px;">
+      A separate key from the Gemini one: in Google Cloud enable <b>Cloud Translation API</b>, then create an API key under <b>Credentials</b>. 100+ languages, and the free tier covers ordinary classroom use. If you restrict the key by HTTP referrer, allow this page's address.
+    </p>
+    <input type="password" id="trGoogleKeyInput" placeholder="AIza… (Cloud Translation key)" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:0 0 12px;">
+    <label style="font-size:12px;font-weight:600;color:var(--slate);">DeepL proxy URL <span style="font-weight:400;">(optional — highest quality)</span></label>
+    <p style="font-size:11px;color:var(--slate);line-height:1.55;margin:5px 0 6px;">
+      DeepL is the most accurate engine for European languages but <b>refuses browser requests by design</b> (403 + CORS), so it cannot be called from this page directly. Point this at a small proxy you run — DeepL publishes a ready-made one — and paste its base URL, e.g. <code>https://your-worker.workers.dev</code>. Leave the key blank if the proxy already holds it.
+    </p>
+    <input type="text" id="trDeeplProxyInput" placeholder="https://your-deepl-proxy.example.com" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:0 0 8px;">
+    <input type="password" id="trDeeplKeyInput" placeholder="DeepL auth key (only if your proxy expects it)" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:0 0 14px;">
 
     <div class="disclaimer" style="margin-top:0;">
       ⚠️ Important: this key is used directly from your browser and is visible to anyone who inspects this page's network traffic. That's fine for your own personal use, but <b>never share this exported HTML file with your key already saved in it</b> — if you want students to use Speaking scoring too, each of them should add their own key, or you should route requests through a small server you control that holds the key instead.
@@ -1888,7 +2194,19 @@ const state = {
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
   speaking: { part:"part1", topic:"random", transcripts:{}, metrics:{}, report:null, reports:{}, loading:false, recording:false, audioB64:{}, audioMime:{}, language:{}, hesitation:{}, bandVersions:{} },
-  settings: { geminiKey:"", geminiModel:"gemini-3.5-flash-lite", driveFolderId:"", driveClientId:"" }
+  // Translator ("Language desk") — one card per skill tab. `open` is keyed by
+  // module so a tab remembers whether the desk was left open; `result` carries
+  // `forMod` so a lookup shows only on the tab it was made from.
+  translator: {
+    open:{}, source:"", from:"en", to:"es",
+    result:null, studio:null, loading:false, studioLoading:false, error:"",
+    saved:[]
+  },
+  settings: {
+    geminiKey:"", geminiModel:"gemini-3.5-flash-lite", driveFolderId:"", driveClientId:"",
+    // Translator engine: "auto" picks the best one configured below.
+    translateProvider:"auto", googleTranslateKey:"", deeplProxyUrl:"", deeplKey:""
+  }
 };
 
 /* =========================================================================
@@ -2028,10 +2346,22 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   document.getElementById("geminiModelInput").value = state.settings.geminiModel || "gemini-3.5-flash-lite";
   document.getElementById("driveFolderInput").value = state.settings.driveFolderId || "";
   document.getElementById("driveClientInput").value = state.settings.driveClientId || "";
+  // Translator config from the same local file, with the same precedence rule:
+  // saved settings win, the file only backfills what is still blank.
+  const tcfg = window.TRANSLATE_CONFIG || {};
+  if(!hadSaved && tcfg.provider) state.settings.translateProvider = String(tcfg.provider).trim();
+  if(!state.settings.googleTranslateKey && tcfg.googleTranslateKey) state.settings.googleTranslateKey = String(tcfg.googleTranslateKey).trim();
+  if(!state.settings.deeplProxyUrl && tcfg.deeplProxyUrl) state.settings.deeplProxyUrl = String(tcfg.deeplProxyUrl).trim();
+  if(!state.settings.deeplKey && tcfg.deeplKey) state.settings.deeplKey = String(tcfg.deeplKey).trim();
+  document.getElementById("trProviderInput").value = state.settings.translateProvider || "auto";
+  document.getElementById("trGoogleKeyInput").value = state.settings.googleTranslateKey || "";
+  document.getElementById("trDeeplProxyInput").value = state.settings.deeplProxyUrl || "";
+  document.getElementById("trDeeplKeyInput").value = state.settings.deeplKey || "";
   // Restore generated content FIRST: it must precede the first render, and it
   // must not sit behind anything that can fail. Ordering it after loadHistory
   // meant a single throw in the dashboard render silently skipped it.
   await restoreGeneratedContent();
+  await trLoadPrefs();
   await loadHistory();
   render();
   // Tells the intro curtain the app is genuinely ready. Fired before auth so a
@@ -2912,6 +3242,753 @@ function rubricPanel(skill){
 }
 
 /* =========================================================================
+   TRANSLATOR — "Language desk"
+   -------------------------------------------------------------------------
+   A translator on every skill tab (Listening, Reading, Writing, Speaking),
+   plus select-any-text-to-translate inside the panel.
+
+   WHY THIS PROVIDER MIX
+     No machine-translation API on the market returns verb conjugations. The
+     three obvious candidates each solve a different part of the brief:
+
+       • DeepL          — best raw quality for European pairs, but it refuses
+                          browser calls outright (403 + CORS by design, see
+                          developers.deepl.com/docs/best-practices/cors-requests),
+                          so it only works here through a proxy you run.
+       • Google Cloud   — Translation v2 does send Access-Control-Allow-Origin,
+                          so it works straight from this page with an API key
+                          in the query string. 100+ languages. No conjugation.
+       • MyMemory       — free, keyless, CORS-open. Its translation-memory
+                          "matches" double as alternative renderings. Weakest
+                          quality, but it means the tab works with zero setup.
+
+     None of them conjugates a verb or ranks synonyms by register — so the
+     linguistic half (conjugation tables, alternative words, collocations,
+     register notes, IELTS usage) runs on Gemini, which this app already has
+     a key for. That combination is the closest thing to "all of it" that a
+     static page with no backend can actually reach.
+
+   Provider "auto" order: DeepL proxy → Google → Gemini → MyMemory, i.e. the
+   best engine the user has actually configured, falling back to one that
+   always works.
+   ========================================================================= */
+
+const TR_LANGS = [
+  ["en","English"],       ["es","Spanish — Español"],   ["pt","Portuguese — Português"],
+  ["fr","French — Français"], ["de","German — Deutsch"], ["it","Italian — Italiano"],
+  ["ar","Arabic — العربية"], ["zh","Chinese — 中文"],    ["ja","Japanese — 日本語"],
+  ["ko","Korean — 한국어"],  ["hi","Hindi — हिन्दी"],     ["ur","Urdu — اردو"],
+  ["bn","Bengali — বাংলা"],  ["ta","Tamil — தமிழ்"],      ["te","Telugu — తెలుగు"],
+  ["fa","Persian — فارسی"], ["tr","Turkish — Türkçe"],  ["ru","Russian — Русский"],
+  ["uk","Ukrainian — Українська"], ["pl","Polish — Polski"], ["ro","Romanian — Română"],
+  ["nl","Dutch — Nederlands"], ["id","Indonesian"],      ["vi","Vietnamese — Tiếng Việt"],
+  ["th","Thai — ไทย"],      ["ne","Nepali — नेपाली"],     ["si","Sinhala — සිංහල"],
+  ["sw","Swahili — Kiswahili"], ["el","Greek — Ελληνικά"], ["he","Hebrew — עברית"]
+];
+
+const TR_LANG_NAME = Object.fromEntries(TR_LANGS.map(([c,n])=>[c, n.split(" — ")[0]]));
+
+// Languages DeepL actually accepts, upper-cased as its API wants them.
+const TR_DEEPL_OK = new Set(["ar","bg","cs","da","de","el","en","es","et","fi","fr","hu","id","it","ja","ko","lt","lv","nb","nl","pl","pt","ro","ru","sk","sl","sv","tr","uk","zh"]);
+
+const TR_CACHE = new Map();          // "provider|from|to|text" -> result object
+const TR_CACHE_MAX = 300;
+const TR_MAX_CHARS = 1200;
+
+function trCacheGet(k){ return TR_CACHE.get(k); }
+function trCacheSet(k,v){
+  if(TR_CACHE.size >= TR_CACHE_MAX) TR_CACHE.delete(TR_CACHE.keys().next().value);
+  TR_CACHE.set(k,v);
+}
+
+/* Which engine a translate call would actually use right now. */
+function trProvider(){
+  const s = state.settings;
+  const pick = s.translateProvider || "auto";
+  if(pick !== "auto") return pick;
+  if((s.deeplProxyUrl||"").trim()) return "deepl";
+  if((s.googleTranslateKey||"").trim()) return "google";
+  if((s.geminiKey||"").trim()) return "gemini";
+  return "mymemory";
+}
+
+const TR_PROVIDER_LABEL = {
+  deepl:"DeepL", google:"Google", gemini:"Gemini", mymemory:"MyMemory"
+};
+
+/* Human-readable reason a chosen provider can't run, or "" when it can. */
+function trProviderBlocker(p){
+  const s = state.settings;
+  if(p === "deepl" && !(s.deeplProxyUrl||"").trim())
+    return "DeepL blocks direct browser calls, so it needs a proxy URL — add one in ⚙ AI engine, or switch the engine to Google/Gemini/MyMemory.";
+  if(p === "google" && !(s.googleTranslateKey||"").trim())
+    return "Google Cloud Translation needs its own API key (a Gemini key won't do) — add one in ⚙ AI engine.";
+  if(p === "gemini" && !(s.geminiKey||"").trim())
+    return "Gemini translation needs the Gemini API key — add one in ⚙ AI engine.";
+  return "";
+}
+
+/* ---- individual engines. Each resolves {text, alternatives[], detected} ---- */
+
+async function trViaGoogle(text, from, to){
+  const key = (state.settings.googleTranslateKey||"").trim();
+  const body = { q:[text], target:to, format:"text" };
+  if(from && from !== "auto") body.source = from;
+  // The key rides in the query string on purpose: Google's CORS preflight for
+  // this endpoint only allows the content-type header, so an auth header would
+  // be rejected before the request is even sent.
+  const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(key)}`, {
+    method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body)
+  }).catch(()=>{ throw new Error("Network error reaching Google Translate."); });
+  if(!res.ok){
+    let msg = "";
+    try{ const j = await res.json(); msg = (j.error && j.error.message) || ""; }catch(e){}
+    if(res.status === 403) throw new Error(`Google rejected the key (403). Enable the Cloud Translation API for it in Google Cloud, and check any HTTP-referrer restriction allows this page.${msg?" — "+msg:""}`);
+    throw new Error(`Google Translate error ${res.status}${msg?" — "+msg:""}`);
+  }
+  const d = await res.json();
+  const t = d.data && d.data.translations && d.data.translations[0];
+  if(!t) throw new Error("Google Translate returned no translation.");
+  return {
+    text: trDecodeEntities(t.translatedText || ""),
+    alternatives: [],
+    detected: t.detectedSourceLanguage || from
+  };
+}
+
+async function trViaDeepL(text, from, to){
+  const base = (state.settings.deeplProxyUrl||"").trim().replace(/\/+$/,"");
+  const key = (state.settings.deeplKey||"").trim();
+  if(!TR_DEEPL_OK.has(to)) throw new Error(`DeepL doesn't support ${TR_LANG_NAME[to]||to}. Pick another engine for this pair.`);
+  const headers = { "Content-Type":"application/json" };
+  if(key) headers["Authorization"] = "DeepL-Auth-Key " + key;
+  const body = { text:[text], target_lang: to.toUpperCase() };
+  if(from && from !== "auto" && TR_DEEPL_OK.has(from)) body.source_lang = from.toUpperCase();
+  const url = /\/v2\/translate$/.test(base) ? base : base + "/v2/translate";
+  const res = await fetch(url, { method:"POST", headers, body: JSON.stringify(body) })
+    .catch(()=>{ throw new Error("Couldn't reach the DeepL proxy. Check the URL in ⚙ AI engine — DeepL itself can't be called straight from a browser."); });
+  if(!res.ok){
+    const detail = await res.text().catch(()=> "");
+    if(res.status === 403) throw new Error("DeepL proxy returned 403 — wrong or missing auth key.");
+    if(res.status === 456) throw new Error("DeepL quota for this billing period is used up.");
+    throw new Error(`DeepL error ${res.status}${detail?" — "+detail.slice(0,140):""}`);
+  }
+  const d = await res.json();
+  const t = d.translations && d.translations[0];
+  if(!t) throw new Error("DeepL proxy returned no translation.");
+  return { text: t.text || "", alternatives: [], detected: (t.detected_source_language||from||"").toLowerCase() };
+}
+
+async function trViaMyMemory(text, from, to){
+  // Keyless and CORS-open, but it caps a request at 500 bytes.
+  if(text.length > 480) throw new Error("MyMemory only accepts about 480 characters at a time. Shorten the text, or switch to Google/Gemini in ⚙ AI engine.");
+  const src = (from && from !== "auto") ? from : "en";
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(src)}|${encodeURIComponent(to)}`;
+  const res = await fetch(url).catch(()=>{ throw new Error("Network error reaching MyMemory."); });
+  if(!res.ok) throw new Error(`MyMemory error ${res.status}.`);
+  const d = await res.json();
+  const main = d.responseData && d.responseData.translatedText;
+  if(!main || /^INVALID|MYMEMORY WARNING|QUERY LENGTH LIMIT/i.test(main)){
+    throw new Error(String(main || "MyMemory returned no translation.").slice(0,160));
+  }
+  // Its translation-memory matches are genuine alternative renderings.
+  const seen = new Set([main.toLowerCase()]);
+  const alternatives = (d.matches||[])
+    .map(m=>String(m.translation||"").trim())
+    .filter(t=>{
+      const k=t.toLowerCase();
+      if(!t || seen.has(k) || t.length>120) return false;
+      seen.add(k); return true;
+    })
+    .slice(0,6)
+    .map(t=>({ word:t, note:"" }));
+  return { text: main, alternatives, detected: src };
+}
+
+async function trViaGemini(text, from, to){
+  const fromName = from && from !== "auto" ? (TR_LANG_NAME[from]||from) : "the source language (detect it)";
+  const sys = "You are a professional translator working with IELTS candidates. Translate faithfully and idiomatically, preserving register and meaning. Reply with JSON only — no prose, no code fences.";
+  const usr = `Translate from ${fromName} into ${TR_LANG_NAME[to]||to}.
+
+Return exactly this JSON shape:
+{"translation":"the best translation",
+ "detected":"ISO-639-1 code of the source language",
+ "alternatives":[{"word":"another valid rendering","note":"when you'd use it instead (max 6 words)"}],
+ "back":"a literal back-translation of your translation into ${fromName}"}
+
+Give 2–4 alternatives when the text is a word or short phrase, and an empty array for long passages.
+
+TEXT:
+${text}`;
+  const raw = await callGemini(sys, usr);
+  let d;
+  try{ d = parseJSON(raw); }
+  catch(e){ return { text: raw.trim(), alternatives: [], detected: from }; }
+  return {
+    text: String(d.translation||"").trim(),
+    alternatives: Array.isArray(d.alternatives)
+      ? d.alternatives.filter(a=>a && a.word).slice(0,6).map(a=>({word:String(a.word), note:String(a.note||"")}))
+      : [],
+    detected: String(d.detected||from||"").toLowerCase().slice(0,5),
+    back: String(d.back||"")
+  };
+}
+
+/* Google returns HTML entities inside translated text (&#39; and friends). */
+function trDecodeEntities(s){
+  if(!/&[a-z#0-9]+;/i.test(s)) return s;
+  const el = document.createElement("textarea");
+  el.innerHTML = s;
+  return el.value;
+}
+
+/* ---- the one call the UI makes ---- */
+async function trTranslate(text, from, to, provider){
+  text = String(text||"").trim();
+  if(!text) throw new Error("Type or select something to translate first.");
+  if(text.length > TR_MAX_CHARS) text = text.slice(0, TR_MAX_CHARS);
+  if(from === to) throw new Error("Source and target language are the same — swap one of them.");
+  const p = provider || trProvider();
+  const blocker = trProviderBlocker(p);
+  if(blocker) throw new Error(blocker);
+  const key = `${p}|${from}|${to}|${text}`;
+  const hit = trCacheGet(key);
+  if(hit) return Object.assign({}, hit, { cached:true });
+
+  let out;
+  if(p === "google")        out = await trViaGoogle(text, from, to);
+  else if(p === "deepl")    out = await trViaDeepL(text, from, to);
+  else if(p === "gemini")   out = await trViaGemini(text, from, to);
+  else                      out = await trViaMyMemory(text, from, to);
+
+  out.provider = p;
+  out.source = text;
+  if(!out.text) throw new Error(`${TR_PROVIDER_LABEL[p]} returned an empty translation.`);
+  trCacheSet(key, out);
+  return out;
+}
+
+/* ---- word studio: conjugation, alternatives, register, collocations ----
+   Runs on Gemini because no translation API exposes any of this. */
+async function trStudy(text, from, to){
+  const fromName = TR_LANG_NAME[from] || from;
+  const toName = TR_LANG_NAME[to] || to;
+  const sys = "You are a bilingual lexicographer and IELTS vocabulary coach. You produce precise dictionary entries with full verb paradigms. Reply with JSON only — no prose, no code fences.";
+  const usr = `Build a study entry for this ${fromName} text, for a learner whose language is ${toName}.
+
+TEXT: "${text}"
+
+Return exactly this JSON:
+{
+ "headword":"the dictionary/base form of the main word (or the phrase itself)",
+ "pos":"noun|verb|adjective|adverb|phrase|idiom|other",
+ "ipa":"IPA of the headword, or empty string",
+ "senses":[{"gloss":"short ${fromName} definition","translation":"${toName} translation of this sense","register":"neutral|formal|informal|academic","example":"one natural ${fromName} sentence using it","exampleTranslation":"that sentence in ${toName}"}],
+ "alternatives":[{"word":"another ${toName} word that could translate it","note":"the nuance that separates it (max 8 words)"}],
+ "sourceSynonyms":[{"word":"a stronger/more academic ${fromName} synonym","note":"register or nuance (max 8 words)"}],
+ "collocations":["natural ${fromName} word partnerships, 3–6 of them"],
+ "conjugation":{"isVerb":true|false,"language":"${fromName}","infinitive":"base form","tenses":[{"name":"tense name","forms":[{"person":"I / he / etc.","form":"conjugated form"}]}]},
+ "targetConjugation":{"isVerb":true|false,"language":"${toName}","infinitive":"the ${toName} infinitive","tenses":[{"name":"tense name","forms":[{"person":"pronoun","form":"conjugated form"}]}]},
+ "ieltsTip":"one sentence on using this well in IELTS Writing or Speaking"
+}
+
+RULES
+• 1–3 senses, most common first.
+• If the headword is a verb, fill BOTH conjugation objects with the tenses that
+  matter for that language (for ${fromName}: present, past, present perfect,
+  future, plus -ing/participle forms; for ${toName}: its own core tenses,
+  all persons). If it is not a verb, set isVerb false and tenses to [].
+• Never leave alternatives or sourceSynonyms empty unless genuinely none exist.
+• Keep every string short enough to read in a card.`;
+  const raw = await callGemini(sys, usr);
+  const d = parseJSON(raw);
+  d.headword = String(d.headword || text);
+  return d;
+}
+
+/* -------------------------------------------------------------------------
+   TRANSLATOR — persistence
+   ------------------------------------------------------------------------- */
+const TR_STORE_KEY = "ielts-translator";
+
+async function trLoadPrefs(){
+  try{
+    const r = await window.storage.get(TR_STORE_KEY, false);
+    if(!r || !r.value) return;
+    const d = JSON.parse(r.value);
+    const T = state.translator;
+    if(d.from) T.from = d.from;
+    if(d.to) T.to = d.to;
+    if(Array.isArray(d.saved)) T.saved = d.saved.slice(0,60);
+    if(d.open && typeof d.open === "object") T.open = d.open;
+  }catch(e){ /* nothing saved yet */ }
+}
+
+async function trSavePrefs(){
+  const T = state.translator;
+  try{
+    await window.storage.set(TR_STORE_KEY, JSON.stringify({
+      from:T.from, to:T.to, saved:T.saved, open:T.open
+    }), false);
+  }catch(e){}
+}
+
+/* -------------------------------------------------------------------------
+   TRANSLATOR — markup
+
+   trCard(mod) is dropped into each skill tab's template, so a panel re-render
+   redraws it from state and nothing is lost when you switch Task 1/Task 2 or
+   Speaking parts mid-lookup.
+   ------------------------------------------------------------------------- */
+/* escapeHtml() deliberately leaves quotes alone, which is fine for text nodes
+   but breaks an attribute the moment a translation contains one — and these
+   values come back from a translation engine, so they will. */
+function trAttr(s){ return escapeHtml(s).replace(/"/g,"&quot;"); }
+
+function trLangOptions(sel, withAuto){
+  const auto = withAuto ? `<option value="auto" ${sel==="auto"?"selected":""}>Detect language</option>` : "";
+  return auto + TR_LANGS.map(([c,n])=>
+    `<option value="${c}" ${c===sel?"selected":""}>${escapeHtml(n)}</option>`).join("");
+}
+
+const TR_TAB_BLURB = {
+  listening:"Check a word from the transcript, then drill its forms.",
+  reading:"Select any phrase in a passage to look it up without losing your place.",
+  writing:"Find the precise word before you commit it to the draft.",
+  speaking:"Rehearse the phrase you reached for and couldn't find."
+};
+
+function trCard(mod){
+  const T = state.translator;
+  const open = !!T.open[mod];
+  const p = trProvider();
+  const label = TR_PROVIDER_LABEL[p] || p;
+  const r = T.result;
+  const showResult = r && r.forMod === mod;
+
+  return `
+  <div class="tr-card ${open?"open":""}" data-tr-card="${mod}">
+    <button class="tr-head" data-tr-toggle="${mod}" aria-expanded="${open}">
+      <span class="tr-glyph" aria-hidden="true">🌐</span>
+      <span class="tr-head-text">
+        <span class="tr-eyebrow">Language desk</span>
+        <span class="tr-title">Translate, conjugate &amp; find alternatives</span>
+        <span class="tr-sub">${escapeHtml(TR_TAB_BLURB[mod]||"")}</span>
+      </span>
+      <span class="tr-caret" aria-hidden="true">▼</span>
+    </button>
+    <div class="tr-body">
+      <div class="tr-langs">
+        <select class="tr-select" data-tr-from aria-label="Translate from">${trLangOptions(T.from, true)}</select>
+        <button class="tr-swap" data-tr-swap title="Swap languages" aria-label="Swap languages" ${T.from==="auto"?"disabled":""}>⇄</button>
+        <select class="tr-select" data-tr-to aria-label="Translate into">${trLangOptions(T.to, false)}</select>
+      </div>
+
+      <textarea class="tr-input" data-tr-input rows="3" maxlength="${TR_MAX_CHARS}"
+        placeholder="Type a word, a phrase or a sentence — or select text anywhere on this tab and press Translate.">${escapeHtml(T.source||"")}</textarea>
+
+      <div class="tr-actions">
+        <button class="btn brass small" data-tr-go ${T.loading?"disabled":""}>${T.loading?"Translating…":"Translate"}</button>
+        <button class="btn ghost small" data-tr-clear>Clear</button>
+        <span class="tr-engine" title="Change this in ⚙ AI engine">Engine <b>${escapeHtml(label)}</b></span>
+        <span class="tr-count" data-tr-count>${(T.source||"").length}/${TR_MAX_CHARS}</span>
+      </div>
+
+      ${T.error ? `<p class="tr-status err">${escapeHtml(T.error)}</p>` : ""}
+      ${T.loading ? `<p class="tr-status"><span class="tr-spin"></span>Asking ${escapeHtml(label)}…</p>` : ""}
+
+      ${showResult ? trResultHTML(r) : ""}
+      ${showResult ? trStudioHTML() : ""}
+      ${trSavedHTML()}
+    </div>
+  </div>`;
+}
+
+function trResultHTML(r){
+  const T = state.translator;
+  const fromName = TR_LANG_NAME[r.detected] || TR_LANG_NAME[T.from] || (r.detected||"source");
+  const toName = TR_LANG_NAME[T.to] || T.to;
+  const isSaved = T.saved.some(s=>s.source===r.source && s.to===T.to);
+  const alts = r.alternatives || [];
+  return `
+    <div class="tr-out">
+      <div class="tr-out-head">
+        <span class="tr-out-lang">${escapeHtml(fromName)} → ${escapeHtml(toName)}</span>
+        <span class="tr-out-tools">
+          <button class="tr-icon-btn" data-tr-speak title="Read the translation aloud" aria-label="Read aloud">🔊</button>
+          <button class="tr-icon-btn" data-tr-copy title="Copy translation" aria-label="Copy">⧉</button>
+          <button class="tr-icon-btn ${isSaved?"on":""}" data-tr-save title="${isSaved?"Saved to your word list":"Save to your word list"}" aria-label="Save">${isSaved?"★":"☆"}</button>
+        </span>
+      </div>
+      <div class="tr-out-text" data-tr-result>${escapeHtml(r.text)}</div>
+      ${r.back ? `<p class="tr-out-back"><b>Literally:</b> ${escapeHtml(r.back)}</p>` : ""}
+      ${alts.length ? `
+        <div class="tr-alts">
+          <span class="tr-alts-lbl">Other ways to say it — tap to use</span>
+          ${alts.map(a=>`<button class="tr-chip" data-tr-alt="${trAttr(a.word)}">${escapeHtml(a.word)}${a.note?`<span class="tr-chip-note">${escapeHtml(a.note)}</span>`:""}</button>`).join("")}
+        </div>` : ""}
+    </div>`;
+}
+
+function trStudioHTML(){
+  const T = state.translator;
+  const hasKey = !!(state.settings.geminiKey||"").trim();
+  if(T.studioLoading){
+    return `<div class="tr-studio"><div class="tr-studio-empty"><span class="tr-spin"></span>Building the word entry — conjugation, alternatives and collocations…</div></div>`;
+  }
+  if(!T.studio){
+    return `<div class="tr-studio"><div class="tr-studio-empty">
+      ${hasKey
+        ? `Want the grammar behind it? <b>Word studio</b> adds the full conjugation table, alternative words ranked by register, collocations and an IELTS usage note.
+           <div class="tr-actions" style="margin-top:10px;"><button class="btn small" data-tr-study>📖 Open word studio</button></div>`
+        : `<b>Word studio</b> — conjugation tables, register-ranked alternatives and collocations — runs on the Gemini key, because no translation API returns verb forms. Add a key in <b>⚙ AI engine</b> to switch it on.`}
+    </div></div>`;
+  }
+  return `<div class="tr-studio">${trStudioCardHTML(T.studio)}</div>`;
+}
+
+function trConjHTML(c){
+  if(!c || !c.isVerb || !Array.isArray(c.tenses) || !c.tenses.length) return "";
+  return `
+    <div class="tr-sec">
+      <p class="tr-sec-h">Conjugation · ${escapeHtml(c.language||"")}</p>
+      ${c.infinitive ? `<p class="tr-conj-inf">infinitive <b>${escapeHtml(c.infinitive)}</b></p>` : ""}
+      <div class="tr-conj">
+        ${c.tenses.slice(0,8).map(t=>`
+          <div class="tr-tense">
+            <div class="tr-tense-n">${escapeHtml(t.name||"")}</div>
+            <div class="tr-tense-rows">
+              ${(t.forms||[]).slice(0,8).map(f=>`
+                <div class="tr-tense-row"><span>${escapeHtml(f.person||"")}</span><span>${escapeHtml(f.form||"")}</span></div>
+              `).join("")}
+            </div>
+          </div>`).join("")}
+      </div>
+    </div>`;
+}
+
+function trStudioCardHTML(d){
+  const senses = Array.isArray(d.senses) ? d.senses : [];
+  const alts = Array.isArray(d.alternatives) ? d.alternatives : [];
+  const syn = Array.isArray(d.sourceSynonyms) ? d.sourceSynonyms : [];
+  const colls = Array.isArray(d.collocations) ? d.collocations : [];
+  return `
+    <div class="tr-studio-card">
+      <div class="tr-studio-top">
+        <p class="tr-word">${escapeHtml(d.headword||"")}</p>
+        <div class="tr-word-meta">
+          ${d.pos ? `<span class="tr-pos">${escapeHtml(d.pos)}</span>` : ""}
+          ${d.ipa ? `<span class="tr-ipa">${escapeHtml(d.ipa)}</span>` : ""}
+        </div>
+      </div>
+
+      ${senses.length ? `
+      <div class="tr-sec">
+        <p class="tr-sec-h">Meanings</p>
+        ${senses.slice(0,3).map(s=>`
+          <div class="tr-sense">
+            <span class="tr-sense-tr">${escapeHtml(s.translation||"")}</span>
+            ${s.register ? `<span class="tr-reg">${escapeHtml(s.register)}</span>` : ""}
+            <div class="tr-sense-gloss">${escapeHtml(s.gloss||"")}</div>
+            ${s.example ? `<span class="tr-sense-ex">${escapeHtml(s.example)}${s.exampleTranslation?`<i>${escapeHtml(s.exampleTranslation)}</i>`:""}</span>` : ""}
+          </div>`).join("")}
+      </div>` : ""}
+
+      ${alts.length ? `
+      <div class="tr-sec">
+        <p class="tr-sec-h">Alternative translations</p>
+        <div class="tr-alts" style="padding:0;">
+          ${alts.slice(0,8).map(a=>`<button class="tr-chip" data-tr-alt="${trAttr(a.word)}">${escapeHtml(a.word)}${a.note?`<span class="tr-chip-note">${escapeHtml(a.note)}</span>`:""}</button>`).join("")}
+        </div>
+      </div>` : ""}
+
+      ${syn.length ? `
+      <div class="tr-sec">
+        <p class="tr-sec-h">Stronger words in the source language</p>
+        <div class="tr-alts" style="padding:0;">
+          ${syn.slice(0,8).map(a=>`<button class="tr-chip" data-tr-syn="${trAttr(a.word)}">${escapeHtml(a.word)}${a.note?`<span class="tr-chip-note">${escapeHtml(a.note)}</span>`:""}</button>`).join("")}
+        </div>
+      </div>` : ""}
+
+      ${trConjHTML(d.conjugation)}
+      ${trConjHTML(d.targetConjugation)}
+
+      ${colls.length ? `
+      <div class="tr-sec">
+        <p class="tr-sec-h">Collocations</p>
+        <div class="tr-colls">${colls.slice(0,8).map(c=>`<span class="tr-coll">${escapeHtml(c)}</span>`).join("")}</div>
+      </div>` : ""}
+
+      ${d.ieltsTip ? `<p class="tr-tip"><b>IELTS ·</b> ${escapeHtml(d.ieltsTip)}</p>` : ""}
+    </div>`;
+}
+
+function trSavedHTML(){
+  const T = state.translator;
+  if(!T.saved.length) return "";
+  return `
+    <div class="tr-saved">
+      <div class="tr-saved-h">Your word list · ${T.saved.length}
+        <button class="btn ghost small" data-tr-clear-saved style="margin-left:auto;padding:4px 10px;font-size:11px;">Clear all</button>
+      </div>
+      <div class="tr-saved-list">
+        ${T.saved.slice(0,40).map((s,i)=>`
+          <span class="tr-saved-item">
+            <button class="tr-chip" data-tr-recall="${i}" style="border:none;background:none;padding:0;font-size:12.5px;">${escapeHtml(s.source)}</button>
+            <span class="tr-saved-tr">${escapeHtml(s.text)}</span>
+            <button class="tr-saved-x" data-tr-unsave="${i}" title="Remove" aria-label="Remove">×</button>
+          </span>`).join("")}
+      </div>
+    </div>`;
+}
+
+/* Redraw only the translator cards on screen, so a lookup never disturbs the
+   module around it (a half-written essay, a playing audio track). */
+function trRefresh(){
+  document.querySelectorAll("[data-tr-card]").forEach(el=>{
+    const mod = el.getAttribute("data-tr-card");
+    const wrap = document.createElement("div");
+    wrap.innerHTML = trCard(mod).trim();
+    el.replaceWith(wrap.firstElementChild);
+  });
+}
+
+function trFocusInput(){
+  const el = document.querySelector("[data-tr-card] [data-tr-input]");
+  if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+}
+
+/* -------------------------------------------------------------------------
+   TRANSLATOR — actions
+   ------------------------------------------------------------------------- */
+async function trRun(mod){
+  const T = state.translator;
+  const text = (T.source||"").trim();
+  if(!text){ T.error = "Type or select something to translate first."; trRefresh(); return; }
+  T.loading = true; T.error = ""; T.studio = null; T.studioLoading = false;
+  trRefresh();
+  try{
+    const r = await trTranslate(text, T.from, T.to);
+    r.forMod = mod;
+    T.result = r;
+  }catch(e){
+    T.error = e.message || String(e);
+    T.result = null;
+  }finally{
+    T.loading = false;
+    trRefresh();
+  }
+}
+
+async function trRunStudy(){
+  const T = state.translator;
+  if(!T.result) return;
+  T.studioLoading = true; T.error = "";
+  trRefresh();
+  try{
+    const from = (T.from === "auto" ? (T.result.detected || "en") : T.from);
+    T.studio = await trStudy(T.result.source, from, T.to);
+  }catch(e){
+    T.error = "Word studio failed — " + (e.message || String(e));
+    T.studio = null;
+  }finally{
+    T.studioLoading = false;
+    trRefresh();
+  }
+}
+
+function trSpeak(){
+  const T = state.translator;
+  if(!T.result || !window.speechSynthesis) return;
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(T.result.text);
+    u.lang = T.to;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function trToggleSave(){
+  const T = state.translator;
+  if(!T.result) return;
+  const i = T.saved.findIndex(s=>s.source===T.result.source && s.to===T.to);
+  if(i >= 0) T.saved.splice(i,1);
+  else T.saved.unshift({ source:T.result.source, text:T.result.text, from:T.from, to:T.to });
+  T.saved = T.saved.slice(0,60);
+  trSavePrefs();
+  trRefresh();
+}
+
+/* -------------------------------------------------------------------------
+   TRANSLATOR — one delegated listener set, so re-renders never unbind it
+   ------------------------------------------------------------------------- */
+document.addEventListener("click", async (e)=>{
+  const card = e.target.closest("[data-tr-card]");
+  const T = state.translator;
+
+  const toggle = e.target.closest("[data-tr-toggle]");
+  if(toggle){
+    const mod = toggle.getAttribute("data-tr-toggle");
+    T.open[mod] = !T.open[mod];
+    trSavePrefs();
+    trRefresh();
+    if(T.open[mod]) trFocusInput();
+    return;
+  }
+  if(!card) return;
+
+  if(e.target.closest("[data-tr-swap]")){
+    if(T.from !== "auto"){ const f = T.from; T.from = T.to; T.to = f; trSavePrefs(); trRefresh(); }
+    return;
+  }
+  if(e.target.closest("[data-tr-go]")){ trRun(card.getAttribute("data-tr-card")); return; }
+  if(e.target.closest("[data-tr-clear]")){
+    T.source = ""; T.result = null; T.studio = null; T.error = "";
+    trRefresh(); trFocusInput(); return;
+  }
+  if(e.target.closest("[data-tr-study]")){ trRunStudy(); return; }
+  if(e.target.closest("[data-tr-speak]")){ trSpeak(); return; }
+  if(e.target.closest("[data-tr-copy]")){
+    const btn = e.target.closest("[data-tr-copy]");
+    if(T.result){
+      try{ await navigator.clipboard.writeText(T.result.text); btn.textContent = "✓"; setTimeout(()=>{ btn.textContent = "⧉"; }, 1100); }
+      catch(err){ T.error = "The browser blocked clipboard access."; trRefresh(); }
+    }
+    return;
+  }
+  if(e.target.closest("[data-tr-save]")){ trToggleSave(); return; }
+
+  const alt = e.target.closest("[data-tr-alt]");
+  if(alt){
+    // Promote an alternative to the headline translation, keeping the old one
+    // in the list so the comparison isn't lost.
+    const w = alt.getAttribute("data-tr-alt");
+    if(T.result){
+      const prev = T.result.text;
+      T.result.text = w;
+      T.result.alternatives = (T.result.alternatives||[]).filter(a=>a.word!==w);
+      if(prev && prev!==w) T.result.alternatives.unshift({word:prev, note:""});
+      trRefresh();
+    }
+    return;
+  }
+  const syn = e.target.closest("[data-tr-syn]");
+  if(syn){
+    T.source = syn.getAttribute("data-tr-syn");
+    trRun(card.getAttribute("data-tr-card"));
+    return;
+  }
+  const recall = e.target.closest("[data-tr-recall]");
+  if(recall){
+    const s = T.saved[+recall.getAttribute("data-tr-recall")];
+    if(s){ T.source = s.source; T.from = s.from; T.to = s.to; trRun(card.getAttribute("data-tr-card")); }
+    return;
+  }
+  const unsave = e.target.closest("[data-tr-unsave]");
+  if(unsave){
+    T.saved.splice(+unsave.getAttribute("data-tr-unsave"), 1);
+    trSavePrefs(); trRefresh(); return;
+  }
+  if(e.target.closest("[data-tr-clear-saved]")){
+    if(confirm("Clear your saved word list?")){ T.saved = []; trSavePrefs(); trRefresh(); }
+    return;
+  }
+});
+
+document.addEventListener("input", (e)=>{
+  const el = e.target.closest("[data-tr-input]");
+  if(!el) return;
+  state.translator.source = el.value;
+  const card = el.closest("[data-tr-card]");
+  const count = card && card.querySelector("[data-tr-count]");
+  if(count) count.textContent = `${el.value.length}/${TR_MAX_CHARS}`;
+});
+
+document.addEventListener("change", (e)=>{
+  const T = state.translator;
+  const from = e.target.closest("[data-tr-from]");
+  if(from){ T.from = from.value; trSavePrefs(); trRefresh(); return; }
+  const to = e.target.closest("[data-tr-to]");
+  if(to){ T.to = to.value; T.studio = null; trSavePrefs(); trRefresh(); return; }
+});
+
+// ⌘/Ctrl+Enter inside the box translates, the way the rest of the app expects.
+document.addEventListener("keydown", (e)=>{
+  const el = e.target.closest && e.target.closest("[data-tr-input]");
+  if(!el) return;
+  if(e.key === "Enter" && (e.metaKey || e.ctrlKey)){
+    e.preventDefault();
+    const card = el.closest("[data-tr-card]");
+    if(card) trRun(card.getAttribute("data-tr-card"));
+  }
+});
+
+/* -------------------------------------------------------------------------
+   TRANSLATOR — select any text in the panel to look it up
+
+   A passage, a cue card, a transcript: highlight a phrase and a small bubble
+   offers to translate it, so a candidate never has to retype what confused
+   them. Selections inside the translator's own box are ignored.
+   ------------------------------------------------------------------------- */
+let trBubbleEl = null;
+
+function trHideBubble(){
+  if(trBubbleEl){ trBubbleEl.remove(); trBubbleEl = null; }
+}
+
+function trShowBubble(text, rect){
+  trHideBubble();
+  const b = document.createElement("button");
+  b.className = "tr-bubble";
+  b.type = "button";
+  const short = text.length > 26 ? text.slice(0,26).trim() + "…" : text;
+  b.innerHTML = `🌐 Translate “${escapeHtml(short)}”`;
+  b.style.left = (rect.left + window.scrollX + rect.width/2) + "px";
+  b.style.top  = (rect.top + window.scrollY - 8) + "px";
+  b.addEventListener("mousedown", ev=>ev.preventDefault());
+  b.addEventListener("click", ()=>{
+    const T = state.translator;
+    T.source = text;
+    T.open[state.mod] = true;
+    trHideBubble();
+    const sel = window.getSelection && window.getSelection();
+    if(sel) sel.removeAllRanges();
+    trSavePrefs();
+    trRefresh();
+    const card = document.querySelector(`[data-tr-card="${state.mod}"]`);
+    if(card) card.scrollIntoView({behavior:"smooth", block:"center"});
+    trRun(state.mod);
+  });
+  document.body.appendChild(b);
+  trBubbleEl = b;
+}
+
+function trCheckSelection(){
+  const sel = window.getSelection && window.getSelection();
+  if(!sel || sel.isCollapsed || !sel.rangeCount) return trHideBubble();
+  const text = sel.toString().trim().replace(/\s+/g," ");
+  if(text.length < 2 || text.length > TR_MAX_CHARS) return trHideBubble();
+  const node = sel.anchorNode;
+  const host = node && (node.nodeType === 1 ? node : node.parentElement);
+  // Only offer it for exam material inside the panel, and never for a
+  // selection made inside the translator itself or a field being edited.
+  if(!host || !host.closest("#panel")) return trHideBubble();
+  if(host.closest("[data-tr-card]")) return trHideBubble();
+  if(host.closest("input, textarea, select, button")) return trHideBubble();
+  const rect = sel.getRangeAt(0).getBoundingClientRect();
+  if(!rect || (!rect.width && !rect.height)) return trHideBubble();
+  trShowBubble(text, rect);
+}
+
+document.addEventListener("mouseup", ()=>setTimeout(trCheckSelection, 10));
+document.addEventListener("touchend", ()=>setTimeout(trCheckSelection, 260));
+document.addEventListener("selectionchange", ()=>{
+  const sel = window.getSelection && window.getSelection();
+  if(!sel || sel.isCollapsed) trHideBubble();
+});
+window.addEventListener("resize", trHideBubble);
+
+/* =========================================================================
    RENDER ROOT
    ========================================================================= */
 
@@ -3004,6 +4081,15 @@ document.getElementById("saveSettings").addEventListener("click", async ()=>{
   const dKey = document.getElementById("driveClientInput");
   if(dFolder) state.settings.driveFolderId = parseDriveFolderId(dFolder.value);
   if(dKey) state.settings.driveClientId = dKey.value.trim();
+  const trProv = document.getElementById("trProviderInput");
+  if(trProv) state.settings.translateProvider = trProv.value || "auto";
+  const trGk = document.getElementById("trGoogleKeyInput");
+  if(trGk) state.settings.googleTranslateKey = trGk.value.trim();
+  const trDp = document.getElementById("trDeeplProxyInput");
+  if(trDp) state.settings.deeplProxyUrl = trDp.value.trim();
+  const trDk = document.getElementById("trDeeplKeyInput");
+  if(trDk) state.settings.deeplKey = trDk.value.trim();
+  TR_CACHE.clear();               // cached results belong to the old engine
   state.listening.drive = null;   // library must be re-listed against the new config
   try{
     await window.storage.set("ielts-settings", JSON.stringify(state.settings), false);
@@ -3089,6 +4175,13 @@ function collectSessionData(){
       hesitation: state.speaking.hesitation || {},
       bandVersions: state.speaking.bandVersions || {},
       questions: SPEAKING
+    },
+    // Vocabulary picked up during the session. Language preferences and the
+    // saved word list travel with it; API keys deliberately do not.
+    translator: {
+      from: state.translator.from,
+      to: state.translator.to,
+      saved: state.translator.saved || []
     }
   };
 }
@@ -3138,6 +4231,12 @@ function applySessionData(data){
     if(data.speaking.questions && data.speaking.questions.part1 && data.speaking.questions.part2 && data.speaking.questions.part3){
       SPEAKING = data.speaking.questions;
     }
+  }
+  if(data.translator){
+    if(data.translator.from) state.translator.from = data.translator.from;
+    if(data.translator.to) state.translator.to = data.translator.to;
+    if(Array.isArray(data.translator.saved)) state.translator.saved = data.translator.saved.slice(0,60);
+    trSavePrefs();
   }
   saveHistory();
   // A restored session brings its own question banks; persist them so they
@@ -3722,6 +4821,7 @@ function renderListening(){
   panel.innerHTML = `
     <p class="section-title">Listening Mock Examination</p>
     <p class="section-sub">Four sections, 40 questions — the official IELTS Listening structure. This app plays <b>real audio files only</b> (no synthetic text-to-speech): attach the official recording you own under each section, press play once, and answer as you listen.</p>
+    ${trCard("listening")}
     <div class="gen-card note-card">
       <b style="color:var(--ink);">About audio files:</b> official IELTS recordings (Cambridge, IDP, British Council) are copyrighted, so they can't be bundled inside this file or downloaded by the app. Instead, attach the MP3/WAV files you legally own — from your Cambridge IELTS book CDs/downloads or other licensed practice materials — under each section below, or drop four of them into the generator to build a brand-new test around them.
     </div>
@@ -4300,6 +5400,7 @@ function renderReading(){
   panel.innerHTML = `
     <p class="section-title">Reading Mock Examination</p>
     <p class="section-sub">Read the academic passages and complete the timed evaluation forms below.</p>
+    ${trCard("reading")}
     
     <div class="gen-card">
       <div class="gen-head">
@@ -4855,6 +5956,7 @@ function renderWriting(){
   panel.innerHTML = `
     <p class="section-title">Writing</p>
     <p class="section-sub">Draft each task, request a coaching hint at any time, then submit for an AI-estimated band score against the four official criteria.</p>
+    ${trCard("writing")}
     
     <div class="gen-card">
       <div class="gen-head">
@@ -6123,6 +7225,7 @@ function renderSpeaking(){
   panel.innerHTML = `
     <p class="section-title">Speaking</p>
     <p class="section-sub">Simulate a fully structured IELTS speaking assessment. Record your response, preview the speech playback stream, and finalize metrics.</p>
+    ${trCard("speaking")}
 
     ${descriptorChartSection()}
 
