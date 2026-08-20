@@ -707,6 +707,32 @@ textarea.essay{
 /* ---------- speaking feedback extras ---------- */
 .pace-note{background:#fff;border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--slate);line-height:1.55;margin:4px 0 16px;}
 .feedback-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);margin:6px 0 10px;}
+/* Band for the whole interview, above the per-criterion breakdown. */
+.test-band{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:#fff;border:1px solid var(--line);border-left:3px solid var(--teal);
+  border-radius:0 10px 10px 0;padding:12px 16px;margin:4px 0 16px;
+}
+.test-band>span{font-size:12.5px;color:var(--slate);font-weight:600;}
+.test-band>b{font-family:'Fraunces',serif;font-size:24px;color:var(--ink);line-height:1;}
+.test-band>i{
+  font-family:'IBM Plex Mono',monospace;font-style:normal;font-size:11px;
+  color:var(--slate);margin-left:auto;text-align:right;
+}
+.test-band-hint{font-size:12.5px;color:var(--slate);line-height:1.6;margin:4px 0 16px;}
+.part-result-lbl{
+  display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--brass);margin-bottom:4px;
+}
+/* The one remark that belongs to the candidate rather than to a criterion. */
+.examiner-note{
+  background:#f4f1e6;border-radius:10px;padding:12px 16px;margin-top:14px;
+  font-size:13.5px;line-height:1.65;color:#2a3145;font-style:italic;
+}
+.examiner-note-lbl{
+  display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;font-style:normal;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--brass);margin-bottom:5px;
+}
 .heard-box{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-top:16px;}
 .heard-box b{font-size:12px;color:var(--ink);}
 .heard-box p{font-size:13px;color:var(--slate);line-height:1.6;margin:6px 0 0;font-style:italic;}
@@ -1175,6 +1201,9 @@ textarea.essay{
     background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;
   }
   .metric{font-size:11px;}
+  .test-band{gap:4px 10px;padding:12px 14px;}
+  .test-band>b{font-size:22px;}
+  .test-band>i{margin-left:0;text-align:left;flex:1 1 100%;}
   .transcript-box{font-size:15px;padding:14px;border-radius:14px;min-height:120px;}
   .upload-row{gap:8px;}
 
@@ -1858,7 +1887,7 @@ const state = {
   listening: { answers:{}, submitted:false, playedParts:{}, customAudio:{} },
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
-  speaking: { part:"part1", transcripts:{}, metrics:{}, report:null, loading:false, recording:false, audioB64:{}, audioMime:{}, language:{}, hesitation:{}, bandVersions:{} },
+  speaking: { part:"part1", topic:"random", transcripts:{}, metrics:{}, report:null, reports:{}, loading:false, recording:false, audioB64:{}, audioMime:{}, language:{}, hesitation:{}, bandVersions:{} },
   settings: { geminiKey:"", geminiModel:"gemini-3.5-flash-lite", driveFolderId:"", driveClientId:"" }
 };
 
@@ -2484,11 +2513,127 @@ CALIBRATION — do not inflate. The reference points are:
 - Band 8+ requires near-effortless, sustained, precise performance and should be rare.
 Do not award band 7 or above out of encouragement. Under-supported generosity is a scoring error, exactly like unfair severity.
 
+EXAMINER JUDGEMENT — you are marking a person, not filling in a form:
+- Weigh the whole sample. One unlucky stumble does not define Fluency, and one impressive idiom does not lift Lexical Resource on its own; look for what the candidate does repeatedly.
+- The four numbers do not have to cluster. A candidate can be a 7 for vocabulary and a 5 for grammar, and a spread that wide is normal and should be reported as it is rather than smoothed towards the middle.
+- Mark what the part actually asks for. The same 20 seconds of speech is a complete answer in Part 1 and an unfinished one in Part 2.
+- If the sample is too short, too sparse, or too inaudible to judge a criterion safely, say so plainly in that criterion's comment and set "evidence" to "thin". A real examiner would keep listening rather than manufacture certainty; an honest "not enough to judge" beats a confident invented number.
+- Allow for the medium. Recorded monologue into a phone is not a conversation with an examiner: no interlocutor means no interaction to reward or penalise, and a little extra hesitation at the start is normal, not a fluency defect.
+
 WRITING THE FEEDBACK:
 - Every "comment" must (a) quote or paraphrase at least one specific thing the candidate actually said as evidence, and (b) state plainly what holds the band where it is and what the next half-band up would require.
 - The wording of every comment must match the number you awarded. Do not describe performance in terms that belong to a higher descriptor than the band you gave — that is the most common failure of AI examiners, and it makes the report incoherent.
+- Write like an examiner making notes, not like a form being filled in: vary the shape and length of the four comments, lead with whatever is most worth saying about that criterion, and drop the stock phrases. Four sentences of identical construction is the tell of a machine.
 - Never mention CEFR levels (A1-C2) anywhere in your output. You award IELTS bands only; the app derives any CEFR label itself.
 - The "summary" must be consistent with the awarded bands: name the strongest criterion, the weakest, and the single highest-value thing to work on.`;
+
+/* What each part actually asks of the candidate. The four criteria are the
+   same throughout the test, but what counts as a complete answer is not: a
+   30-second reply is full marks' worth of Part 1 and an abandoned Part 2. The
+   examiner was previously told only "Speaking part: part2" and had to guess. */
+const SPEAKING_PART_BRIEF = {
+  part1: `THIS IS PART 1 — introduction and interview. The examiner asks short questions on familiar, personal topics. Expect answers of roughly two to four sentences: relevant, natural, a reason or example attached. Do not expect — or reward — Part 3 abstraction here. One-word or single-clause answers that leave the examiner to do the work are the characteristic Part 1 weakness; so is a rehearsed speech that ignores the actual question.`,
+  part2: `THIS IS PART 2 — the individual long turn. After one minute's preparation the candidate should speak for one to two minutes, alone, without prompting. Judge whether the turn was sustained for that window and whether the cue card's bullet points were actually covered — a talk that dries up after forty seconds, or that never addresses the final "and explain why" point, is incomplete however good the language is. Running past two minutes is not a fault. Because there is no interlocutor, the candidate must supply their own structure and signposting; note whether they did.`,
+  part3: `THIS IS PART 3 — the two-way discussion. Questions are abstract and general rather than personal, and the expected answer is extended and argued: opinion plus reason, comparison, speculation about causes or the future, concession to an opposing view. Short, concrete, personal-anecdote answers are the characteristic Part 3 weakness, as is repeating the question back before answering it. Reward genuine development of an idea over the number of words spent.`
+};
+
+/* The app already times every take — speaking span, pace, fillers, pauses —
+   and then threw all of it away at scoring time, leaving the examiner to
+   judge fluency blind to the very timing a real examiner hears. It is passed
+   as supporting evidence only, explicitly subordinate to the audio. */
+function speakingDeliveryEvidence(part){
+  const m = (state.speaking.metrics || {})[part] || {};
+  const spoken = Number(m.speakingSec || m.duration || 0);
+  const lines = [];
+  if(spoken >= 5){
+    const mins = spoken >= 60 ? ` (${Math.floor(spoken/60)}m ${spoken%60}s)` : "";
+    lines.push(`- Speaking time: about ${spoken}s${mins}, excluding any time paused.`);
+  }
+  if(m.words) lines.push(`- Words produced: ${m.words}.`);
+  if(m.pace)  lines.push(`- Pace: about ${m.pace} words per minute.`);
+  if(m.fillers != null) lines.push(`- Filler words counted in the transcript: ${m.fillers}.`);
+  if(m.longPauses != null){
+    const longest = Array.isArray(m.pauses) && m.pauses.length ? `, longest about ${Math.round(Math.max.apply(null, m.pauses))}s` : "";
+    lines.push(`- Silences of 2s or more: ${m.longPauses}${longest}.`);
+  }
+  if(!lines.length) return "";
+
+  let note = `MEASURED DELIVERY — the app timed this take. Treat it as corroborating evidence for Fluency & Coherence only, and ignore it wherever it contradicts what you can actually hear. It says nothing about vocabulary, grammar or pronunciation.\n${lines.join("\n")}`;
+  if(part === "part2" && spoken >= 5){
+    note += spoken < 60
+      ? `\n- The long turn ran under the one-minute minimum: weigh that as an incomplete task, not merely as slow speech.`
+      : `\n- The long turn reached the expected one-to-two-minute window.`;
+  }
+  return note;
+}
+
+/* ---------------------------------------------------------------------------
+   SPEAKING TOPIC DOMAINS
+   The subject areas a real Speaking test cycles through, grouped so a long
+   list stays navigable in one dropdown (and on a phone, where the picker is
+   a native wheel). Used both by the generator's menu and by the random draw.
+   --------------------------------------------------------------------------- */
+const SPEAKING_TOPICS = [
+  ["Personal & everyday", [
+    "Home, Neighbourhood & Daily Life",
+    "Family & Friends",
+    "Childhood & Growing Up",
+    "Daily Routines & Time Management",
+    "Food, Cooking & Eating Out",
+    "Clothes, Fashion & Appearance",
+    "Shopping, Money & Saving",
+    "Sleep, Rest & Wellbeing"
+  ]],
+  ["Work & study", [
+    "Work, Study & Career",
+    "Education, Schools & Universities",
+    "Skills & Learning New Things",
+    "Language Learning",
+    "Future Plans & Ambitions",
+    "Work-Life Balance & Working From Home"
+  ]],
+  ["Leisure & culture", [
+    "Hobbies, Sport & Free Time",
+    "Music, Concerts & Live Events",
+    "Films, Television & Streaming",
+    "Books & Reading",
+    "Art, Design & Photography",
+    "Festivals & Celebrations",
+    "Culture & Traditions",
+    "Travel & Transport",
+    "Tourism, Holidays & Places to Visit"
+  ]],
+  ["Society & environment", [
+    "Environment & Nature",
+    "Animals & Pets",
+    "Weather & Seasons",
+    "Cities, Housing & Public Space",
+    "Community, Neighbours & Volunteering",
+    "Health, Fitness & Public Services",
+    "Advertising & Consumer Habits",
+    "News, Media & Current Affairs"
+  ]],
+  ["Technology & change", [
+    "Technology & Everyday Devices",
+    "Social Media & Communication",
+    "Science, Research & Innovation",
+    "Artificial Intelligence & Automation",
+    "Transport & the Future of Travel"
+  ]]
+];
+
+function speakingTopicOptions(selected){
+  const opts = SPEAKING_TOPICS.map(([group, items])=>
+    `<optgroup label="${escapeHtml(group)}">` +
+    items.map(t=>`<option value="${escapeHtml(t)}"${t===selected?" selected":""}>${escapeHtml(t)}</option>`).join("") +
+    `</optgroup>`).join("");
+  return `<option value="random"${!selected||selected==="random"?" selected":""}>🎲 Random topic</option>${opts}`;
+}
+
+function randomSpeakingTopic(){
+  const all = SPEAKING_TOPICS.reduce((a,[,items])=>a.concat(items), []);
+  return all[Math.floor(Math.random()*all.length)];
+}
 
 const SPEAKING_RUBRIC_TRANSCRIPT = `You are an experienced, calibrated IELTS Speaking examiner. You are given only an un-timed text transcript of the speaker's answers.
 
@@ -2501,7 +2646,7 @@ TRANSCRIPT-SPECIFIC RULES:
 - Pronunciation cannot be assessed from text. Give a cautious estimate anchored to the rest of the performance, state explicitly in the comment that it is an estimate not based on audio, and do not let it drag the overall band up.
 - The whole report should be treated as provisional and verified by a teacher listening to the recording.
 
-Respond ONLY with raw JSON, no markdown, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":""}.`;
+Respond ONLY with raw JSON, no markdown, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","evidence":"sufficient","examiner_note":""}. Set "evidence" to "thin" when the sample was too short or too sparse to mark safely. Use "examiner_note" for the one remark you would make to a colleague about this candidate that does not belong under any single criterion — a sentence at most, or "" if there is nothing worth adding.`;
 
 const SPEAKING_RUBRIC_AUDIO = `You are an experienced, calibrated IELTS Speaking examiner. You have been given the candidate's actual audio recording — listen to it directly. Base your judgement on what you actually hear: real pronunciation (individual sounds, word stress, sentence stress, intonation, chunking and rhythm), true fluency (hesitation, self-correction, pace, natural connected speech), and lexical resource and grammatical range as used in speech rather than as they would look on paper.
 
@@ -2513,7 +2658,7 @@ AUDIO-SPECIFIC RULES:
 - Assess Pronunciation on intelligibility and on control of stress, rhythm and intonation — not on how close the accent is to a native one. A strong L1 accent that remains easy to understand does not cap the band; frequent mispronunciations that make the listener work do.
 - Do not confuse speed with fluency: fast speech full of restarts is not band 7, and a measured, well-organised delivery is not band 5.
 
-Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","heard_transcript":""}. In "heard_transcript", write your own transcription in English of what the candidate said.`;
+Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","evidence":"sufficient","examiner_note":"","heard_transcript":""}. Set "evidence" to "thin" when the recording was too short, too sparse or too unclear to mark safely. Use "examiner_note" for the one remark you would make to a colleague about this candidate that does not belong under any single criterion — a sentence at most, or "" if there is nothing worth adding. In "heard_transcript", write your own transcription in English of what the candidate said.`;
 
 
 /* =========================================================================
@@ -2939,6 +3084,7 @@ function collectSessionData(){
       transcripts: state.speaking.transcripts,
       metrics: state.speaking.metrics,
       report: state.speaking.report,
+      reports: state.speaking.reports || {},
       language: state.speaking.language || {},
       hesitation: state.speaking.hesitation || {},
       bandVersions: state.speaking.bandVersions || {},
@@ -2985,6 +3131,7 @@ function applySessionData(data){
     state.speaking.transcripts = data.speaking.transcripts || {};
     state.speaking.metrics = data.speaking.metrics || {};
     state.speaking.report = data.speaking.report || null;
+    state.speaking.reports = data.speaking.reports || {};
     state.speaking.language = data.speaking.language || {};
     state.speaking.hesitation = data.speaking.hesitation || {};
     state.speaking.bandVersions = data.speaking.bandVersions || {};
@@ -5986,17 +6133,7 @@ function renderSpeaking(){
           <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Generate a brand-new, thematically-linked Part 1, 2 and 3 (a fresh cue card plus matching interview questions)." : "Add a Gemini API key in ⚙ AI engine to enable live generation."}</p>
         </div>
         <div class="gen-actions">
-          <select id="speakingTopic" class="gen-select" ${!geminiOn ? "disabled" : ""}>
-            <option value="random">Random Topic</option>
-            <option value="Home, Neighbourhood & Daily Life">Home & Daily Life</option>
-            <option value="Work, Study & Career">Work & Study</option>
-            <option value="Travel & Transport">Travel & Transport</option>
-            <option value="Technology & Media">Technology & Media</option>
-            <option value="Environment & Nature">Environment & Nature</option>
-            <option value="Food & Health">Food & Health</option>
-            <option value="Hobbies, Sport & Free Time">Hobbies & Free Time</option>
-            <option value="Culture & Traditions">Culture & Traditions</option>
-          </select>
+          <select id="speakingTopic" class="gen-select" ${!geminiOn ? "disabled" : ""}>${speakingTopicOptions(state.speaking.topic)}</select>
           <button id="generateSpeakingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate New Speaking Questions</button>
           ${restoreBuiltInBtn()}
         </div>
@@ -6031,11 +6168,17 @@ function renderSpeaking(){
 async function generateNewSpeakingWithAI(){
   const btn = document.getElementById("generateSpeakingBtn");
   const topicSel = document.getElementById("speakingTopic");
-  const topic = topicSel ? topicSel.value : "random";
+  const choice = topicSel ? topicSel.value : "random";
+  state.speaking.topic = choice;
+  // "Random" used to be passed through verbatim, so the model was literally
+  // asked for a test about the theme "random" — and kept landing on the same
+  // handful of safe subjects. Drawing a real topic here makes consecutive
+  // random tests actually differ.
+  const topic = choice === "random" ? randomSpeakingTopic() : choice;
   const originalText = btn.textContent;
   btn.textContent = "Generating...";
   btn.disabled = true;
-  genProgressShow("speakingGen", "Writing a new Part 1, 2 and 3 set…");
+  genProgressShow("speakingGen", `Writing a new Part 1, 2 and 3 set on “${topic}”…`);
 
   const prompt = `Create a completely new IELTS Speaking test based on the theme: "${topic}". Part 1 questions, the Part 2 cue card, and Part 3 questions should feel thematically connected (Part 3 broadens and abstracts the Part 2 topic), exactly like a real IELTS interview. Return a raw JSON object matching this exact schema shape:
 {
@@ -6071,6 +6214,7 @@ Return ONLY raw JSON, no markdown, no commentary.`;
       state.speaking.transcripts = {};
       state.speaking.metrics = {};
       state.speaking.report = null;
+      state.speaking.reports = {};
       state.speaking.audioB64 = {};
       state.speaking.audioMime = {};
       state.speaking.language = {};
@@ -6390,10 +6534,22 @@ async function scoreSpeaking(part){
 
   try{
     const promptText = part==="part2" ? SPEAKING.part2.cue.title : SPEAKING[part].questions.join(" / ");
+    // Everything the examiner is entitled to know before marking: which part
+    // this is and what it demands, the exact task in front of the candidate
+    // (including the cue card's bullets, so coverage can be checked), and the
+    // delivery the app measured.
+    const brief = [
+      SPEAKING_PART_BRIEF[part] || "",
+      `THE TASK THE CANDIDATE ANSWERED:\n${promptText}`,
+      part === "part2" && SPEAKING.part2.cue && Array.isArray(SPEAKING.part2.cue.points)
+        ? `Cue card bullet points the talk was meant to cover:\n${SPEAKING.part2.cue.points.map(p=>"- "+p).join("\n")}`
+        : "",
+      speakingDeliveryEvidence(part)
+    ].filter(Boolean).join("\n\n");
     let json;
 
     if(geminiOn){
-      const user = `Speaking part: ${part}\nPrompt(s): ${promptText}\nTranscript reference: ${transcript || "(none)"}`;
+      const user = `${brief}\n\nLive transcript captured by the browser (may be imperfect or missing — the audio is authoritative):\n${transcript || "(none)"}`;
       const text = await callGemini(SPEAKING_RUBRIC_AUDIO, user, S.audioB64[part], S.audioMime[part]);
       json = parseJSON(text);
       json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].map(Number).reduce((a,b)=>a+b,0)/4);
@@ -6402,7 +6558,7 @@ async function scoreSpeaking(part){
         alert("Please record or provide text context first.");
         btn.textContent = original; btn.disabled = false; return;
       }
-      const user = `Speaking prompt context: ${promptText}\nCandidate text string: ${transcript}`;
+      const user = `${brief}\n\nWHAT THE CANDIDATE SAID (transcript):\n${transcript}`;
       const text = await callGemini(SPEAKING_RUBRIC_TRANSCRIPT, user, null, null);
       json = parseJSON(text);
       json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].map(Number).reduce((a,b)=>a+b,0)/4);
@@ -6421,9 +6577,14 @@ async function scoreSpeaking(part){
       const fEl = document.getElementById("mFillers"); if(fEl) fEl.textContent = m.fillers;
     }
 
+    S.reports = S.reports || {};
+    S.reports[part] = json;
     S.report = { part, data: json };
     showSpeakingReport(json, geminiOn);
-    recordScore("speaking", json.overall_band, `Part simulation calculation index`);
+    // IELTS awards one Speaking band for the whole test, so the dashboard
+    // takes every part marked so far, not just the most recent one.
+    const combined = combinedSpeakingBand();
+    recordScore("speaking", combined.band, combined.detail);
     saveSubmission("speaking", part, promptText, S.transcripts[part] || json.heard_transcript || "", json.overall_band, json);
   }catch(e){
     console.error(e);
@@ -6434,6 +6595,24 @@ async function scoreSpeaking(part){
 }
 
 function fmtBand(v){ const n = Number(v); return isFinite(n) ? n.toFixed(1) : "—"; }
+
+/* One band for the test, not one per part. Every part marked so far counts
+   equally and the mean is rounded the official way, so marking Part 3 no
+   longer silently discards the Part 1 result the dashboard was showing. */
+function combinedSpeakingBand(){
+  const reports = state.speaking.reports || {};
+  const done = ["part1","part2","part3"].filter(p => reports[p] && isFinite(Number(reports[p].overall_band)));
+  if(!done.length) return { band:null, parts:[], detail:"" };
+  const mean = done.reduce((a,p)=>a + Number(reports[p].overall_band), 0) / done.length;
+  const nums = done.map(p=>p.slice(-1)).join(", ");
+  return {
+    band: officialRound(mean),
+    parts: done,
+    detail: done.length === 3
+      ? `Full test — Parts 1, 2 and 3`
+      : `Part${done.length>1?"s":""} ${nums} of 3 marked so far`
+  };
+}
 
 function showSpeakingReport(r, geminiOn){
   const rows = [
@@ -6458,13 +6637,39 @@ function showSpeakingReport(r, geminiOn){
       <b>What the examiner heard</b>
       <p>${escapeXml(r.heard_transcript)}</p>
     </div>` : "";
+
+  // A short or unclear take gets an honest caveat instead of a confident band.
+  const thin = String(r.evidence||"").toLowerCase() === "thin"
+    ? `<div class="pace-note" style="border-left-color:var(--coral);"><b>Limited evidence:</b> the examiner judged this sample too short or too sparse to mark with confidence. Record a fuller answer and evaluate again before trusting these numbers.</div>`
+    : "";
+  const note = r.examiner_note
+    ? `<div class="examiner-note"><span class="examiner-note-lbl">Examiner's note</span>${escapeXml(r.examiner_note)}</div>`
+    : "";
+
+  // Which parts the recorded band now rests on — a real Speaking band covers
+  // the whole interview, so the report says how much of it has been marked.
+  const combined = combinedSpeakingBand();
+  const testBand = combined.band !== null && combined.parts.length > 1
+    ? `<div class="test-band">
+         <span>Speaking band for the test so far</span>
+         <b>${fmtBand(combined.band)}</b>
+         <i>${escapeXml(combined.detail)}</i>
+       </div>`
+    : (combined.parts.length === 1
+        ? `<p class="test-band-hint">This is Part ${combined.parts[0].slice(-1)} only. Record and evaluate the other two parts for a band that covers the whole test — that is what the dashboard reports.</p>`
+        : "");
   document.getElementById("speakReportArea").innerHTML = `
     <div class="score-report">
       <div class="overall-row">
         <div class="seal"><span class="band-num">${fmtBand(r.overall_band)}</span><span class="band-lbl">Band</span></div>
         <div class="seal seal-cefr"><span class="band-num" style="font-size:26px;">${bandToCEFR(r.overall_band)}</span><span class="band-lbl">CEFR</span></div>
-        <div class="overall-text"><p class="big">${r.summary || ""}</p></div>
+        <div class="overall-text">
+          <span class="part-result-lbl">Part ${String(S.part).slice(-1)} result</span>
+          <p class="big">${r.summary || ""}</p>
+        </div>
       </div>
+      ${thin}
+      ${testBand}
       ${paceNote}
       <div class="feedback-label">Feedback by criterion</div>
       ${rows.map(([name,c])=>`
@@ -6473,6 +6678,7 @@ function showSpeakingReport(r, geminiOn){
           <div class="band">${fmtBand(c.band)}</div>
         </div>
       `).join("")}
+      ${note}
       ${heard}
     </div>
   `;
