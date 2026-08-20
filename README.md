@@ -15,6 +15,8 @@ Open `index.html` in any modern browser. No build step, no server required.
   criteria. Task 1 ships with an **interactive 3D graphic generator** (see below).
 - **Speaking** — cue cards, live recording, and Gemini scoring from the actual
   audio (pronunciation and intonation, not just the transcript).
+- **Language desk** — a translator on every skill tab, with verb conjugation
+  tables, register-ranked alternative words and collocations (see below).
 - **Sessions** — export/import progress to a file, or quick-save snapshots in
   the browser.
 
@@ -32,6 +34,47 @@ The chart a candidate must describe is rendered with a self-contained
 
 The "Generate New Writing Exam" button asks Gemini for a fresh Task 1 + Task 2
 context (including new chart data) on demand.
+
+## Language desk — the translator on every skill tab
+
+Listening, Reading, Writing and Speaking each carry a collapsible **🌐 Language
+desk**. Type a word or phrase — or **select any text in the exam material** and
+a small bubble offers to translate it, so nothing has to be retyped and you
+never lose your place in a passage.
+
+Beyond the translation itself it gives you:
+
+- **Verb conjugation tables** — full paradigms in *both* languages, source and
+  target, so a candidate can see `consider → considers → considered →
+  considering` next to `considero → consideras → consideró → considere`.
+- **Alternative words**, each tagged with the nuance or register that separates
+  it — tap one to promote it to the headline translation.
+- **Stronger source-language synonyms**, for upgrading a Band 6 word to a Band 8
+  one in a Writing draft.
+- **Collocations**, an IELTS usage note, IPA, and read-aloud.
+- A **saved word list** that persists in the browser and travels inside session
+  export files.
+
+### Which translation API, and why the mix
+
+There is no single API that does all of this — **no machine-translation service
+on the market returns verb conjugations.** So the translation and the linguistics
+come from different places, and the engine is switchable in **⚙ AI engine**:
+
+| Engine | Setup | Notes |
+|---|---|---|
+| **MyMemory** | none — works out of the box | Free and keyless, and CORS-open so the browser can call it directly. Its translation-memory matches double as alternative renderings. Capped at ~480 characters per lookup. This is the default. |
+| **Google Cloud Translation** | its own API key | 100+ languages, solid quality, and its v2 endpoint sends `Access-Control-Allow-Origin`, so it works from this page with no server. Note this is **not** the Gemini key — enable *Cloud Translation API* in Google Cloud and create a separate key. |
+| **Gemini** | the key you already set above | Context-aware translation that also returns its own alternatives and a literal back-translation. |
+| **DeepL** | a proxy you run | The most accurate engine for European pairs, but DeepL [blocks browser calls by design](https://developers.deepl.com/docs/best-practices/cors-requests) (403 + CORS) so it cannot be reached from a static page. Point the app at a small proxy (DeepL publishes a ready-made one) and it will use it. |
+
+**Auto** — the default — picks the best engine you have actually configured:
+DeepL proxy → Google → Gemini → MyMemory.
+
+The **conjugation tables, alternatives, collocations and register notes always
+run on Gemini**, whichever translation engine is selected, because that part
+simply isn't something a translation API exposes. Without a Gemini key the desk
+still translates; the word-studio card just explains what it needs.
 
 ## AI engine — setup
 

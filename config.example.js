@@ -25,3 +25,29 @@ window.GEMINI_CONFIG = {
   key: "PASTE_YOUR_GEMINI_API_KEY_HERE",
   model: "gemini-3.5-flash-lite"
 };
+
+/* -----------------------------------------------------------------------------
+   OPTIONAL — translator engine for the 🌐 Language desk on each skill tab.
+
+   Leave all of this out and the desk still works: it falls back to MyMemory,
+   which is free and needs no key. These are the upgrades:
+
+     googleTranslateKey  A *separate* key from the Gemini one above. In Google
+                         Cloud, enable "Cloud Translation API" and create an API
+                         key under Credentials. 100+ languages.
+     deeplProxyUrl       DeepL is the most accurate engine for European pairs but
+                         refuses browser requests by design (403 + CORS), so it
+                         needs a small proxy you run. Put its base URL here.
+     deeplKey            Only if your proxy expects the auth key from the client
+                         rather than holding it itself.
+     provider            "auto" (default) | "google" | "deepl" | "gemini" | "mymemory"
+
+   Conjugation tables and alternative words always run on the Gemini key above,
+   whichever engine is chosen — no translation API returns verb forms.
+   --------------------------------------------------------------------------- */
+window.TRANSLATE_CONFIG = {
+  provider: "auto",
+  googleTranslateKey: "",
+  deeplProxyUrl: "",
+  deeplKey: ""
+};
