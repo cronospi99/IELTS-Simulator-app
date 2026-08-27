@@ -2600,8 +2600,87 @@ function parseJSON(text){
   }
   const end = clean.lastIndexOf(closeChar);
   if(start>=0 && end>start) clean = clean.slice(start, end+1);
-  return JSON.parse(clean);
+  try{
+    return JSON.parse(clean);
+  }catch(err){
+    // A trailing comma before } or ] is the single most common defect in
+    // model-written JSON and is trivially safe to repair. Anything else is
+    // re-thrown, so genuinely broken output still surfaces.
+    const repaired = clean.replace(/,(\s*[}\]])/g, "$1");
+    if(repaired !== clean){
+      try{ return JSON.parse(repaired); }catch(e2){}
+    }
+    console.error("Unparseable AI reply:", text);
+    throw new Error(`The AI's reply was malformed or cut off mid-answer (${err.message}). This is usually a one-off — try again.`);
+  }
 }
+
+/* ---------------------------------------------------------------------------
+   EXAMINER RESPONSE NORMALISER
+   The rubric asks for one exact set of keys, but a model marking "Task
+   Response" will quite reasonably call the key "task_response", or wrap the
+   four criteria in a "criteria" object, or return the band as "6.5" rather
+   than 6.5. Each of those used to crash scoring with "Cannot read properties
+   of undefined (reading 'band')", shown to the candidate as a suggestion to
+   check their API key — which was never the problem. The reply is mapped onto
+   the shape the app expects instead of being taken literally.
+   --------------------------------------------------------------------------- */
+function pickCriterion(src, aliases){
+  for(const key of aliases){
+    const hit = Object.keys(src).find(k => k.toLowerCase().replace(/[^a-z]/g,"") === key);
+    if(hit && src[hit] != null) return src[hit];
+  }
+  return null;
+}
+
+function coerceCriterion(raw){
+  if(raw == null) return null;
+  // Some replies give a bare number instead of {band, comment}.
+  const obj = (typeof raw === "object") ? raw : { band: raw, comment: "" };
+  const band = Number(obj.band != null ? obj.band : obj.score);
+  if(!isFinite(band)) return null;
+  return { band: Math.max(0, Math.min(9, band)), comment: String(obj.comment || obj.feedback || "") };
+}
+
+function normalizeExamJSON(json, spec, label){
+  if(!json || typeof json !== "object") throw new Error(`The AI examiner's reply was not a report at all. Try scoring again.`);
+  // Unwrap a wrapper object if the criteria were nested inside one.
+  let src = json;
+  for(const wrapper of ["criteria","scores","assessment","result","bands"]){
+    if(src[wrapper] && typeof src[wrapper] === "object" && !Array.isArray(src[wrapper])
+       && Object.keys(spec).some(k => pickCriterion(src[wrapper], spec[k]))){
+      src = Object.assign({}, src[wrapper], src);
+      break;
+    }
+  }
+  const out = {};
+  const missing = [];
+  Object.keys(spec).forEach(target=>{
+    const c = coerceCriterion(pickCriterion(src, spec[target]));
+    if(c) out[target] = c; else missing.push(target);
+  });
+  if(missing.length){
+    throw new Error(`The AI examiner's reply was missing ${missing.length} of the ${Object.keys(spec).length} ${label} criteria (${missing.join(", ")}). This is usually a one-off — try scoring again.`);
+  }
+  // Carry through everything that is not a criterion (summary, transcript…).
+  Object.keys(json).forEach(k=>{ if(!(k in out)) out[k] = json[k]; });
+  return out;
+}
+
+// Alias sets are compared with punctuation and case stripped, so
+// "Task Response", "task_response" and "taskResponse" all match "taskresponse".
+const WRITING_CRITERIA_SPEC = {
+  task_achievement:  ["taskachievement","taskresponse","taskachievementresponse","task"],
+  coherence_cohesion:["coherencecohesion","coherenceandcohesion","coherence"],
+  lexical_resource:  ["lexicalresource","lexis","vocabulary"],
+  grammar:           ["grammar","grammaticalrangeandaccuracy","grammaticalrange","grammaraccuracy"]
+};
+const SPEAKING_CRITERIA_SPEC = {
+  fluency_coherence: ["fluencycoherence","fluencyandcoherence","fluency"],
+  lexical_resource:  ["lexicalresource","lexis","vocabulary"],
+  grammar:           ["grammar","grammaticalrangeandaccuracy","grammaticalrange","grammaraccuracy"],
+  pronunciation:     ["pronunciation","pronounciation"]
+};
 
 /* =========================================================================
    OFFICIAL IELTS BAND DESCRIPTORS — SINGLE SOURCE OF TRUTH
@@ -2789,12 +2868,15 @@ const WRITING_SCORING_PROCEDURE = `HOW TO SCORE — for each of the four criteri
 
 LENGTH: Task 1 requires at least 150 words and Task 2 at least 250. An under-length response is penalised under Task Achievement / Task Response, because the task cannot be fully covered — do not additionally punish it under the other three criteria. Do not reward padding, repetition of the prompt wording, or a restated introduction used to inflate the count.
 
-CALIBRATION — do not inflate:
-- Band 5 covers the response that addresses the task only partially, organises with little progression, and whose complex sentences usually contain errors. This is a very common real result.
-- Band 6 is the competent user: task addressed, meaning clear, but with imprecise vocabulary and frequent errors in complex structures.
-- Band 7 requires BOTH frequent error-free sentences AND flexible use of some less common vocabulary. If either is missing, it is not a 7.
-- Band 8+ requires sustained precision and should be rare.
-Awarding a band 7 out of encouragement is a scoring error in exactly the same way unfair severity is.
+CALIBRATION — mark to the descriptors, in both directions. Severity and generosity are the same error, and the descriptors decide, not a prior expectation of where responses "usually" land:
+- Band 5 is for a response that addresses the task only PARTIALLY — a missing part of the question, no clear position, or organisation the reader has to reassemble. If all parts of the task are addressed with a position the reader can identify and paragraphs that progress, the response has already left band 5, whatever its errors.
+- Band 6 is the competent writer: every part of the task addressed, position clear throughout, ideas organised and supported. Band 6 EXPECTS imprecise word choice and errors in complex structures — finding them confirms band 6, it does not drag the response to 5. Errors only pull below 6 when they actually impede the reader.
+- Band 7 needs a clear, well-developed position, logically organised, plus BOTH frequent error-free sentences AND some less common vocabulary used with awareness. Occasional lapses and one or two awkward collocations do not block a 7 — the descriptor says errors are "few" and "well controlled", not absent.
+- Band 8 is sustained precision with only occasional slips; band 9 is effectively flawless. These are uncommon but they are not forbidden: award them when the writing is genuinely there.
+
+TWO WAYS TO GET THIS WRONG, and the second is the one you are most prone to:
+1. Awarding a 7 out of encouragement for writing that does not support it.
+2. Reading closely, collecting a list of small errors, and letting that list decide the band — sliding an organised, on-task, comprehensible essay down to 5 or 5.5 because it was not error-free. A human examiner reads for what the writer CAN do first, then applies the descriptors. Do the same: identify the highest descriptor the response genuinely satisfies, and only move down when the evidence for that descriptor actually fails.
 
 WRITING THE FEEDBACK:
 - Every "comment" must (a) quote a specific phrase or sentence from the response as evidence, and (b) state plainly what is holding the band where it is and what the next half-band up would require.
@@ -2836,12 +2918,15 @@ const SPEAKING_SCORING_PROCEDURE = `HOW TO SCORE — follow this procedure for e
 3. Score each criterion independently. Do not pull the four criteria towards each other or towards any expected average — a candidate with accurate but simple grammar and weak fluency should get visibly different numbers.
 4. Judge only the language actually produced. Ignore the length of the answer, the topic, how likeable the ideas are, and how hard the candidate is evidently trying.
 
-CALIBRATION — do not inflate. The reference points are:
-- Band 5 is the candidate who keeps going only through repetition, self-correction and slow speech, and whose complex structures usually contain errors. This is a very common real result.
-- Band 6 is the competent user: speaks at length with visible hesitation, vocabulary adequate but imprecise, complex structures attempted with frequent mistakes.
-- Band 7 requires BOTH frequently error-free sentences AND flexible use of some less common or idiomatic vocabulary. If either is missing it is not a 7.
-- Band 8+ requires near-effortless, sustained, precise performance and should be rare.
-Do not award band 7 or above out of encouragement. Under-supported generosity is a scoring error, exactly like unfair severity.
+CALIBRATION — mark to the descriptors, in both directions. Severity and generosity are the same error, and no band is the "expected" answer:
+- Band 5 is the candidate who keeps going only through repetition, self-correction and slow speech, whose vocabulary limits what they can talk about, and whose complex structures usually fail. If the candidate speaks at length on the topic and is understood without effort, they are already past band 5.
+- Band 6 is the competent user: speaks at length, willing to attempt complex language, generally clear — WITH visible hesitation, imprecise word choice and frequent errors in complex structures. Those weaknesses are what band 6 sounds like; hearing them confirms a 6 rather than pulling towards a 5.
+- Band 7 needs sustained flow without noticeable effort to keep going, some less common or idiomatic vocabulary used with awareness, and frequently error-free sentences. Occasional hesitation to find words, and the odd slip, are inside band 7 — the descriptor says errors are "few", not absent.
+- Band 8 is fluent and precise with only occasional lapses; band 9 is effortless. Uncommon, but award them when the performance is genuinely there.
+
+TWO WAYS TO GET THIS WRONG, and the second is the one you are most prone to:
+1. Awarding a 7 out of encouragement for speech that does not support it.
+2. Cataloguing every filler, restart and grammatical slip and letting that list set the band — pushing a candidate who spoke fluently and comprehensibly on topic down to 5 or 5.5 because the speech was not clean. Real speech is never clean. Judge what the candidate can sustain, then apply the descriptors.
 
 EXAMINER JUDGEMENT — you are marking a person, not filling in a form:
 - Weigh the whole sample. One unlucky stumble does not define Fluency, and one impressive idiom does not lift Lexical Resource on its own; look for what the candidate does repeatedly.
@@ -6810,8 +6895,8 @@ async function requestWritingScore(task){
       btn.textContent = original; btn.disabled = false; return;
     }
     const text = await callGemini(writingRubric(task), user, null, null);
-    const json = parseJSON(text);
-    json.overall_band = officialRound([json.task_achievement.band, json.coherence_cohesion.band, json.lexical_resource.band, json.grammar.band].map(Number).reduce((a,b)=>a+b,0)/4);
+    const json = normalizeExamJSON(parseJSON(text), WRITING_CRITERIA_SPEC, "Writing");
+    json.overall_band = officialRound([json.task_achievement.band, json.coherence_cohesion.band, json.lexical_resource.band, json.grammar.band].reduce((a,b)=>a+b,0)/4);
     W.reports[task] = json;
     showWritingReport(task, json);
 
@@ -6833,7 +6918,9 @@ async function requestWritingScore(task){
     saveSubmission("writing", task, WRITING[task].prompt, draft, json.overall_band, json);
   }catch(e){
     console.error(e);
-    alert("Scoring failed: " + e.message + "\n\nCheck your Gemini API key in AI engine settings and try again.");
+    alert("Scoring failed: " + e.message + (/key|quota|network|blocked|model/i.test(e.message)
+      ? "\n\nCheck your Gemini API key in ⚙ AI engine settings and try again."
+      : ""));
   }
   btn.textContent = original;
   btn.disabled = false;
@@ -7654,8 +7741,8 @@ async function scoreSpeaking(part){
     if(geminiOn){
       const user = `${brief}\n\nLive transcript captured by the browser (may be imperfect or missing — the audio is authoritative):\n${transcript || "(none)"}`;
       const text = await callGemini(SPEAKING_RUBRIC_AUDIO, user, S.audioB64[part], S.audioMime[part]);
-      json = parseJSON(text);
-      json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].map(Number).reduce((a,b)=>a+b,0)/4);
+      json = normalizeExamJSON(parseJSON(text), SPEAKING_CRITERIA_SPEC, "Speaking");
+      json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].reduce((a,b)=>a+b,0)/4);
     } else {
       if(!transcript.trim()){
         alert("Please record or provide text context first.");
@@ -7663,8 +7750,8 @@ async function scoreSpeaking(part){
       }
       const user = `${brief}\n\nWHAT THE CANDIDATE SAID (transcript):\n${transcript}`;
       const text = await callGemini(SPEAKING_RUBRIC_TRANSCRIPT, user, null, null);
-      json = parseJSON(text);
-      json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].map(Number).reduce((a,b)=>a+b,0)/4);
+      json = normalizeExamJSON(parseJSON(text), SPEAKING_CRITERIA_SPEC, "Speaking");
+      json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].reduce((a,b)=>a+b,0)/4);
     }
 
     // With uploaded audio there is no live transcript; adopt the examiner's own
@@ -7691,7 +7778,7 @@ async function scoreSpeaking(part){
     saveSubmission("speaking", part, promptText, S.transcripts[part] || json.heard_transcript || "", json.overall_band, json);
   }catch(e){
     console.error(e);
-    document.getElementById("speakReportArea").innerHTML = `<div class="hint-box" style="border-color:var(--coral);">Couldn't reach the AI examiner right now.</div>`;
+    document.getElementById("speakReportArea").innerHTML = `<div class="hint-box" style="border-color:var(--coral);"><b>Assessment failed.</b><br>${escapeXml(e.message || "Couldn't reach the AI examiner right now.")}</div>`;
   }
   btn.textContent = original;
   btn.disabled = false;
