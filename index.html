@@ -5673,6 +5673,7 @@ Double-check before returning: every section's paragraphs are long and academica
       const correction = lastError ? `\n\nYour previous attempt was rejected for this reason: "${lastError}". Fix that specific problem this time.` : "";
       const rawText = await callGemini(sys, prompt + correction, null, null);
       const parsedArray = parseJSON(rawText);
+      repairReadingArray(parsedArray);    // fixes what is fixable (miscounts, answer formats) before judging it
       normalizeReadingArray(parsedArray); // recalculates qStart, so the AI's own numbering is never trusted
       validateReadingArray(parsedArray);
       READING_PASSAGES = parsedArray.map((p, idx) => {
@@ -5695,9 +5696,140 @@ Double-check before returning: every section's paragraphs are long and academica
     }
   }
   genProgressHide("readingGen");
-  alert("Failed to generate reading sections after " + MAX_ATTEMPTS + " attempts: " + lastError + "\n\nTip: try again, or try a different topic — the AI occasionally miscounts questions in a section.");
+  alert("Failed to generate reading sections after " + MAX_ATTEMPTS + " attempts: " + lastError
+    + "\n\nYour current test has not been changed — nothing was lost.\n\nTip: try again, or pick a different topic. A section that comes back with too many questions is now trimmed automatically; one that comes back short cannot be, since the missing question would have to be invented.");
   btn.textContent = originalText;
   btn.disabled = false;
+}
+
+/* ---------------------------------------------------------------------------
+   READING REPAIR PASS
+   Four fully-written passages used to be thrown away because one section came
+   back with 11 questions instead of 10 — a miscount the app can simply fix.
+   This runs before validation and repairs everything that is safely
+   repairable, leaving validation to reject only what genuinely cannot be
+   graded. Every repair is logged so a malformed generation stays debuggable.
+   --------------------------------------------------------------------------- */
+const ROMAN_TO_INDEX = {i:0,ii:1,iii:2,iv:3,v:4,vi:5,vii:6,viii:7,ix:8,x:9,xi:10,xii:11};
+
+/* Heading answers are indices into the options list, but IELTS convention is
+   roman numerals — and "i" would otherwise be read as the letter I (index 8).
+   Roman is therefore tried first, then the general resolver. */
+function resolveHeadingKey(raw, options){
+  const s = String(raw == null ? "" : raw).trim().toLowerCase().replace(/[^a-z0-9]/g,"");
+  if(s in ROMAN_TO_INDEX && ROMAN_TO_INDEX[s] < options.length) return ROMAN_TO_INDEX[s];
+  return resolveMcAnswer(raw, options);
+}
+
+function repairReadingArray(arr){
+  if(!Array.isArray(arr)) return [];
+  const log = [];
+
+  arr.forEach((p, si)=>{
+    if(!p || !Array.isArray(p.groups)) return;
+    const label = `Section ${si+1}`;
+    const paraLetters = p.paras && typeof p.paras === "object" ? Object.keys(p.paras) : [];
+
+    p.groups.forEach(g=>{
+      if(!g || typeof g !== "object") return;
+
+      if(g.type === "heading"){
+        if(!Array.isArray(g.options)) g.options = [];
+        const key = (g.key && typeof g.key === "object") ? g.key : {};
+        // Grading iterates the key while rendering iterates paragraphs, so the
+        // two disagreeing meant questions on screen that were never marked.
+        const fixed = {};
+        (Array.isArray(g.paragraphs) ? g.paragraphs : []).forEach(name=>{
+          if(!(name in key)) return;
+          const idx = resolveHeadingKey(key[name], g.options);
+          if(idx >= 0) fixed[name] = idx;
+          else log.push(`${label}: dropped heading ${name} (answer "${key[name]}" matches no option)`);
+        });
+        const before = Array.isArray(g.paragraphs) ? g.paragraphs.length : 0;
+        g.paragraphs = Object.keys(fixed);
+        g.key = fixed;
+        if(g.paragraphs.length !== before) log.push(`${label}: heading group trimmed to the ${g.paragraphs.length} paragraphs that have a usable answer`);
+      }
+
+      else if(g.type === "mc"){
+        const kept = (Array.isArray(g.items) ? g.items : []).filter(it=>{
+          if(!it || !Array.isArray(it.options) || !it.options.length) return false;
+          // Same defect class as the listening "0" bug: an answer given as a
+          // letter or a 1-based number silently marked the wrong option.
+          const idx = resolveMcAnswer(it.a, it.options);
+          if(idx < 0){ log.push(`${label}: dropped an mc item (answer "${it.a}" matches no option)`); return false; }
+          it.a = idx;
+          return true;
+        });
+        g.items = kept;
+      }
+
+      else if(g.type === "tfng"){
+        const canon = v=>{
+          const s = String(v==null?"":v).trim().toUpperCase().replace(/[^A-Z ]/g,"");
+          if(s === "T" || s.startsWith("TRUE")) return "TRUE";
+          if(s === "F" || s.startsWith("FALSE")) return "FALSE";
+          if(s === "NG" || s.replace(/\s/g,"").startsWith("NOTGIVEN")) return "NOT GIVEN";
+          return null;
+        };
+        g.items = (Array.isArray(g.items) ? g.items : []).filter(it=>{
+          const a = it && canon(it.a);
+          if(!a){ log.push(`${label}: dropped a tfng item (answer "${it && it.a}" is not TRUE/FALSE/NOT GIVEN)`); return false; }
+          it.a = a;
+          return true;
+        });
+      }
+
+      else if(g.type === "completion"){
+        // checkGap calls .some() on this, so a bare string crashed grading.
+        g.items = (Array.isArray(g.items) ? g.items : []).filter(it=>{
+          if(!it) return false;
+          if(!Array.isArray(it.a)) it.a = it.a == null ? [] : [it.a];
+          it.a = it.a.map(x=>String(x).trim()).filter(Boolean);
+          if(!it.a.length){ log.push(`${label}: dropped a completion item with no accepted answer`); return false; }
+          return true;
+        });
+      }
+
+      else if(g.type === "matchinfo"){
+        if(!Array.isArray(g.letters) || !g.letters.length) g.letters = paraLetters.slice();
+        const allowed = g.letters.map(l=>String(l).trim().toUpperCase());
+        g.items = (Array.isArray(g.items) ? g.items : []).filter(it=>{
+          const a = String(it && it.a != null ? it.a : "").trim().toUpperCase();
+          if(!allowed.includes(a)){ log.push(`${label}: dropped a matchinfo item (answer "${it && it.a}" is not one of ${allowed.join("/")})`); return false; }
+          it.a = a;
+          return true;
+        });
+      }
+    });
+
+    // Drop groups left with nothing to ask, then trim any surplus down to 10.
+    p.groups = p.groups.filter(g=>{
+      const n = g.type === "heading" ? (g.paragraphs||[]).length : (g.items||[]).length;
+      return n > 0;
+    });
+
+    const countOf = g => g.type === "heading" ? g.paragraphs.length : g.items.length;
+    let total = p.groups.reduce((a,g)=>a+countOf(g), 0);
+    let guard = 0;
+    while(total > 10 && guard++ < 40){
+      // Take the surplus off the largest group, never emptying one.
+      const biggest = p.groups.reduce((best,g)=> countOf(g) > countOf(best) ? g : best, p.groups[0]);
+      if(countOf(biggest) <= 1) break;
+      if(biggest.type === "heading"){
+        const dropped = biggest.paragraphs.pop();
+        delete biggest.key[dropped];
+      } else {
+        biggest.items.pop();
+      }
+      total--;
+    }
+    if(total !== 10) log.push(`${label}: ${total} questions after repair (needs 10)`);
+    else if(guard > 0) log.push(`${label}: trimmed ${guard} surplus question${guard>1?"s":""} down to 10`);
+  });
+
+  if(log.length) console.warn("Reading generation repairs:\n- " + log.join("\n- "));
+  return log;
 }
 
 // The AI is unreliable at hand-assigning "qStart" numbers across groups and
