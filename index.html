@@ -356,6 +356,88 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
 }
 .timerbar .time{color:var(--brass-2);font-weight:600;letter-spacing:.03em;}
 .timerbar .time.warn{color:var(--coral);}
+.timerbar{gap:12px;flex-wrap:wrap;}
+.timerbar .tb-main{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;min-width:0;}
+.timerbar .tb-lbl{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;}
+.timerbar .time{font-size:20px;}
+.timerbar .tb-sub{font-size:11px;opacity:.72;flex:1 1 100%;line-height:1.5;}
+.timerbar .tb-actions{display:flex;gap:6px;flex-shrink:0;}
+.timerbar .tb-btn{
+  background:rgba(255,255,255,.10);color:var(--paper);border:1px solid rgba(255,255,255,.22);
+  border-radius:7px;padding:5px 11px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+  font-weight:600;letter-spacing:.04em;cursor:pointer;
+}
+.timerbar .tb-btn:hover{background:rgba(255,255,255,.18);}
+.timerbar.expired{background:#3d1414;}
+.timerbar.expired .time{color:var(--coral);}
+
+/* ---------- annotated examiner highlights ---------- */
+.annotated-block{margin-top:20px;border-top:1px solid var(--line);padding-top:18px;}
+.annotated-block .ab-title{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--brass);margin:0 0 4px;
+}
+.annotated-block .ab-sub{font-size:12.5px;color:var(--slate);margin:0 0 12px;line-height:1.6;}
+.hl-legend{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.hl-legend div{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:#2a3145;line-height:1.55;}
+.hl-legend .dot{width:11px;height:11px;border-radius:3px;flex-shrink:0;margin-top:4px;}
+.annotated-text{
+  background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+  font-size:14.5px;line-height:2;color:#2a3145;white-space:pre-wrap;overflow-wrap:break-word;
+}
+.hl{border-radius:3px;padding:1px 2px;border-bottom:2px solid;background:transparent;color:inherit;}
+.hl sup{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;margin-left:2px;opacity:.85;}
+.hl-green{background:#a5d6a7;border-bottom-color:#2e7d32;color:#1b5e20;}
+.hl-yellow{background:#fff59d;border-bottom-color:#f57f17;color:#8a5300;}
+.hl-red{background:#ef9a9a;border-bottom-color:#c62828;color:#b71c1c;}
+.feedback-legend-container{
+  display:flex;gap:15px;background:#f8f9fa;padding:12px;border-radius:8px;font-size:.9rem;
+  margin-bottom:15px;border:1px solid #e0e0e0;flex-wrap:wrap;color:#2a3145;line-height:1.5;
+}
+.feedback-legend-container>div{display:flex;align-items:center;gap:6px;}
+.feedback-legend-container .swatch{width:14px;height:14px;border-radius:3px;display:inline-block;flex-shrink:0;}
+
+/* ---------- writing word-limit indicator ---------- */
+.wordcount.near-limit{color:#b26a00;font-weight:700;}
+.wordcount.at-limit{color:var(--coral);font-weight:700;}
+.wc-badge{
+  display:block;margin-top:4px;font-family:'Inter',system-ui,sans-serif;font-size:11.5px;
+  font-weight:600;line-height:1.5;max-width:420px;
+}
+.wc-badge.warn{color:#8a5300;}
+.wc-badge.stop{color:#b71c1c;}
+
+/* ---------- timeout lock banner ---------- */
+.timeout-banner{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:80;
+  display:flex;align-items:center;gap:14px;max-width:min(560px,calc(100vw - 32px));
+  background:var(--ink);color:var(--paper);border:1px solid rgba(255,255,255,.16);
+  border-left:4px solid var(--coral);border-radius:12px;padding:14px 18px;
+  box-shadow:0 18px 40px rgba(0,0,0,.32);font-size:13.5px;line-height:1.55;
+}
+.timeout-banner b{display:block;font-family:'Fraunces',serif;font-size:15px;margin-bottom:2px;}
+.timeout-banner button{
+  margin-left:auto;flex-shrink:0;background:rgba(255,255,255,.12);color:var(--paper);
+  border:1px solid rgba(255,255,255,.24);border-radius:7px;padding:6px 12px;
+  font-size:12px;font-weight:600;cursor:pointer;
+}
+.locked-note{
+  background:#fdecea;border:1px solid #f5c6c2;border-left:4px solid var(--coral);border-radius:0 10px 10px 0;
+  padding:12px 16px;margin-bottom:16px;font-size:13px;line-height:1.6;color:#8a1c1c;
+}
+.hl-notes{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;}
+.hl-notes li{display:flex;gap:9px;font-size:13px;line-height:1.6;color:#2a3145;}
+.hl-notes .n{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;padding:1px 6px;
+  border-radius:5px;height:fit-content;flex-shrink:0;color:#fff;}
+.hl-notes .seg{font-style:italic;opacity:.85;}
+.hl-unmatched{font-size:12px;color:var(--slate);margin-top:10px;line-height:1.6;}
+.gf-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;}
+.gf-cols .gf-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px;}
+.gf-cols h5{margin:0 0 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--slate);}
+.gf-cols ul{margin:0;padding-left:17px;font-size:13px;line-height:1.7;color:#2a3145;}
+.gf-just{margin-top:14px;font-size:13px;line-height:1.7;color:#2a3145;background:#f7f4ea;
+  border-left:3px solid var(--brass);border-radius:0 8px 8px 0;padding:11px 14px;}
 
 /* ---------- reading / listening ---------- */
 /* Reading passages are read for 20 minutes at a stretch, so they get real
@@ -1321,6 +1403,12 @@ textarea.essay{
   .key-line .key-num{flex:0 0 auto;white-space:nowrap;}
   .key-line .correct-answer{flex:1 1 auto;min-width:0;}
   .timerbar{padding:10px 14px;font-size:12.5px;border-radius:12px;}
+  .timerbar .time{font-size:18px;}
+  .timerbar .tb-btn{min-height:38px;padding:6px 10px;}
+  .annotated-text{font-size:14px;padding:13px 14px;line-height:1.95;}
+  .feedback-legend-container{flex-direction:column;gap:8px;}
+  .timeout-banner{bottom:12px;padding:12px 14px;font-size:13px;}
+  .gf-cols{grid-template-columns:1fr;}
 
   /* segmented pills (passage tabs, task tabs, speaking parts, band versions) */
   .write-tabs,.part-nav,.band-tabs{
@@ -2190,7 +2278,10 @@ const state = {
   scores: { listening:null, reading:null, writing:null, speaking:null },
   history: [],
   bdOpen: false,   // official band descriptor chart expanded?
-  listening: { answers:{}, submitted:false, playedParts:{}, customAudio:{} },
+  listening: { answers:{}, submitted:false, playedParts:{}, customAudio:{}, audioDur:{} },
+  // Exam clocks, keyed "writing:task1" | "writing:task2" | "reading" | "listening".
+  // `timeUp` records which of them have run out, so the lock survives a re-render.
+  timers: {}, timeUp: {},
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
   speaking: { part:"part1", topic:"random", transcripts:{}, metrics:{}, report:null, reports:{}, loading:false, recording:false, audioB64:{}, audioMime:{}, language:{}, hesitation:{}, bandVersions:{} },
@@ -2627,7 +2718,9 @@ function parseJSON(text){
    --------------------------------------------------------------------------- */
 function pickCriterion(src, aliases){
   for(const key of aliases){
-    const hit = Object.keys(src).find(k => k.toLowerCase().replace(/[^a-z]/g,"") === key);
+    // Digits are kept, or a reply that numbers its criteria ("criterion_1")
+    // would normalise to a bare "criterion" and match all four aliases.
+    const hit = Object.keys(src).find(k => k.toLowerCase().replace(/[^a-z0-9]/g,"") === key);
     if(hit && src[hit] != null) return src[hit];
   }
   return null;
@@ -2667,19 +2760,228 @@ function normalizeExamJSON(json, spec, label){
   return out;
 }
 
+/* =========================================================================
+   ANNOTATED FEEDBACK — colour-coded highlights over the candidate's own words
+   -------------------------------------------------------------------------
+   The examiner returns segments it claims to have quoted from the response.
+   They are located inside the real text here rather than trusted, because a
+   model will occasionally normalise a quote (straighten a curly apostrophe,
+   collapse a line break, tidy a double space) even when told not to, and a
+   naive string replace would then either miss the segment or — worse — splice
+   markup into text it had already marked up. Matching is done on index ranges
+   over the ORIGINAL text, once, with overlaps rejected, and the HTML is built
+   from those ranges afterwards, so the candidate's text is escaped exactly
+   once and no highlight can ever land inside another highlight's markup.
+   ========================================================================= */
+
+const HIGHLIGHT_TYPES = {
+  green:  { ink:"#2e7d32", chip:"#2e7d32" },
+  yellow: { ink:"#f57f17", chip:"#f57f17" },
+  red:    { ink:"#c62828", chip:"#c62828" }
+};
+
+const DEFAULT_FEEDBACK_LEGEND = {
+  green:  "Aspectos destacados: Vocabulario avanzado, estructuras complejas y precisión académica.",
+  yellow: "Aspectos a mejorar: Fraseo mejorable, repeticiones o pequeñas imprecisiones.",
+  red:    "Errores a corregir: Fallos gramaticales, errores de vocabulario o problemas de coherencia."
+};
+
+// Anything that is not one of the three colours is treated as a "could be
+// better" note rather than being dropped, so feedback is never lost silently.
+function normalizeHighlightType(t){
+  const k = String(t||"").trim().toLowerCase();
+  if(k in HIGHLIGHT_TYPES) return k;
+  if(/^(good|strength|excellent|positive|verde)$/.test(k)) return "green";
+  if(/^(error|bad|serious|major|rojo)$/.test(k)) return "red";
+  return "yellow";
+}
+
+function normalizeHighlights(raw){
+  if(!Array.isArray(raw)) return [];
+  const seen = new Set();
+  const out = [];
+  raw.forEach(h=>{
+    if(!h || typeof h !== "object") return;
+    const segment = String(h.segment == null ? (h.text || h.snippet || "") : h.segment).trim();
+    if(!segment) return;
+    const key = segment.toLowerCase();
+    if(seen.has(key)) return;          // the same quote twice would fight for one range
+    seen.add(key);
+    out.push({
+      segment,
+      type: normalizeHighlightType(h.type || h.color || h.category),
+      comment: String(h.comment == null ? (h.note || h.explanation || "") : h.comment).trim()
+    });
+  });
+  return out;
+}
+
+function normalizeGeneralFeedback(raw){
+  if(!raw || typeof raw !== "object") return null;
+  const list = v => (Array.isArray(v) ? v : (v ? [v] : []))
+    .map(x => String(x||"").trim()).filter(Boolean).slice(0,6);
+  const gf = {
+    strengths: list(raw.strengths),
+    improvements: list(raw.improvements),
+    summary_justification: String(raw.summary_justification || raw.justification || "").trim()
+  };
+  return (gf.strengths.length || gf.improvements.length || gf.summary_justification) ? gf : null;
+}
+
+function normalizeLegend(raw){
+  const l = (raw && typeof raw === "object") ? raw : {};
+  return {
+    green:  String(l.green  || "").trim() || DEFAULT_FEEDBACK_LEGEND.green,
+    yellow: String(l.yellow || "").trim() || DEFAULT_FEEDBACK_LEGEND.yellow,
+    red:    String(l.red    || "").trim() || DEFAULT_FEEDBACK_LEGEND.red
+  };
+}
+
+// Folds the annotation half of an examiner reply into a shape the renderer can
+// rely on, whatever the model actually sent.
+function normalizeAnnotations(json){
+  json.annotated_text_highlights = normalizeHighlights(json.annotated_text_highlights || json.highlights);
+  json.feedback_legend = normalizeLegend(json.feedback_legend);
+  const gf = normalizeGeneralFeedback(json.general_feedback);
+  if(gf) json.general_feedback = gf; else delete json.general_feedback;
+  return json;
+}
+
+/* A quote that differs from the source only in whitespace, or in the shape of
+   a quote mark or dash, is still the candidate's own wording — those are the
+   substitutions a model makes without meaning to. Everything else must match
+   literally. */
+function highlightRegex(segment){
+  const pattern = segment
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")   // escape first, so the classes below survive
+    .replace(/\s+/g, "\\s+")
+    .replace(/['\u2018\u2019\u02bc]/g, "['\u2018\u2019\u02bc]")
+    .replace(/["\u201c\u201d]/g, '["\u201c\u201d]')
+    .replace(/[-\u2010\u2011\u2013\u2014]/g, "[-\u2010\u2011\u2013\u2014]");
+  return new RegExp(pattern, "i");
+}
+
+/* Resolves each highlight to a range in `text`. Ranges are claimed in the order
+   the examiner listed them; a segment whose only match overlaps a range already
+   taken is reported as unmatched instead of stealing it. */
+function locateHighlights(text, highlights){
+  const taken = [], found = [], missed = [];
+  (highlights||[]).forEach(h=>{
+    let re;
+    try{ re = highlightRegex(h.segment); }
+    catch(e){ missed.push(h); return; }
+    let from = 0, hit = null;
+    while(from < text.length){
+      const m = text.slice(from).match(re);
+      if(!m) break;
+      const start = from + m.index, end = start + m[0].length;
+      if(!taken.some(r => start < r.end && end > r.start)){ hit = { start, end }; break; }
+      from = start + 1;
+    }
+    if(hit){ taken.push(hit); found.push(Object.assign({}, h, hit)); }
+    else missed.push(h);
+  });
+  found.sort((a,b)=> a.start - b.start);
+  found.forEach((h,i)=>{ h.n = i+1; });   // numbered in reading order, not reply order
+  return { found, missed };
+}
+
+function annotatedTextHTML(text, found){
+  let out = "", pos = 0;
+  found.forEach(h=>{
+    out += escapeHtml(text.slice(pos, h.start));
+    out += `<mark class="hl hl-${h.type}" title="${escapeXml(h.comment || "")}">`
+         + escapeHtml(text.slice(h.start, h.end))
+         + `<sup>${h.n}</sup></mark>`;
+    pos = h.end;
+  });
+  out += escapeHtml(text.slice(pos));
+  return out;
+}
+
+// The legend the brief specifies, rendered above every annotated panel.
+function feedbackLegendHTML(legend){
+  const L = normalizeLegend(legend);
+  const row = (bg, border, label, text) => `
+    <div>
+      <span class="swatch" style="background-color:${bg};border:1px solid ${border};"></span>
+      <span><strong>${label}:</strong> ${escapeHtml(text)}</span>
+    </div>`;
+  return `<div class="feedback-legend-container">
+    ${row("#a5d6a7","#2e7d32","Verde",  L.green)}
+    ${row("#fff59d","#f57f17","Amarillo",L.yellow)}
+    ${row("#ef9a9a","#c62828","Rojo",   L.red)}
+  </div>`;
+}
+
+/* The whole annotated section of a report: legend, the candidate's text with
+   the examiner's colour-coded marks, the numbered notes behind them, and the
+   general feedback. Returns "" when there is nothing to show, so a reply
+   without annotations simply renders the report as it always did. */
+function annotatedFeedbackHTML(sourceText, report, opts){
+  const o = opts || {};
+  const text = String(sourceText || "");
+  const highlights = normalizeHighlights(report.annotated_text_highlights);
+  const gf = normalizeGeneralFeedback(report.general_feedback);
+  if(!highlights.length && !gf) return "";
+
+  let body = "";
+  if(highlights.length && text.trim()){
+    const { found, missed } = locateHighlights(text, highlights);
+    const notes = found.map(h=>`
+      <li>
+        <span class="n" style="background:${HIGHLIGHT_TYPES[h.type].chip};">${h.n}</span>
+        <span><span class="seg">“${escapeHtml(h.segment)}”</span> — ${escapeHtml(h.comment || "")}</span>
+      </li>`).join("");
+    // Quotes the examiner could not have taken verbatim are shown as plain
+    // notes rather than silently discarded — the advice is still worth reading.
+    const orphans = missed.length ? `<div class="hl-unmatched"><b>Notas adicionales</b> (el examinador no citó estos fragmentos textualmente, así que no pudieron resaltarse):<ul style="margin:6px 0 0;padding-left:18px;">${
+      missed.map(h=>`<li>“${escapeHtml(h.segment)}” — ${escapeHtml(h.comment || "")}</li>`).join("")
+    }</ul></div>` : "";
+    body = `<div class="annotated-text">${annotatedTextHTML(text, found)}</div>`
+         + (notes ? `<ul class="hl-notes">${notes}</ul>` : "")
+         + orphans;
+  }else if(highlights.length){
+    body = `<ul class="hl-notes">${highlights.map((h,i)=>`
+      <li><span class="n" style="background:${HIGHLIGHT_TYPES[h.type].chip};">${i+1}</span>
+      <span><span class="seg">“${escapeHtml(h.segment)}”</span> — ${escapeHtml(h.comment || "")}</span></li>`).join("")}</ul>`;
+  }
+
+  const gfHTML = gf ? `
+    <div class="gf-cols">
+      ${gf.strengths.length ? `<div class="gf-card"><h5>Fortalezas</h5><ul>${gf.strengths.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></div>` : ""}
+      ${gf.improvements.length ? `<div class="gf-card"><h5>A mejorar</h5><ul>${gf.improvements.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></div>` : ""}
+    </div>
+    ${gf.summary_justification ? `<div class="gf-just"><b>Justificación de la puntuación.</b> ${escapeHtml(gf.summary_justification)}</div>` : ""}` : "";
+
+  return `
+    <div class="annotated-block">
+      <p class="ab-title">Análisis anotado</p>
+      <p class="ab-sub">${escapeHtml(o.sub || "Cada marca es una cita literal de tu respuesta. Pasa el cursor por encima para ver el comentario del examinador.")}</p>
+      ${feedbackLegendHTML(report.feedback_legend)}
+      ${body}
+      ${gfHTML}
+    </div>`;
+}
+
 // Alias sets are compared with punctuation and case stripped, so
 // "Task Response", "task_response" and "taskResponse" all match "taskresponse".
+// The trailing "criterionN" alias is a last-resort fallback for a reply that
+// numbers the criteria instead of naming them. The numbering is the official
+// order of each paper — TA/TR, CC, LR, GRA for Writing; FC, LR, GRA, PR for
+// Speaking — and it is only consulted when no named key matched, so a properly
+// named reply can never be mis-assigned by it.
 const WRITING_CRITERIA_SPEC = {
-  task_achievement:  ["taskachievement","taskresponse","taskachievementresponse","task"],
-  coherence_cohesion:["coherencecohesion","coherenceandcohesion","coherence"],
-  lexical_resource:  ["lexicalresource","lexis","vocabulary"],
-  grammar:           ["grammar","grammaticalrangeandaccuracy","grammaticalrange","grammaraccuracy"]
+  task_achievement:  ["taskachievement","taskresponse","taskachievementresponse","task","tara","tr","criterion1"],
+  coherence_cohesion:["coherencecohesion","coherenceandcohesion","coherence","cc","criterion2"],
+  lexical_resource:  ["lexicalresource","lexis","vocabulary","lr","criterion3"],
+  grammar:           ["grammar","grammaticalrangeandaccuracy","grammaticalrange","grammaraccuracy","gra","criterion4"]
 };
 const SPEAKING_CRITERIA_SPEC = {
-  fluency_coherence: ["fluencycoherence","fluencyandcoherence","fluency"],
-  lexical_resource:  ["lexicalresource","lexis","vocabulary"],
-  grammar:           ["grammar","grammaticalrangeandaccuracy","grammaticalrange","grammaraccuracy"],
-  pronunciation:     ["pronunciation","pronounciation"]
+  fluency_coherence: ["fluencycoherence","fluencyandcoherence","fluency","fc","criterion1"],
+  lexical_resource:  ["lexicalresource","lexis","vocabulary","lr","criterion2"],
+  grammar:           ["grammar","grammaticalrangeandaccuracy","grammaticalrange","grammaraccuracy","gra","criterion3"],
+  pronunciation:     ["pronunciation","pronounciation","pr","criterion4"]
 };
 
 /* =========================================================================
@@ -2860,7 +3162,49 @@ function descriptorPromptBlock(setKey){
   }).join("\n\n");
 }
 
-const WRITING_SCORING_PROCEDURE = `HOW TO SCORE — for each of the four criteria separately:
+/* ---------------------------------------------------------------------------
+   EXAMINER CALIBRATION — shared by Writing and Speaking
+
+   The band a candidate is given has to be the band a real examiner would give.
+   Left to itself a model marks defensively: it reads closely, collects every
+   slip it can find, and lets that list decide the number, so a professional,
+   well-argued response comes back as 6.0 when a human panel would award 7.5.
+   These directives are the counterweight, and they are stated once and shared
+   so the two skills cannot drift apart.
+   --------------------------------------------------------------------------- */
+const EXAMINER_CALIBRATION_DIRECTIVES = `CRITICAL CALIBRATION DIRECTIVES — read before you award anything:
+1. FAIRNESS AND REALISM. Do NOT under-score work that is well constructed, professional or coherent. Advanced vocabulary, natural cohesion, an academic register and a clear line of argument must be awarded band 7.5 to 8.5 where they are genuinely present. Do not penalise natural variation in style, or a long or ambitious sentence, unless it contains a clear and unambiguous error.
+2. ACCURATE BAND MAPPING — the shorthand you check your number against once you have applied the descriptors:
+   - Band 8.0-9.0: native-like or highly proficient. Sophisticated, precise vocabulary; only rare minor slips.
+   - Band 7.0-7.5: clear structure, frequent error-free sentences, a good range of complex structures; minor word-choice or punctuation slips that never obscure meaning.
+   - Band 6.0-6.5: satisfactory structure with the main ideas clear; noticeable grammatical or lexical errors and some repetition, but the message is fully understandable throughout.
+3. A defect only costs a band when it does the damage the descriptor describes. An error you had to hunt for, that a reader passes over without effort, is evidence of the band it belongs to — not a reason to drop one.`;
+
+/* The annotated highlights the report renders in green / yellow / red. The
+   segments are matched back against the candidate's own text in the browser,
+   so an invented or paraphrased quote simply fails to appear — hence the
+   insistence on character-for-character copies. */
+function highlightContract(sourceLabel){
+  return `DETAILED COLOUR HIGHLIGHTING — every point of feedback must be anchored to something the candidate actually produced:
+- GREEN (#2e7d32): excellent usage — advanced vocabulary, strong collocation, and highly effective sentence structure.
+- YELLOW (#f57f17): minor problems — awkward phrasing, repeated wording, or a punctuation slip that could be improved.
+- RED (#c62828): clear errors — grammatical mistakes, wrong word forms, or a genuine breakdown in coherence.
+Rules for "annotated_text_highlights":
+- "segment" MUST be an EXACT, character-for-character substring of ${sourceLabel} — same words, same spelling, same punctuation, including the candidate's own mistakes. Never correct, paraphrase, shorten with "…", or re-type a segment from memory. The app locates each segment inside the original text; anything that is not a literal quote cannot be shown.
+- Keep each segment short — a phrase or a single clause, roughly 2 to 15 words. Do not quote a whole paragraph, and do not quote the same words twice.
+- Give between 6 and 14 highlights, and use all three colours wherever the evidence supports them. A response marked band 7 or above must still receive green highlights; a response with real errors must still receive red ones.
+- "comment" is written in SPANISH, one short sentence: why it is good, or what exactly is wrong and how to fix it.
+- "type" is exactly one of: green, yellow, red.
+"feedback_legend" and "general_feedback" are also written in SPANISH. "strengths" and "improvements" hold 2 to 4 short items each, and "summary_justification" is one or two sentences explaining, against the descriptors, why the bands you awarded are the right ones.`;
+}
+
+// The exact JSON tail every examiner reply must carry, so the report always has
+// a legend, highlights and general feedback to render.
+const EXAMINER_JSON_TAIL = `"feedback_legend":{"green":"Aspectos destacados: Vocabulario avanzado, estructuras complejas y precisión académica.","yellow":"Aspectos a mejorar: Fraseo mejorable, repeticiones o pequeñas imprecisiones.","red":"Errores a corregir: Fallos gramaticales, errores de vocabulario o problemas de coherencia."},"annotated_text_highlights":[{"segment":"exact string snippet from the candidate response","type":"green|yellow|red","comment":"Explicación breve en español"}],"general_feedback":{"strengths":["..."],"improvements":["..."],"summary_justification":"..."}`;
+
+const WRITING_SCORING_PROCEDURE = `${EXAMINER_CALIBRATION_DIRECTIVES}
+
+HOW TO SCORE — for each of the four criteria separately:
 1. Gather the evidence in the response for that criterion, find the single descriptor whose wording it actually matches, and award that band.
 2. Award a half-band ONLY when the response genuinely straddles two adjacent descriptors — clearly beyond one but not yet meeting the next. A half-band is a judgement, not a hedge, and not a way to avoid awarding a low band.
 3. Score the four criteria independently. Do not pull them towards each other or towards an expected average — accurate but simple writing should score visibly differently on Lexical Resource and Grammatical Range than on Coherence.
@@ -2896,7 +3240,9 @@ ${descriptorPromptBlock(setKey)}
 
 ${WRITING_SCORING_PROCEDURE}
 
-Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":""}. The "task_achievement" key holds your ${first} score regardless of its name.`;
+${highlightContract("the student's response as they wrote it")}
+
+Respond ONLY with raw JSON, no markdown, no conversational text, in this exact shape: {"task_achievement":{"band":0,"comment":""},"coherence_cohesion":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"overall_band":0,"summary":"",${EXAMINER_JSON_TAIL}}. The "task_achievement" key holds your ${first} score regardless of its name.`;
 }
 
 const WRITING_PARAGRAPH_RUBRIC = `You are an IELTS Writing examiner giving developmental, paragraph-by-paragraph feedback — not a score. You will receive the student's essay already split into numbered paragraphs. For EACH paragraph, in order, find concrete mistakes or weak spots (grammar, word choice, cohesion, task relevance, clarity) and give a short corrected/improved version of each specific problem phrase, plus a one-line reason. If a paragraph has no notable issues, return an empty "issues" array and a positive one-line comment instead. Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"paragraphs":[{"comment":"one short sentence on this paragraph's main strength or weakness","issues":[{"original":"short exact phrase from the paragraph, under 12 words","suggestion":"the corrected or improved phrase","why":"brief reason, under 15 words"}]}]}. Return exactly one entry in "paragraphs" for every numbered paragraph given, in the same order — never merge, skip, or add paragraphs.`;
@@ -2912,7 +3258,9 @@ const SPEAKING_BAND_DESCRIPTORS = `OFFICIAL BAND DESCRIPTORS — award the band 
 ${descriptorPromptBlock("speaking")}`;
 
 
-const SPEAKING_SCORING_PROCEDURE = `HOW TO SCORE — follow this procedure for each of the four criteria separately:
+const SPEAKING_SCORING_PROCEDURE = `${EXAMINER_CALIBRATION_DIRECTIVES}
+
+HOW TO SCORE — follow this procedure for each of the four criteria separately:
 1. Gather the evidence you actually observed for that criterion, then find the single descriptor whose wording it matches. Award that band.
 2. Award a half-band ONLY when the performance genuinely straddles two adjacent descriptors — clearly above one but not yet meeting the one above (e.g. more than "usually maintains flow with repetition" but not yet "willing to speak at length" = 5.5). Half-bands are a real judgement, not a default hedge, and they are not a way to avoid awarding a low band.
 3. Score each criterion independently. Do not pull the four criteria towards each other or towards any expected average — a candidate with accurate but simple grammar and weak fluency should get visibly different numbers.
@@ -3061,7 +3409,9 @@ TRANSCRIPT-SPECIFIC RULES:
 - Pronunciation cannot be assessed from text. Give a cautious estimate anchored to the rest of the performance, state explicitly in the comment that it is an estimate not based on audio, and do not let it drag the overall band up.
 - The whole report should be treated as provisional and verified by a teacher listening to the recording.
 
-Respond ONLY with raw JSON, no markdown, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","evidence":"sufficient","examiner_note":""}. Set "evidence" to "thin" when the sample was too short or too sparse to mark safely. Use "examiner_note" for the one remark you would make to a colleague about this candidate that does not belong under any single criterion — a sentence at most, or "" if there is nothing worth adding.`;
+${highlightContract("the transcript you were given")}
+
+Respond ONLY with raw JSON, no markdown, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","evidence":"sufficient","examiner_note":"",${EXAMINER_JSON_TAIL}}. Set "evidence" to "thin" when the sample was too short or too sparse to mark safely. Use "examiner_note" for the one remark you would make to a colleague about this candidate that does not belong under any single criterion — a sentence at most, or "" if there is nothing worth adding.`;
 
 const SPEAKING_RUBRIC_AUDIO = `You are an experienced, calibrated IELTS Speaking examiner. You have been given the candidate's actual audio recording — listen to it directly. Base your judgement on what you actually hear: real pronunciation (individual sounds, word stress, sentence stress, intonation, chunking and rhythm), true fluency (hesitation, self-correction, pace, natural connected speech), and lexical resource and grammatical range as used in speech rather than as they would look on paper.
 
@@ -3073,7 +3423,9 @@ AUDIO-SPECIFIC RULES:
 - Assess Pronunciation on intelligibility and on control of stress, rhythm and intonation — not on how close the accent is to a native one. A strong L1 accent that remains easy to understand does not cap the band; frequent mispronunciations that make the listener work do.
 - Do not confuse speed with fluency: fast speech full of restarts is not band 7, and a measured, well-organised delivery is not band 5.
 
-Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","evidence":"sufficient","examiner_note":"","heard_transcript":""}. Set "evidence" to "thin" when the recording was too short, too sparse or too unclear to mark safely. Use "examiner_note" for the one remark you would make to a colleague about this candidate that does not belong under any single criterion — a sentence at most, or "" if there is nothing worth adding. In "heard_transcript", write your own transcription in English of what the candidate said.`;
+${highlightContract('your own transcription of what the candidate said, which you must also return in "heard_transcript" — quote the segments exactly as you write them there')}
+
+Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","evidence":"sufficient","examiner_note":"","heard_transcript":"",${EXAMINER_JSON_TAIL}}. Set "evidence" to "thin" when the recording was too short, too sparse or too unclear to mark safely. Use "examiner_note" for the one remark you would make to a colleague about this candidate that does not belong under any single criterion — a sentence at most, or "" if there is nothing worth adding. In "heard_transcript", write your own transcription in English of what the candidate said.`;
 
 
 /* =========================================================================
@@ -4096,11 +4448,307 @@ function setModule(mod){
   window.scrollTo({top:0, behavior:"smooth"});
 }
 
+/* =========================================================================
+   EXAM CLOCK — the official timing of each paper
+   -------------------------------------------------------------------------
+   Writing   60:00 in total, split the way the paper is: 20:00 for Task 1 and
+             40:00 for Task 2, clocked separately so the candidate learns the
+             split rather than burning the hour on one task.
+   Reading   60:00 for all four sections, with no extra transfer time.
+   Listening the accumulated running time of the four section audios. Until an
+             audio is attached its length is unknown, so each missing section
+             is budgeted at 7:30 — four of them being the ~30:00 the official
+             paper runs to.
+
+   Only one clock ticks at a time: switching module (or Writing task) pauses
+   the others. Remaining time is held as an absolute end timestamp rather than
+   a decrementing counter, so a throttled background tab cannot make the clock
+   run slow.
+   ========================================================================= */
+
+const WRITING_TASK_SECONDS = { task1: 20*60, task2: 40*60 };
+const READING_SECONDS = 60*60;
+const LISTENING_DEFAULT_SECTION_SECONDS = 450;   // 7:30 × 4 sections ≈ 30:00
+
+const TIMEOUT_MESSAGE = "Your answers have been locked for evaluation.";
+
+let examClockInterval = null;
+
+function fmtClock(sec){
+  const s = Math.max(0, Math.round(Number(sec)||0));
+  return `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+}
+
+// Total running time of the Listening paper, from the audios actually attached.
+function listeningTimerTotal(){
+  const dur = state.listening.audioDur || {};
+  const parts = (LISTENING && Array.isArray(LISTENING.parts) && LISTENING.parts.length)
+    ? LISTENING.parts : [1,2,3,4].map(id=>({id}));
+  return parts.reduce((sum, part)=>{
+    const d = Number(dur[part.id]);
+    return sum + (isFinite(d) && d > 0 ? Math.round(d) : LISTENING_DEFAULT_SECTION_SECONDS);
+  }, 0);
+}
+
+function examTimerTotal(key){
+  if(key === "reading") return READING_SECONDS;
+  if(key === "listening") return listeningTimerTotal();
+  if(key.indexOf("writing:") === 0) return WRITING_TASK_SECONDS[key.split(":")[1]] || 0;
+  return 0;
+}
+
+function getExamTimer(key){
+  const total = examTimerTotal(key);
+  const t = state.timers[key] || (state.timers[key] = {
+    total, left: total, running:false, endsAt:0, started:false, expired:false
+  });
+  // Attaching a section audio changes how long Listening runs for. Adopt the
+  // new total only while the clock is still untouched — never mid-exam.
+  if(!t.started && t.total !== total){ t.total = total; t.left = total; }
+  return t;
+}
+
+function examTimerLeft(key){
+  const t = getExamTimer(key);
+  return t.running ? Math.max(0, Math.round((t.endsAt - Date.now())/1000)) : Math.max(0, t.left);
+}
+
+function startExamTimer(key){
+  const t = getExamTimer(key);
+  if(t.running || t.expired || t.left <= 0) return;
+  t.running = true;
+  t.started = true;
+  t.endsAt = Date.now() + t.left*1000;
+  ensureExamClock();
+  paintExamTimers();
+}
+
+function pauseExamTimer(key){
+  const t = state.timers[key];
+  if(!t || !t.running) return;
+  t.left = Math.max(0, Math.round((t.endsAt - Date.now())/1000));
+  t.running = false;
+  t.endsAt = 0;
+  paintExamTimers();
+}
+
+function resetExamTimer(key){
+  const t = getExamTimer(key);
+  t.total = examTimerTotal(key);
+  t.left = t.total;
+  t.running = false;
+  t.endsAt = 0;
+  t.started = false;
+  t.expired = false;
+  state.timeUp[key] = false;
+  hideTimeoutBanner();
+  render();          // rebuild the panel so anything the timeout locked comes back
+}
+
+// Every clock except the one belonging to the module (and Writing task) on
+// screen is paused, so an abandoned paper does not keep burning time.
+function pauseTimersOutside(mod, subKey){
+  Object.keys(state.timers).forEach(k=>{
+    if(k.split(":")[0] !== mod || (subKey && k !== subKey)) pauseExamTimer(k);
+  });
+}
+
+function ensureExamClock(){
+  if(examClockInterval) return;
+  examClockInterval = setInterval(()=>{
+    let stillRunning = 0;
+    Object.keys(state.timers).forEach(k=>{
+      const t = state.timers[k];
+      if(!t.running) return;
+      const left = Math.max(0, Math.round((t.endsAt - Date.now())/1000));
+      t.left = left;
+      if(left <= 0){
+        t.running = false;
+        t.endsAt = 0;
+        t.expired = true;
+        onExamTimeUp(k);
+      } else {
+        stillRunning++;
+      }
+    });
+    paintExamTimers();
+    if(!stillRunning){ clearInterval(examClockInterval); examClockInterval = null; }
+  }, 500);
+}
+
+/* ---------- the bar ---------- */
+
+function writingClockSub(){
+  return `Writing paper 60:00 — Task 1 20:00 (${fmtClock(examTimerLeft("writing:task1"))} left)`
+       + ` · Task 2 40:00 (${fmtClock(examTimerLeft("writing:task2"))} left)`;
+}
+
+function listeningClockSub(){
+  const dur = state.listening.audioDur || {};
+  const known = (LISTENING.parts || []).filter(p => Number(dur[p.id]) > 0).length;
+  const total = fmtClock(listeningTimerTotal());
+  return known === (LISTENING.parts || []).length && known > 0
+    ? `${total} — the accumulated running time of the four section audios.`
+    : `${total} — measured from the audios attached so far; each section still missing one is budgeted at 7:30 (≈30:00 for the paper).`;
+}
+
+function examClockSub(key){
+  if(key.indexOf("writing:") === 0) return writingClockSub();
+  if(key === "listening") return listeningClockSub();
+  return "Reading paper 60:00 — all four sections, with no extra time to transfer answers.";
+}
+
+function examClockLabel(key){
+  if(key === "writing:task1") return "Writing · Task 1";
+  if(key === "writing:task2") return "Writing · Task 2";
+  if(key === "reading") return "Reading";
+  return "Listening";
+}
+
+function examTimerBarHTML(key){
+  const t = getExamTimer(key);
+  const left = examTimerLeft(key);
+  return `<div class="timerbar${t.expired ? " expired" : ""}" data-timer-bar="${key}">
+    <div class="tb-main">
+      <span class="tb-lbl">${escapeHtml(examClockLabel(key))}</span>
+      <span class="time${(!t.expired && left <= 300) ? " warn" : ""}" data-timer-display="${key}">${fmtClock(left)}</span>
+    </div>
+    <div class="tb-actions">
+      <button type="button" class="tb-btn" data-timer-action="toggle" data-timer-key="${key}">${t.expired ? "Time up" : (t.running ? "Pause" : (t.started ? "Resume" : "Start"))}</button>
+      <button type="button" class="tb-btn" data-timer-action="reset" data-timer-key="${key}">Reset</button>
+    </div>
+    <span class="tb-sub" data-timer-sub="${key}">${escapeHtml(examClockSub(key))}</span>
+  </div>`;
+}
+
+// Repaints in place rather than re-rendering: a bar rebuilt every half second
+// would fight with the panel it is sticky inside.
+function paintExamTimers(){
+  document.querySelectorAll("[data-timer-bar]").forEach(bar=>{
+    const key = bar.dataset.timerBar;
+    const t = getExamTimer(key);
+    const left = examTimerLeft(key);
+    bar.classList.toggle("expired", !!t.expired);
+    const disp = bar.querySelector("[data-timer-display]");
+    if(disp){
+      disp.textContent = fmtClock(left);
+      disp.classList.toggle("warn", !t.expired && left <= 300);
+    }
+    const btn = bar.querySelector('[data-timer-action="toggle"]');
+    if(btn) btn.textContent = t.expired ? "Time up" : (t.running ? "Pause" : (t.started ? "Resume" : "Start"));
+    const sub = bar.querySelector("[data-timer-sub]");
+    if(sub) sub.textContent = examClockSub(key);
+  });
+}
+
+document.addEventListener("click", e=>{
+  const btn = e.target.closest("[data-timer-action]");
+  if(!btn) return;
+  const key = btn.dataset.timerKey;
+  const action = btn.dataset.timerAction;
+  if(action === "toggle"){
+    const t = getExamTimer(key);
+    if(t.expired) return;
+    if(t.running) pauseExamTimer(key); else startExamTimer(key);
+  } else if(action === "reset"){
+    if(state.timeUp[key] || getExamTimer(key).started){
+      if(!confirm("Reset this clock back to the full time? Any timeout lock is released.")) return;
+    }
+    resetExamTimer(key);
+  }
+});
+
+/* =========================================================================
+   TIMEOUT LOCKING — what happens at 00:00
+   Writing: the response is frozen (readOnly, and every keystroke that would
+   change it is cancelled). Reading & Listening: every answer control is
+   disabled, so a selected answer can no longer be changed. In all three a
+   banner says so. Marking still works — the lock protects the answers, it
+   does not withhold the evaluation.
+   ========================================================================= */
+
+// Which clock governs the module currently on screen.
+function activeTimerKey(mod){
+  const m = mod || state.mod;
+  if(m === "writing")   return "writing:" + state.writing.activeTask;
+  if(m === "reading")   return "reading";
+  if(m === "listening") return "listening";
+  return null;
+}
+
+function isTimedOut(key){ return !!(key && state.timeUp[key]); }
+
+function onExamTimeUp(key){
+  state.timeUp[key] = true;
+  applyTimeoutLocks();
+  showTimeoutBanner();
+}
+
+const LOCK_ALLOWED_KEYS = ["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Home","End","PageUp","PageDown","Tab","Escape","Shift","Control","Alt","Meta"];
+
+// Cancels any keystroke that would edit a locked response, while leaving
+// navigation, selection and copying alone.
+function timeoutKeyGuard(e){
+  if(!isTimedOut(activeTimerKey())) return;
+  if(e.ctrlKey || e.metaKey) return;
+  if(LOCK_ALLOWED_KEYS.indexOf(e.key) !== -1) return;
+  e.preventDefault();
+}
+
+function applyTimeoutLocks(){
+  const key = activeTimerKey();
+  if(!key || !panel) return;
+  const locked = isTimedOut(key);
+
+  const area = document.getElementById("essayInput");
+  if(area && state.mod === "writing"){
+    area.readOnly = locked;
+    area.setAttribute("aria-readonly", locked ? "true" : "false");
+    if(locked) area.style.background = "#fbf7f5"; else area.style.background = "";
+  }
+  // Answer controls carry data-q (Listening) or data-rq (Reading); nothing else
+  // in the panel is an answer, so the generators and buttons stay usable.
+  if(state.mod === "reading" || state.mod === "listening"){
+    panel.querySelectorAll("[data-q], [data-rq]").forEach(el=>{ el.disabled = locked; });
+  }
+
+  const host = document.getElementById("timeoutNoteHost");
+  if(host){
+    host.innerHTML = locked
+      ? `<div class="locked-note"><b>Time is up!</b> ${escapeHtml(TIMEOUT_MESSAGE)} You can still submit for marking, or reset the clock to keep practising.</div>`
+      : "";
+  }
+}
+
+function showTimeoutBanner(){
+  let el = document.getElementById("timeoutBanner");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "timeoutBanner";
+    el.className = "timeout-banner";
+    el.setAttribute("role", "alert");
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `<div><b>Time is up!</b>${escapeHtml(TIMEOUT_MESSAGE)}</div>`
+               + `<button type="button" data-timeout-dismiss="1">Dismiss</button>`;
+}
+
+function hideTimeoutBanner(){
+  const el = document.getElementById("timeoutBanner");
+  if(el) el.remove();
+}
+
+document.addEventListener("click", e=>{
+  if(e.target.closest("[data-timeout-dismiss]")) hideTimeoutBanner();
+});
+
 function render(){
   // Any panel switch replaces #panel's HTML, orphaning a live WebGL context.
   // Tear the 3D chart down explicitly so its animation loop and GPU resources
   // are released before we render the next module.
   if(typeof chart3D !== "undefined" && chart3D){ chart3D.dispose(); chart3D = null; }
+  // Leaving a paper stops its clock; only the module on screen is being sat.
+  pauseTimersOutside(state.mod, state.mod === "writing" ? activeTimerKey("writing") : null);
   if(state.mod==="class") return renderClassDashboard();
   if(state.mod==="dashboard") return renderDashboard();
   if(state.mod==="listening") return renderListening();
@@ -4280,6 +4928,11 @@ function applySessionData(data){
     state.listening.submitted = !!data.listening.submitted;
     state.listening.playedParts = data.listening.playedParts || {};
     state.listening.customAudio = data.listening.customAudio || {};
+    // Section lengths belong to the audios that were just replaced, so they are
+    // dropped and measured again from the imported files.
+    state.listening.audioDur = {};
+    delete state.timers.listening;
+    state.timeUp.listening = false;
     if(Array.isArray(data.listening.parts) && data.listening.parts.length){
       LISTENING.parts = data.listening.parts;
     }
@@ -4906,6 +5559,8 @@ function renderListening(){
   panel.innerHTML = `
     <p class="section-title">Listening Mock Examination</p>
     <p class="section-sub">Four sections, 40 questions — the official IELTS Listening structure. This app plays <b>real audio files only</b> (no synthetic text-to-speech): attach the official recording you own under each section, press play once, and answer as you listen.</p>
+    ${examTimerBarHTML("listening")}
+    <div id="timeoutNoteHost"></div>
     ${trCard("listening")}
     <div class="gen-card note-card">
       <b style="color:var(--ink);">About audio files:</b> official IELTS recordings (Cambridge, IDP, British Council) are copyrighted, so they can't be bundled inside this file or downloaded by the app. Instead, attach the MP3/WAV files you legally own — from your Cambridge IELTS book CDs/downloads or other licensed practice materials — under each section below, or drop four of them into the generator to build a brand-new test around them.
@@ -5048,6 +5703,7 @@ function renderListening(){
         const b64 = await blobToBase64(file);
         L.customAudio = L.customAudio || {};
         L.customAudio[pid] = { b64, mime: file.type || "audio/mpeg" };
+        if(L.audioDur) delete L.audioDur[pid];   // a new file has a new length
         renderListening();
       }catch(err){
         console.error(err);
@@ -5060,6 +5716,7 @@ function renderListening(){
     b.addEventListener("click", ()=>{
       const pid = parseInt(b.dataset.clearAudio);
       if(L.customAudio) delete L.customAudio[pid];
+      if(L.audioDur) delete L.audioDur[pid];
       renderListening();
     });
   });
@@ -5130,7 +5787,10 @@ function renderListening(){
   document.getElementById("submitListening").addEventListener("click", submitListening);
   const retake = document.getElementById("retakeListening");
   if(retake) retake.addEventListener("click", ()=>{
-    state.listening={answers:{},submitted:false,playedParts:{},customAudio:L.customAudio||{}};
+    state.listening={answers:{},submitted:false,playedParts:{},customAudio:L.customAudio||{},audioDur:L.audioDur||{}};
+    delete state.timers.listening;
+    state.timeUp.listening = false;
+    hideTimeoutBanner();
     renderListening();
   });
   document.getElementById("toggleListeningKey").addEventListener("click", ()=>{
@@ -5140,6 +5800,8 @@ function renderListening(){
 
   if(L.submitted) showListeningResult();
   if(L.showKey) showListeningAnswerKey();
+  measureListeningAudioDurations();
+  applyTimeoutLocks();
   addMobileGeneratorShortcut("listening");
 }
 
@@ -5290,6 +5952,36 @@ function rawToBandReading(correct, total){
 let activeListeningAudio=null;
 let activeAudioEl=null;
 let audioRate=1.0;
+/* The Listening clock is the length of the audios themselves, so each attached
+   recording is measured once (metadata only — the file is never decoded in
+   full) and the total is refreshed in place. Nothing re-renders: the panel is
+   already on screen, and a re-render here would fight with the file input that
+   triggered it. */
+function measureListeningAudioDurations(){
+  const L = state.listening;
+  L.audioDur = L.audioDur || {};
+  const custom = L.customAudio || {};
+  Object.keys(custom).forEach(pid=>{
+    if(L.audioDur[pid] != null) return;
+    const a = custom[pid];
+    if(!a || !a.b64) return;
+    L.audioDur[pid] = 0;                       // claim the slot; no second probe
+    const probe = new Audio();
+    probe.preload = "metadata";
+    probe.onloadedmetadata = ()=>{
+      const d = Number(probe.duration);
+      L.audioDur[pid] = (isFinite(d) && d > 0) ? Math.round(d) : 0;
+      const t = state.timers.listening;
+      if(t && !t.started){ t.total = listeningTimerTotal(); t.left = t.total; }
+      paintExamTimers();
+    };
+    probe.onerror = ()=>{ L.audioDur[pid] = 0; paintExamTimers(); };
+    probe.src = `data:${a.mime};base64,${a.b64}`;
+  });
+  // A removed section must stop counting towards the paper's length.
+  Object.keys(L.audioDur).forEach(pid=>{ if(!custom[pid]) delete L.audioDur[pid]; });
+}
+
 function toggleListeningAudio(pid){
   const custom = state.listening.customAudio && state.listening.customAudio[pid];
   if(!custom){
@@ -5305,6 +5997,9 @@ function toggleListeningAudio(pid){
   }
   if(activeAudioEl) activeAudioEl.pause();
   state.listening.playedParts[pid] = true;
+  // The Listening paper is timed by its audio, so playing a section starts the
+  // clock if the candidate has not started it themselves.
+  startExamTimer("listening");
   const audio = new Audio(`data:${custom.mime};base64,${custom.b64}`);
   audio.playbackRate = audioRate;
   audio.onended = ()=>{
@@ -5460,7 +6155,11 @@ async function generateNewListeningWithAI(){
     for(let i=1;i<=4;i++) keptAudio[i] = { b64: L.genAudio[i].b64, mime: L.genAudio[i].mime };
     // Carry the Drive library across the reset, or every roll would re-list the
     // folder (and lose the "don't repeat last pick" memory).
-    state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: keptAudio, genAudio: L.genAudio, drive: L.drive };
+    state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: keptAudio, audioDur:{}, genAudio: L.genAudio, drive: L.drive };
+    // New audios mean a new running time for the paper, so the clock restarts.
+    delete state.timers.listening;
+    state.timeUp.listening = false;
+    hideTimeoutBanner();
     genProgressDone("listeningGen", "Done — 40 new questions generated.");
     alert("✨ New 4-section Listening test generated from your audios. Each section now plays the recording you attached.");
     renderListening();
@@ -5485,6 +6184,8 @@ function renderReading(){
   panel.innerHTML = `
     <p class="section-title">Reading Mock Examination</p>
     <p class="section-sub">Read the academic passages and complete the timed evaluation forms below.</p>
+    ${examTimerBarHTML("reading")}
+    <div id="timeoutNoteHost"></div>
     ${trCard("reading")}
     
     <div class="gen-card">
@@ -5563,6 +6264,7 @@ function renderReading(){
 
   if(R.submitted) showReadingResult();
   if(R.showKey) showReadingAnswerKey();
+  applyTimeoutLocks();
   addMobileGeneratorShortcut("reading");
 }
 
@@ -6041,6 +6743,8 @@ function renderWriting(){
   panel.innerHTML = `
     <p class="section-title">Writing</p>
     <p class="section-sub">Draft each task, request a coaching hint at any time, then submit for an AI-estimated band score against the four official criteria.</p>
+    ${examTimerBarHTML("writing:" + task)}
+    <div id="timeoutNoteHost"></div>
     ${trCard("writing")}
     
     <div class="gen-card">
@@ -6128,17 +6832,40 @@ function renderWriting(){
     document.getElementById("generateWritingBtn").addEventListener("click", generateNewWritingWithAI);
   }
 
+  // Switching task stops the other task's clock — a candidate can only be
+  // sitting one of them at a time.
+  pauseExamTimer("writing:" + (task === "task1" ? "task2" : "task1"));
+
   const area = document.getElementById("essayInput");
   area.value = W.drafts[task] || "";
   updateWcLabel(area.value, task);
-  
+
   area.addEventListener("input", ()=>{
     W.drafts[task] = area.value;
     updateWcLabel(area.value, task);
   });
+  // The word ceiling is enforced on the input itself rather than on keydown, so
+  // pasting and drag-and-drop are covered too; deletion and navigation never are.
+  area.addEventListener("beforeinput", e=>enforceWritingWordLimit(area, task, e));
+  // Belt and braces for the timeout lock: readOnly already blocks typing, and
+  // this cancels the keystroke outright.
+  area.addEventListener("keydown", timeoutKeyGuard);
+  // Applied here, next to the textarea it locks, rather than at the end of the
+  // render — a chart or report that fails to draw must never leave a timed-out
+  // response editable.
+  applyTimeoutLocks();
 
+  // Task 1's visual comes from a CDN chart library. If that script was blocked
+  // the draw throws, and everything after it in this function used to be lost
+  // with it — hints, the saved report, the mobile shortcut. The panel is worth
+  // more than the picture.
   if(task==="task1" && WRITING.task1.chartData) {
-    renderTask1Visual();
+    try{ renderTask1Visual(); }
+    catch(err){
+      console.error("Task 1 visual failed to draw", err);
+      const host = document.getElementById("task1VisualHost");
+      if(host) host.innerHTML = `<p style="font-size:12.5px;color:var(--slate);margin:0;">The chart could not be drawn (the charting library did not load). The task prompt above still describes the data.</p>`;
+    }
   }
 
   // The graph-type dropdown lives in the generator header. It sets the type
@@ -6759,13 +7486,63 @@ function escapeXml(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
+/* =========================================================================
+   WRITING LENGTH RULES
+   Task 1 is written to 150-170 words and Task 2 to 250-280: below the minimum
+   the response is penalised under Task Achievement, and well past the ceiling
+   a candidate is spending time they do not have and padding an answer that is
+   already complete. The ceiling is therefore enforced, not merely advertised —
+   at the limit the only edits left are corrections to what is already written.
+   ========================================================================= */
+const WRITING_WORD_RULES = {
+  task1: { min:150, max:170 },
+  task2: { min:250, max:280 }
+};
+
+function countWords(v){
+  const t = String(v == null ? "" : v).trim();
+  return t ? t.split(/\s+/).length : 0;
+}
+
+function writingWordRule(task){
+  return WRITING_WORD_RULES[task] || { min: task === "task1" ? 150 : 250, max: Infinity };
+}
+
 function updateWcLabel(v, task){
-  const c = v.trim() ? v.trim().split(/\s+/).length : 0;
-  const target = task==="task1" ? 150 : 250;
+  const c = countWords(v);
+  const rule = writingWordRule(task);
   const lbl = document.getElementById("wcLabel");
   if(!lbl) return;
-  lbl.textContent = `${c} words`;
-  lbl.classList.toggle("low", c < target);
+  let cls = "", badge = "";
+  if(c < rule.min){
+    cls = "low";
+  } else if(c < rule.max){
+    cls = "near-limit";
+    badge = `<span class="wc-badge warn">Has alcanzado el mínimo requerido (${rule.min} palabras). Límite de cierre en ${rule.max} palabras.</span>`;
+  } else {
+    cls = "at-limit";
+    badge = `<span class="wc-badge stop">Límite máximo alcanzado (${c}/${rule.max} palabras). No puedes agregar más texto.</span>`;
+  }
+  lbl.className = "wordcount" + (cls ? " " + cls : "");
+  lbl.innerHTML = `${c} / ${rule.max} words` + badge;
+}
+
+/* Cancels only the insertions that would push the response past its ceiling.
+   Deleting, replacing a selection with something shorter, and moving the caret
+   are always allowed, so the candidate can keep editing at the limit — which
+   is the point of stopping them there rather than truncating the text. */
+function enforceWritingWordLimit(area, task, e){
+  const rule = writingWordRule(task);
+  if(!isFinite(rule.max)) return;
+  if(!/^insert/i.test(e.inputType || "")) return;
+  let data = e.data;
+  if(data == null && e.dataTransfer) data = e.dataTransfer.getData("text");
+  const v = area.value;
+  const next = v.slice(0, area.selectionStart) + (data || "") + v.slice(area.selectionEnd);
+  if(countWords(next) > rule.max){
+    e.preventDefault();
+    updateWcLabel(v, task);
+  }
 }
 
 async function requestWritingHint(task){
@@ -6895,7 +7672,7 @@ async function requestWritingScore(task){
       btn.textContent = original; btn.disabled = false; return;
     }
     const text = await callGemini(writingRubric(task), user, null, null);
-    const json = normalizeExamJSON(parseJSON(text), WRITING_CRITERIA_SPEC, "Writing");
+    const json = normalizeAnnotations(normalizeExamJSON(parseJSON(text), WRITING_CRITERIA_SPEC, "Writing"));
     json.overall_band = officialRound([json.task_achievement.band, json.coherence_cohesion.band, json.lexical_resource.band, json.grammar.band].reduce((a,b)=>a+b,0)/4);
     W.reports[task] = json;
     showWritingReport(task, json);
@@ -6947,6 +7724,9 @@ function showWritingReport(task, r){
           <div class="band">${fmtBand(c.band)}</div>
         </div>
       `).join("")}
+      ${annotatedFeedbackHTML(state.writing.drafts[task] || "", r, {
+        sub:"Cada marca es una cita literal de tu respuesta. Pasa el cursor por encima de un fragmento resaltado para leer el comentario del examinador."
+      })}
     </div>
   `;
   // Once a response is assessed, offer model rewrites calibrated to each band.
@@ -7741,7 +8521,7 @@ async function scoreSpeaking(part){
     if(geminiOn){
       const user = `${brief}\n\nLive transcript captured by the browser (may be imperfect or missing — the audio is authoritative):\n${transcript || "(none)"}`;
       const text = await callGemini(SPEAKING_RUBRIC_AUDIO, user, S.audioB64[part], S.audioMime[part]);
-      json = normalizeExamJSON(parseJSON(text), SPEAKING_CRITERIA_SPEC, "Speaking");
+      json = normalizeAnnotations(normalizeExamJSON(parseJSON(text), SPEAKING_CRITERIA_SPEC, "Speaking"));
       json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].reduce((a,b)=>a+b,0)/4);
     } else {
       if(!transcript.trim()){
@@ -7750,7 +8530,7 @@ async function scoreSpeaking(part){
       }
       const user = `${brief}\n\nWHAT THE CANDIDATE SAID (transcript):\n${transcript}`;
       const text = await callGemini(SPEAKING_RUBRIC_TRANSCRIPT, user, null, null);
-      json = normalizeExamJSON(parseJSON(text), SPEAKING_CRITERIA_SPEC, "Speaking");
+      json = normalizeAnnotations(normalizeExamJSON(parseJSON(text), SPEAKING_CRITERIA_SPEC, "Speaking"));
       json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].reduce((a,b)=>a+b,0)/4);
     }
 
@@ -7868,6 +8648,9 @@ function showSpeakingReport(r, geminiOn){
           <div class="band">${fmtBand(c.band)}</div>
         </div>
       `).join("")}
+      ${annotatedFeedbackHTML(S.transcripts[S.part] || r.heard_transcript || "", r, {
+        sub:"Cada marca es una cita literal de tu intervención. Pasa el cursor por encima de un fragmento resaltado para leer el comentario del examinador."
+      })}
       ${note}
       ${heard}
     </div>

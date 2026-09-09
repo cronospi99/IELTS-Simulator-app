@@ -15,6 +15,19 @@ Open `index.html` in any modern browser. No build step, no server required.
   criteria. Task 1 ships with an **interactive 3D graphic generator** (see below).
 - **Speaking** — cue cards, live recording, and Gemini scoring from the actual
   audio (pronunciation and intonation, not just the transcript).
+- **Exam clocks** — each paper is timed the way the real one is: Writing 60:00
+  (20:00 for Task 1, 40:00 for Task 2, clocked separately), Reading 60:00, and
+  Listening for the accumulated running time of the four section audios (≈30:00
+  until they are attached). At 00:00 the paper locks — the response becomes
+  read-only and answer controls are disabled — and marking still runs on what
+  was written.
+- **Length limits** — Task 1 is capped at 170 words and Task 2 at 280. Past the
+  minimum the counter warns; at the ceiling no further words can be added,
+  though existing text can still be corrected or deleted.
+- **Annotated feedback** — every band report highlights the candidate's own
+  words in green (excellent), yellow (improvable) and red (an error), each with
+  a note in Spanish, alongside the strengths, fixes and the justification for
+  the bands awarded.
 - **Language desk** — a translator on every skill tab, with verb conjugation
   tables, register-ranked alternative words and collocations (see below).
 - **Sessions** — export/import progress to a file, or quick-save snapshots in
