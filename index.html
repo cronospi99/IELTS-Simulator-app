@@ -11,7 +11,7 @@
 <meta name="format-detection" content="telephone=no">
 <title>IELTS Academic — Full Mock Test (v6.5)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <!-- Optional private config: copy config.example.js to config.local.js (gitignored)
@@ -121,19 +121,20 @@ html,body{margin:0;padding:0;}
 .intro.is-leaving .intro-panels span:nth-child(5){transition-delay:.26s;}
 /* The app itself eases up behind the curtain as it lifts. */
 body.intro-active{overflow:hidden;}
-body.intro-active .topbar,body.intro-active nav.tabs,body.intro-active .shell{
+body.intro-active .sidebar,body.intro-active .topbar,body.intro-active .shell,body.intro-active .app-foot{
   opacity:0;transform:translateY(26px) scale(.988);
 }
-body.intro-done .topbar,body.intro-done nav.tabs,body.intro-done .shell{
+body.intro-done .sidebar,body.intro-done .topbar,body.intro-done .shell,body.intro-done .app-foot{
   opacity:1;transform:none;
   transition:opacity .8s var(--ease-out), transform 1s cubic-bezier(.22,1,.36,1);
 }
-body.intro-done nav.tabs{transition-delay:.06s;}
+body.intro-done .topbar{transition-delay:.06s;}
 body.intro-done .shell{transition-delay:.12s;}
+body.intro-done .app-foot{transition-delay:.18s;}
 @media (prefers-reduced-motion: reduce){
   .intro-eyebrow,.intro-title,.intro-count{animation:none;opacity:1;}
   .intro-panels span,.intro-inner,.intro-bar span{transition:none;}
-  body.intro-done .topbar,body.intro-done nav.tabs,body.intro-done .shell{transition:none;}
+  body.intro-done .sidebar,body.intro-done .topbar,body.intro-done .shell,body.intro-done .app-foot{transition:none;}
 }
 body{
   background:var(--ink);
@@ -151,29 +152,321 @@ button{font-family:inherit;cursor:pointer;}
 ::selection{background:var(--brass);color:var(--ink);}
 :focus-visible{outline:2px solid var(--brass-2);outline-offset:2px;}
 
-/* ---------- shell ---------- */
-.shell{max-width:1080px;margin:0 auto;padding:0 20px 80px;}
+/* =========================================================================
+   APP SHELL — sidebar rail, top rail, content column
+   -------------------------------------------------------------------------
+   `nav.tabs` and `header.topbar` keep their names on purpose: setModule
+   toggles `#tabs button`, the account code injects the teacher's Class tab
+   into it, and the phone layer turns the same element into the fixed bottom
+   bar. The desktop rail is a restyling of that one nav, not a second one.
+   ========================================================================= */
+.app-shell{display:grid;grid-template-columns:264px minmax(0,1fr);align-items:start;}
+.app-col{min-width:0;display:flex;flex-direction:column;min-height:100vh;}
+.shell{max-width:1180px;margin:0 auto;padding:0 26px 60px;width:100%;}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+  display:flex;flex-direction:column;gap:20px;
+  padding:24px 18px calc(24px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg, rgba(246,243,234,.055), rgba(246,243,234,.02));
+  border-right:1px solid var(--paper-line);scrollbar-width:thin;
+}
+.side-brand{display:flex;align-items:center;gap:12px;padding:2px 8px 0;}
+.side-brand .sb-mark{display:flex;align-items:flex-end;gap:3px;height:30px;}
+.side-brand .sb-mark i{display:block;width:6px;border-radius:3px;background:var(--brass-2);}
+.side-brand .sb-mark i:nth-child(1){height:15px;background:var(--coral);}
+.side-brand .sb-mark i:nth-child(2){height:24px;background:var(--brass);}
+.side-brand .sb-mark i:nth-child(3){height:30px;background:var(--brass-2);}
+.side-brand b{font-family:'Fraunces',serif;font-size:23px;font-weight:700;line-height:1;letter-spacing:-.01em;}
+.side-brand span{display:block;font-size:12px;color:var(--paper-2);opacity:.7;margin-top:2px;letter-spacing:.02em;}
+
+/* ---------- motivational card + sidebar footer ---------- */
+.motiv-card{
+  position:relative;border-radius:16px;overflow:hidden;margin-top:auto;
+  border:1px solid var(--paper-line);background:var(--ink-2);
+}
+.motiv-card .mc-text{position:relative;z-index:2;padding:16px 16px 10px;}
+.motiv-card .mc-text b{
+  display:block;font-family:'Fraunces',serif;font-size:19px;line-height:1.2;color:var(--paper);
+}
+.motiv-card .mc-text i{
+  display:block;font-style:normal;font-size:14px;color:var(--paper-2);opacity:.82;margin-top:2px;
+}
+.motiv-card .mc-rule{width:26px;height:2px;background:var(--coral);margin:9px 0 0;border-radius:2px;}
+.motiv-card svg{display:block;width:100%;height:120px;}
+.motiv-quote{
+  font-size:12.5px;line-height:1.6;color:var(--paper-2);opacity:.72;
+  padding:0 8px;font-style:italic;
+}
+.side-foot{padding:0 8px;border-top:1px solid var(--paper-line);padding-top:14px;}
+.side-foot b{display:block;font-size:12.5px;color:var(--paper);}
+.side-foot span{display:block;font-size:11.5px;color:var(--paper-2);opacity:.6;margin-top:2px;line-height:1.5;}
+
+/* ---------- top rail ---------- */
 header.topbar{
-  display:flex;justify-content:space-between;align-items:flex-end;
-  padding:28px 20px 18px;border-bottom:1px solid var(--paper-line);
-  max-width:1080px;margin:0 auto;flex-wrap:wrap;gap:14px;
+  position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:14px;
+  padding:16px 26px;background:rgba(19,27,46,.72);
+  -webkit-backdrop-filter:saturate(160%) blur(16px);backdrop-filter:saturate(160%) blur(16px);
+  border-bottom:1px solid var(--paper-line);
 }
-.brand-block .eyebrow{
-  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--brass-2);margin:0 0 6px;
+.brand-block{display:none;}                 /* the sidebar carries the brand on desktop */
+.search-wrap{position:relative;flex:1 1 auto;max-width:520px;}
+.search-field{
+  display:flex;align-items:center;gap:10px;padding:0 14px;height:44px;
+  border-radius:999px;border:1px solid var(--paper-line);
+  background:rgba(246,243,234,.06);transition:border-color .2s, background .2s;
 }
-.brand-block h1{
-  font-family:'Fraunces',serif;font-weight:600;font-size:30px;margin:0;
-  letter-spacing:-0.01em;
+.search-field:focus-within{border-color:var(--brass-2);background:rgba(246,243,234,.10);}
+.search-field svg{width:17px;height:17px;flex-shrink:0;opacity:.55;}
+.search-field input{
+  flex:1;min-width:0;border:none;background:transparent;color:var(--paper);
+  font-family:inherit;font-size:13.5px;outline:none;
+}
+.search-field input::placeholder{color:var(--paper-2);opacity:.5;}
+.search-pop{
+  position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:50;
+  background:var(--ink-2);border:1px solid var(--paper-line);border-radius:14px;
+  box-shadow:var(--shadow);padding:6px;max-height:60vh;overflow-y:auto;
+}
+.search-pop button{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+  background:transparent;border:none;color:var(--paper);border-radius:10px;
+  padding:10px 12px;font-size:13.5px;font-family:inherit;
+}
+.search-pop button em{font-style:normal;color:var(--paper-2);opacity:.6;font-size:12px;margin-left:auto;}
+.search-pop button:hover,.search-pop button.sel{background:rgba(201,162,39,.18);}
+.search-pop .sp-none{padding:12px;font-size:13px;color:var(--paper-2);opacity:.7;}
+
+.topbar-actions{display:flex;align-items:center;gap:10px;margin-left:auto;}
+header.topbar .topbar-btn{border-color:var(--paper-line);color:var(--paper);}
+.icon-btn{
+  position:relative;width:42px;height:42px;border-radius:999px;flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--paper-line);background:rgba(246,243,234,.06);color:var(--paper);
+  font-size:17px;transition:background .2s, transform .15s var(--ease-spring);
+}
+.icon-btn:hover{background:rgba(246,243,234,.13);}
+.icon-btn:active{transform:scale(.94);}
+.icon-btn .dot{
+  position:absolute;top:8px;right:9px;min-width:9px;height:9px;border-radius:999px;
+  background:var(--coral);border:2px solid var(--ink);
+}
+.icon-btn .dot.count{
+  min-width:17px;height:17px;top:-2px;right:-2px;font-size:10px;font-weight:700;
+  color:#fff;display:flex;align-items:center;justify-content:center;padding:0 4px;
+  font-family:'IBM Plex Mono',monospace;
+}
+.acct-cluster{position:relative;}
+.acct-btn{
+  display:flex;align-items:center;gap:10px;padding:5px 12px 5px 5px;border-radius:999px;
+  border:1px solid var(--paper-line);background:rgba(246,243,234,.06);color:var(--paper);
+  transition:background .2s;
+}
+.acct-btn:hover{background:rgba(246,243,234,.13);}
+.acct-avatar{
+  width:34px;height:34px;border-radius:999px;flex-shrink:0;
+  background:radial-gradient(circle at 35% 30%,var(--brass-2),var(--brass) 72%);
+  color:var(--ink);display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-weight:700;font-size:15px;
+}
+.acct-btn .acct-txt{text-align:left;line-height:1.25;}
+.acct-btn .acct-txt b{display:block;font-size:13px;font-weight:600;}
+.acct-btn .acct-txt span{display:block;font-size:11.5px;color:var(--paper-2);opacity:.68;}
+.acct-btn .acct-chev{opacity:.5;font-size:11px;}
+.acct-menu{
+  position:absolute;right:0;top:calc(100% + 8px);z-index:50;min-width:238px;
+  background:var(--ink-2);border:1px solid var(--paper-line);border-radius:14px;
+  box-shadow:var(--shadow);padding:8px;display:flex;flex-direction:column;gap:4px;
+}
+.acct-menu .btn{width:100%;justify-content:flex-start;border-radius:10px;}
+.acct-menu .am-head{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--paper-2);opacity:.55;padding:6px 10px 2px;
 }
 .candidate-card{
-  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper);
-  background:var(--ink-2);border:1px solid var(--paper-line);border-radius:10px;
-  padding:10px 16px;line-height:1.7;text-align:right;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper-2);
+  background:rgba(246,243,234,.05);border:1px solid var(--paper-line);border-radius:999px;
+  padding:7px 14px;line-height:1.4;display:flex;gap:14px;flex-wrap:wrap;
 }
 .candidate-card b{color:var(--brass-2);}
-.topbar-actions{display:flex;align-items:flex-end;gap:12px;}
-header.topbar .topbar-btn{border-color:var(--paper-line);color:var(--paper);}
+.candidate-card br,.candidate-card .cc-lbl{display:none;}
+.candidate-card #candNo::before{content:"№ ";opacity:.55;}
+.candidate-card #testDate::before{content:"📅 ";}
+.candidate-card #modLabel::before{content:"▸ ";opacity:.55;}
+
+/* ---------- app footer ---------- */
+.app-foot{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  padding:18px 26px calc(22px + env(safe-area-inset-bottom));margin-top:auto;
+  border-top:1px solid var(--paper-line);font-size:12.5px;color:var(--paper-2);
+}
+.app-foot button{
+  background:none;border:none;color:var(--paper-2);font-family:inherit;font-size:12.5px;
+  opacity:.75;padding:4px 2px;
+}
+.app-foot button:hover{opacity:1;color:var(--brass-2);text-decoration:underline;}
+.app-foot .af-right{margin-left:auto;display:flex;align-items:center;gap:8px;opacity:.75;}
+.app-foot .af-heart{color:var(--coral);}
+
+@media (max-width:1180px) and (min-width:821px){
+  .app-shell{grid-template-columns:216px minmax(0,1fr);}
+  .shell{padding:0 18px 50px;}
+  .home-hero{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);}
+  .hero-quote{grid-column:1 / -1;border-left:none;border-top:1px solid rgba(19,27,46,.07);padding:20px 26px;}
+  .hero-title{font-size:32px;}
+  .home-skills{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .home-panels{grid-template-columns:1fr 1fr;}
+  .home-panels .hp:first-child{grid-column:1 / -1;}
+}
+
+/* =========================================================================
+   HOME — hero, skill cards, progress / activity / quick links
+   Laid out to the supplied template, painted in the app's own palette.
+   ========================================================================= */
+.home-hero{
+  position:relative;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) 210px;
+  align-items:stretch;gap:0;border-radius:22px;overflow:hidden;
+  background:linear-gradient(120deg,#fbf9f2 0%, #f3efe1 55%, #eae4d2 100%);
+  border:1px solid var(--line);box-shadow:var(--elev-2);margin-bottom:22px;
+}
+.hero-copy{padding:34px 30px;position:relative;z-index:3;}
+.hero-eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.26em;
+  text-transform:uppercase;color:var(--brass);margin:0 0 14px;
+}
+.hero-title{
+  font-family:'Fraunces',serif;font-size:38px;line-height:1.08;font-weight:600;
+  letter-spacing:-.02em;color:var(--ink);margin:0 0 12px;
+}
+.hero-sub{font-size:15px;color:var(--slate);margin:0 0 22px;line-height:1.6;}
+.hero-cta{font-size:14.5px;padding:14px 26px;white-space:nowrap;}
+.hero-cta .arrow{display:inline-block;margin-left:8px;transition:transform .25s var(--ease-spring);}
+.hero-cta:hover .arrow{transform:translateX(4px);}
+.hero-art{position:relative;overflow:hidden;}
+.hero-art svg{position:absolute;inset:0;width:100%;height:100%;}
+.hero-script{
+  position:absolute;right:14%;top:46%;z-index:2;transform:rotate(-7deg);
+  font-family:'Caveat',cursive;font-size:29px;line-height:1.05;color:var(--ink);
+  text-align:center;opacity:.9;
+}
+.hero-script b{display:block;font-weight:600;}
+.hero-script i{display:block;font-style:normal;padding-left:14px;}
+.hero-script u{
+  display:block;width:58px;height:2px;background:var(--coral);border:none;
+  margin:6px 0 0 auto;border-radius:2px;text-decoration:none;
+}
+.hero-quote{
+  position:relative;z-index:3;display:flex;flex-direction:column;justify-content:center;
+  padding:30px 26px;background:rgba(255,255,255,.55);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border-left:1px solid rgba(19,27,46,.07);
+}
+.hero-quote p{font-size:15px;line-height:1.6;color:var(--ink);margin:0;font-style:italic;}
+.hero-quote .hq-rule{width:34px;height:2px;background:var(--coral);border-radius:2px;margin-top:14px;}
+
+/* ---------- four skill cards ---------- */
+.home-skills{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:22px;}
+.hs-card{
+  position:relative;display:flex;flex-direction:column;gap:10px;
+  border-radius:18px;padding:20px;border:1px solid var(--line);
+  background:var(--hs-bg,#fff);box-shadow:var(--elev-1);
+  transition:transform .25s var(--ease-spring), box-shadow .25s var(--ease-out);
+  text-align:left;color:var(--ink);font-family:inherit;overflow:hidden;
+}
+.hs-card:hover{transform:translateY(-3px);box-shadow:var(--elev-3);}
+.hs-icon{
+  width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-size:25px;background:var(--hs-tint,#fff);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.hs-card h3{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin:6px 0 0;color:var(--ink);}
+.hs-card p{font-size:13px;line-height:1.55;color:var(--slate);margin:0;}
+.hs-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px;}
+.hs-band{font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--ink);}
+.hs-band span{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--slate);margin-left:5px;}
+.hs-go{
+  width:40px;height:40px;border-radius:999px;border:none;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  background:rgba(255,255,255,.85);color:var(--hs-ink,var(--azure));
+  box-shadow:var(--elev-1);transition:transform .22s var(--ease-spring), box-shadow .22s;
+}
+.hs-card:hover .hs-go{transform:translateX(3px);box-shadow:var(--elev-2);}
+
+/* ---------- the three lower panels ---------- */
+.home-panels{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);gap:16px;}
+.hp{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 20px;box-shadow:var(--elev-1);}
+.hp-head{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+.hp-head b{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--ink);}
+.hp-head .hp-ico{font-size:15px;opacity:.75;}
+.hp-head .hp-link{
+  margin-left:auto;background:none;border:none;color:var(--azure);font-family:inherit;
+  font-size:12.5px;font-weight:600;padding:2px 4px;
+}
+.hp-head .hp-link:hover{text-decoration:underline;}
+.hp-sub{font-size:12.5px;color:var(--slate);margin:0 0 14px;line-height:1.5;}
+.hp-ring{
+  margin-left:auto;display:flex;align-items:center;gap:10px;
+}
+.hp-ring .hr-lbl{font-size:11.5px;color:var(--slate);text-align:right;line-height:1.3;}
+.band-ring{
+  position:relative;width:62px;height:62px;flex-shrink:0;border-radius:999px;
+  display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(var(--azure) calc(var(--pct,0) * 1%), var(--paper-2) 0);
+}
+.band-ring::before{content:"";position:absolute;inset:5px;border-radius:999px;background:#fff;}
+.band-ring b{position:relative;font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--ink);}
+
+.act-list{list-style:none;margin:0;padding:0;}
+.act-list li{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);}
+.act-list li:first-child{border-top:none;}
+.act-ico{
+  width:36px;height:36px;border-radius:999px;flex-shrink:0;font-size:15px;
+  display:flex;align-items:center;justify-content:center;background:var(--paper-2);
+}
+.act-txt{min-width:0;flex:1;}
+.act-txt b{display:block;font-size:13.5px;font-weight:600;color:var(--ink);}
+.act-txt span{display:block;font-size:12px;color:var(--slate);margin-top:1px;}
+.act-when{font-size:11.5px;color:var(--slate);white-space:nowrap;font-family:'IBM Plex Mono',monospace;}
+.act-empty{font-size:13px;color:var(--slate);line-height:1.6;padding:6px 0;}
+
+.ql-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ql-tile{
+  display:flex;flex-direction:column;gap:6px;text-align:left;
+  border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:var(--surface-1);
+  font-family:inherit;transition:transform .22s var(--ease-spring), box-shadow .22s, background .22s;
+}
+.ql-tile:hover{transform:translateY(-2px);box-shadow:var(--elev-2);background:#fff;}
+.ql-tile .ql-ico{
+  width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;background:var(--paper-2);
+}
+.ql-tile b{font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;}
+.ql-tile span{font-size:11.5px;color:var(--slate);line-height:1.45;}
+
+/* ---------- full mock test page ---------- */
+.mock-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:18px 0 22px;}
+.mock-card{
+  position:relative;border:1px solid var(--line);border-radius:16px;padding:18px;
+  background:#fff;box-shadow:var(--elev-1);display:flex;flex-direction:column;gap:8px;
+}
+.mock-card.done{background:linear-gradient(180deg,#f2f8f4,#fff);border-color:#a5d6a7;}
+.mock-card.next{border-color:var(--brass);box-shadow:0 0 0 3px rgba(201,162,39,.16), var(--elev-2);}
+.mock-step{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--slate);
+}
+.mock-card h4{font-family:'Fraunces',serif;font-size:19px;margin:0;color:var(--ink);font-weight:600;}
+.mock-card .mc-time{font-size:12.5px;color:var(--slate);}
+.mock-card .mc-band{font-family:'Fraunces',serif;font-size:22px;color:var(--ink);}
+.mock-card .mc-state{font-size:12px;color:var(--teal);font-weight:600;}
+.mock-bar{
+  height:8px;border-radius:999px;background:var(--paper-2);overflow:hidden;margin:6px 0 0;
+}
+.mock-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brass),var(--brass-2));transition:width .5s var(--ease-out);}
+
+/* ---------- about / help modal ---------- */
+.info-modal p{font-size:13.5px;line-height:1.7;color:#2a3145;}
+.info-modal h4{font-family:'Fraunces',serif;font-size:16px;margin:16px 0 6px;color:var(--ink);}
 
 /* ---------- shared blocks (same look as the inline styles they replaced) ---------- */
 .gen-card{
@@ -189,24 +482,36 @@ header.topbar .topbar-btn{border-color:var(--paper-line);color:var(--paper);}
 .key-cols{columns:2;column-gap:24px;}
 .q-item input[type=text].match-input{min-width:40px;max-width:50px;text-align:center;}
 
-/* ---------- tabs ---------- */
-nav.tabs{
-  display:flex;gap:6px;padding:18px 20px 0;max-width:1080px;margin:0 auto;
-  flex-wrap:wrap;
-}
+/* ---------- sidebar nav rail (the same nav the phone pins to the bottom) --- */
+nav.tabs{display:flex;flex-direction:column;gap:3px;}
 nav.tabs button{
-  background:transparent;border:1px solid var(--paper-line);color:var(--paper);
-  padding:10px 18px;border-radius:999px 999px 0 0;font-size:13px;font-weight:600;
-  letter-spacing:.02em;opacity:.55;transition:opacity .2s, background .2s;
-  border-bottom:none;
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:transparent;border:1px solid transparent;color:var(--paper);
+  padding:11px 14px;border-radius:12px;font-size:14px;font-weight:600;
+  letter-spacing:.01em;opacity:.62;
+  transition:opacity .2s, background .2s, color .2s;
 }
-nav.tabs button.active{opacity:1;background:var(--paper);color:var(--ink);}
-nav.tabs button:hover{opacity:.9;}
-/* Reference tab — sits right after Speaking, tinted brass so it reads as a
-   reference rather than a fifth test module. */
-nav.tabs button.tab-ref{margin-left:14px;border-color:var(--brass);color:var(--brass-2);opacity:.8;}
-nav.tabs button.tab-ref:hover{opacity:1;}
-nav.tabs button.tab-ref.active{background:var(--paper);color:var(--ink);border-color:var(--paper);opacity:1;}
+nav.tabs button::before{content:"";font-size:17px;line-height:1;width:22px;text-align:center;flex-shrink:0;}
+nav.tabs button[data-mod="dashboard"]::before{content:"🏠";}
+nav.tabs button[data-mod="listening"]::before{content:"🎧";}
+nav.tabs button[data-mod="reading"]::before{content:"📖";}
+nav.tabs button[data-mod="writing"]::before{content:"✍️";}
+nav.tabs button[data-mod="speaking"]::before{content:"🎙";}
+nav.tabs button[data-mod="mock"]::before{content:"📋";}
+nav.tabs button[data-mod="progress"]::before{content:"📊";}
+nav.tabs button[data-mod="descriptors"]::before{content:"📐";}
+nav.tabs button[data-mod="class"]::before{content:"👥";}
+nav.tabs button:hover{opacity:.9;background:rgba(246,243,234,.06);}
+nav.tabs button.active{
+  opacity:1;background:rgba(201,162,39,.16);color:var(--brass-2);
+  border-color:rgba(201,162,39,.28);
+}
+nav.tabs button.tab-ref{color:var(--paper);}
+nav.tabs button.tab-ref.active{color:var(--brass-2);}
+.side-nav-head{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--paper-2);opacity:.5;padding:10px 14px 4px;
+}
 
 main{padding-top:0;}
 .panel{
@@ -334,6 +639,117 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
   color:#fff;box-shadow:var(--elev-2), inset 0 1px 0 rgba(255,255,255,.22);
 }
 .btn.small{padding:8px 15px;font-size:12px;}
+
+/* =========================================================================
+   LIQUID GLASS — the button surface
+   -------------------------------------------------------------------------
+   Every .btn keeps the colours it already had; what is added is the glass
+   behaviour on top of them: a real backdrop blur so what is behind the pill
+   bends through it, a specular highlight raked across the top edge, a sheen
+   that sweeps over on hover, and a press that squashes the pill and pulls the
+   highlight in — the "liquid" part. A tap also releases a ripple from the
+   point of contact (see the JS that sets --rx/--ry).
+
+   The layers are pseudo-elements so no markup changes, and everything is
+   pointer-events:none so hit targets are unchanged. Under
+   prefers-reduced-motion the sweep and ripple are dropped and only the
+   colour/elevation change remains.
+   ========================================================================= */
+.btn{
+  overflow:hidden;isolation:isolate;
+  -webkit-backdrop-filter:saturate(150%) blur(8px);
+  backdrop-filter:saturate(150%) blur(8px);
+}
+/* The domed specular is an INSET SHADOW, not an overlay: inset shadows paint
+   above the background but below the label, so the glass can be bright without
+   washing out the text. An absolutely-positioned pseudo-element cannot do this
+   — at any z-index it paints over inline content. */
+.btn{
+  box-shadow:
+    var(--elev-1),
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 7px 14px -8px rgba(255,255,255,.40),
+    inset 0 -6px 12px -8px rgba(0,0,0,.28);
+}
+/* the sweeping sheen: a narrow, low-alpha reflection that passes across on
+   hover — brief and moving, so it reads as light on glass */
+.btn::after{
+  content:"";position:absolute;top:0;bottom:0;left:-60%;width:42%;border-radius:inherit;
+  pointer-events:none;z-index:2;transform:skewX(-18deg);
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.26), transparent);
+  opacity:0;transition:opacity .2s var(--ease-out);
+}
+.btn:hover{
+  box-shadow:
+    var(--elev-3),
+    inset 0 1px 0 rgba(255,255,255,.30),
+    inset 0 9px 18px -8px rgba(255,255,255,.50),
+    inset 0 -6px 12px -8px rgba(0,0,0,.24);
+}
+.btn:hover::after{opacity:1;animation:glassSweep .85s var(--ease-out);}
+@keyframes glassSweep{
+  from{left:-60%;}
+  to{left:130%;}
+}
+/* the liquid press: the pill compresses and the highlight sinks into it */
+.btn:active{
+  transform:scale(.955) scaleX(.985);
+  box-shadow:
+    var(--elev-1),
+    inset 0 2px 6px rgba(0,0,0,.22),
+    inset 0 -5px 10px -8px rgba(255,255,255,.30);
+}
+.btn:active::after{opacity:0;animation:none;}
+/* ripple from the point of contact, positioned by the pointer handler */
+.btn .glass-ripple{
+  position:absolute;left:var(--rx,50%);top:var(--ry,50%);width:10px;height:10px;
+  margin:-5px 0 0 -5px;border-radius:999px;pointer-events:none;z-index:2;
+  background:radial-gradient(circle, rgba(255,255,255,.34), rgba(255,255,255,0) 70%);
+  animation:glassRipple .55s var(--ease-out) forwards;
+}
+@keyframes glassRipple{
+  from{transform:scale(1);opacity:.7;}
+  to{transform:scale(26);opacity:0;}
+}
+/* Light-surfaced pills need a dark press and a dark ripple instead. */
+.btn.ghost,.btn.brass{
+  box-shadow:
+    var(--elev-1),
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 8px 16px -9px rgba(255,255,255,.75),
+    inset 0 -6px 12px -9px rgba(19,27,46,.22);
+}
+.btn.ghost:hover,.btn.brass:hover{
+  box-shadow:
+    var(--elev-2),
+    inset 0 1px 0 rgba(255,255,255,.75),
+    inset 0 10px 20px -9px rgba(255,255,255,.9),
+    inset 0 -6px 12px -9px rgba(19,27,46,.18);
+}
+.btn.ghost .glass-ripple,.btn.brass .glass-ripple{
+  background:radial-gradient(circle, rgba(19,27,46,.16), rgba(19,27,46,0) 70%);
+}
+.btn.secondary{backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;}
+.btn.secondary:hover{box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.5);}
+.btn:disabled{box-shadow:none;}
+.btn:disabled::after{display:none;}
+
+/* The same glass on the rail and top-rail controls, again as inset light. */
+.icon-btn,.acct-btn{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 6px 12px -8px rgba(255,255,255,.28);
+}
+.icon-btn:hover,.acct-btn:hover{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24), inset 0 8px 16px -8px rgba(255,255,255,.4);
+}
+.qstrip button,.part-nav button,.band-tab,.tb-btn{position:relative;overflow:hidden;}
+
+@media (prefers-reduced-motion: reduce){
+  .btn::after{display:none;}
+  .btn:hover::before{transform:none;}
+  .btn:active{transform:none;}
+  .btn .glass-ripple{display:none;}
+}
+
 @media (prefers-reduced-motion: reduce){
   .btn,.btn:hover,.btn:active{transition:none;transform:none;}
 }
@@ -1344,6 +1760,64 @@ textarea.essay{
   .section-sub{font-size:13.5px;margin-bottom:18px;}
   hr.rule{margin:20px 0;}
 
+  /* ---- the shell collapses to one column; the nav is pinned to the bottom
+       by the rules further down, so the sidebar only has to give up its
+       desktop furniture ---- */
+  .app-shell{display:flex;flex-direction:column;}
+  .app-col{min-height:0;order:1;}
+  .sidebar{order:2;}
+  .sidebar{
+    position:static;height:auto;overflow:visible;display:block;
+    padding:0;border-right:none;background:none;
+  }
+  .side-brand,.motiv-quote,.side-foot{display:none;}
+  /* The motivational card is worth keeping on a phone, but at the foot of the
+     page rather than above the test. */
+  .motiv-card{
+    margin:4px 12px 14px;border-radius:16px;
+  }
+  .motiv-card svg{height:96px;}
+  .app-foot{padding:14px 14px calc(76px + env(safe-area-inset-bottom));font-size:12px;gap:12px;}
+  .app-foot .af-right{flex:1 0 100%;margin-left:0;}
+
+  /* ---- top rail: brand + icons, search under them ---- */
+  .brand-block{display:block;}
+  header.topbar{
+    position:static;flex-wrap:wrap;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;
+    background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;
+  }
+  .search-wrap{order:4;flex:1 0 100%;max-width:none;}
+  .search-field{height:42px;}
+  .search-pop{background:var(--ink-2);}
+  .topbar-actions{order:3;margin-left:auto;gap:8px;}
+  .icon-btn{width:40px;height:40px;font-size:16px;}
+  .acct-btn{padding:4px;gap:0;}
+  .acct-btn .acct-txt,.acct-btn .acct-chev{display:none;}
+  .acct-menu{min-width:212px;}
+  .candidate-card{order:5;flex:1 0 100%;border-radius:12px;justify-content:space-between;}
+
+  /* ---- home page ---- */
+  .home-hero{grid-template-columns:1fr;border-radius:18px;}
+  .hero-copy{padding:22px 18px 20px;}
+  .hero-title{font-size:29px;}
+  .hero-sub{font-size:14px;margin-bottom:18px;}
+  .hero-art{height:170px;order:2;}
+  .hero-art svg{position:relative;}
+  .hero-script{font-size:25px;right:10%;top:38%;}
+  .hero-quote{
+    order:3;padding:18px;border-left:none;border-top:1px solid rgba(19,27,46,.07);
+    background:rgba(255,255,255,.6);
+  }
+  .home-skills{grid-template-columns:1fr 1fr;gap:12px;}
+  .hs-card{padding:15px;border-radius:16px;}
+  .hs-icon{width:46px;height:46px;border-radius:14px;font-size:21px;}
+  .hs-card h3{font-size:17px;}
+  .hs-card p{font-size:12.5px;}
+  .home-panels{grid-template-columns:1fr;gap:12px;}
+  .hp{padding:15px 16px;border-radius:16px;}
+  .ql-grid{grid-template-columns:1fr 1fr;}
+  .mock-grid{grid-template-columns:1fr;}
+
   /* ---- header: brand + icon buttons, exam details on their own line ---- */
   header.topbar{
     padding:calc(12px + env(safe-area-inset-top)) 14px 12px;
@@ -1376,6 +1850,7 @@ textarea.essay{
   /* ---- navigation: fixed bottom bar with icons ---- */
   nav.tabs{
     position:fixed;left:0;right:0;bottom:0;z-index:60;
+    flex-direction:row;                      /* the desktop rail stacks; the bar does not */
     max-width:none;margin:0;gap:2px;flex-wrap:nowrap;
     padding:5px 6px calc(4px + env(safe-area-inset-bottom));
     overflow-x:auto;scrollbar-width:none;
@@ -1392,13 +1867,12 @@ textarea.essay{
     font-size:9.5px;font-weight:600;line-height:1.2;letter-spacing:0;
     white-space:nowrap;opacity:.5;transition:background .18s,opacity .18s;
   }
-  nav.tabs button::before{content:"";font-size:19px;line-height:1;filter:grayscale(.4);}
-  nav.tabs button[data-mod="dashboard"]::before{content:"📊";}
-  nav.tabs button[data-mod="listening"]::before{content:"🎧";}
-  nav.tabs button[data-mod="reading"]::before{content:"📖";}
-  nav.tabs button[data-mod="writing"]::before{content:"✍️";}
-  nav.tabs button[data-mod="speaking"]::before{content:"🎙";}
-  nav.tabs button[data-mod="descriptors"]::before{content:"📐";}
+  /* Icons are declared once in the base layer (the desktop rail uses the same
+     ones); the bar only resizes them. */
+  nav.tabs button::before{font-size:19px;width:auto;filter:grayscale(.4);}
+  /* Nine rows fit a sidebar but not a phone bar: the two pages that are
+     launchers rather than papers are reachable from Home instead. */
+  nav.tabs button[data-mod="mock"],nav.tabs button[data-mod="progress"]{display:none;}
   /* "📋 Band descriptors" is far too long for a sixth bar slot: the label is
      zeroed out and replaced with a short one (the ::before/::after keep their
      own explicit sizes, so only the button's own text collapses). */
@@ -1843,22 +2317,7 @@ textarea.essay{
 })();
 </script>
 
-<header class="topbar">
-  <div class="brand-block">
-    <p class="eyebrow">Teacher Esteban Yepes · Mock Examination</p>
-    <h1>IELTS Academic Simulator</h1>
-  </div>
-  <div class="topbar-actions">
-    <div class="candidate-card">
-      <span class="cc-lbl">Candidate No.</span> <b id="candNo">—</b><br>
-      <span class="cc-lbl">Test date:</span> <b id="testDate">—</b><br>
-      <span class="cc-lbl">Module:</span> <b id="modLabel">Dashboard</b>
-    </div>
-    <button id="accountBtn" class="btn ghost on-dark small topbar-btn" style="display:none;">👤 <span class="btn-label">Sign in</span></button>
-    <button id="sessionBtn" class="btn ghost on-dark small topbar-btn">💾 <span class="btn-label">Session</span></button>
-    <button id="settingsBtn" class="btn ghost on-dark small topbar-btn">⚙ <span class="btn-label">AI engine</span></button>
-  </div>
-</header>
+
 
 <div id="settingsOverlay" class="settings-overlay" style="display:none;">
   <div class="settings-modal">
@@ -2022,22 +2481,110 @@ textarea.essay{
   </div>
 </div>
 
-<nav class="tabs" id="tabs">
-  <button data-mod="dashboard" class="active">Dashboard</button>
-  <button data-mod="listening">Listening</button>
-  <button data-mod="reading">Reading</button>
-  <button data-mod="writing">Writing</button>
-  <button data-mod="speaking">Speaking</button>
-  <button data-mod="descriptors" class="tab-ref">📋 Band descriptors</button>
-</nav>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="side-brand">
+      <span class="sb-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span><b>IELTS</b><span>Simulator</span></span>
+    </div>
 
-<div class="shell">
-  <main>
-    <div class="panel" id="panel"></div>
-  </main>
+    <nav class="tabs" id="tabs">
+      <button data-mod="dashboard" class="active">Home</button>
+      <button data-mod="listening">Listening</button>
+      <button data-mod="reading">Reading</button>
+      <button data-mod="writing">Writing</button>
+      <button data-mod="speaking">Speaking</button>
+      <button data-mod="mock">Full Mock Test</button>
+      <button data-mod="progress">Progress</button>
+      <button data-mod="descriptors" class="tab-ref">Band descriptors</button>
+    </nav>
+
+    <div class="motiv-card">
+      <div class="mc-text">
+        <b>Better<br>English</b>
+        <i>A Brighter You</i>
+        <span class="mc-rule"></span>
+      </div>
+      <!-- Drawn rather than photographed: the app ships as a single file with no
+           remote images, and the palette stays the app's own. -->
+      <svg viewBox="0 0 240 120" preserveAspectRatio="none" aria-hidden="true">
+        <rect width="240" height="120" fill="#1c2740"/>
+        <path d="M0 96 L44 52 L74 78 L104 40 L146 92 L176 62 L240 104 L240 120 L0 120 Z" fill="#243350"/>
+        <path d="M0 108 L38 74 L70 96 L110 62 L150 104 L190 80 L240 112 L240 120 L0 120 Z" fill="#2f3d5c" opacity=".9"/>
+        <path d="M0 118 L60 96 L120 112 L180 92 L240 116 L240 120 L0 120 Z" fill="#3a4a6b" opacity=".85"/>
+        <g fill="#0f1626">
+          <rect x="118" y="52" width="2.6" height="12" rx="1.2"/>
+          <circle cx="119.3" cy="49" r="2.4"/>
+        </g>
+      </svg>
+    </div>
+
+    <p class="motiv-quote" id="sideQuote">“Discipline today, opportunities tomorrow.”</p>
+
+    <div class="side-foot">
+      <b>IELTS Simulator</b>
+      <span>Practice today. A brighter tomorrow.</span>
+    </div>
+  </aside>
+
+  <div class="app-col">
+<header class="topbar">
+      <!-- The brand shows here only on phones; the sidebar carries it on desktop. -->
+      <div class="brand-block">
+        <p class="eyebrow">Teacher Esteban Yepes · Mock Examination</p>
+        <h1>IELTS Academic Simulator</h1>
+      </div>
+    
+      <div class="search-wrap">
+        <label class="search-field" for="globalSearch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path>
+          </svg>
+          <input id="globalSearch" type="search" autocomplete="off" placeholder="Search for practice tests, topics or skills…"
+                 aria-label="Search practice tests, topics or skills" aria-expanded="false" aria-controls="searchPop">
+        </label>
+        <div id="searchPop" class="search-pop" role="listbox" style="display:none;"></div>
+      </div>
+    
+      <div class="topbar-actions">
+        <div class="candidate-card">
+          <span class="cc-lbl">Candidate No.</span> <b id="candNo">—</b><br>
+          <span class="cc-lbl">Test date:</span> <b id="testDate">—</b><br>
+          <span class="cc-lbl">Module:</span> <b id="modLabel">Home</b>
+        </div>
+        <button id="bellBtn" class="icon-btn" title="Messages from your teacher" aria-label="Messages from your teacher">🔔</button>
+        <div class="acct-cluster">
+          <button id="acctBtn" class="acct-btn" aria-haspopup="true" aria-expanded="false">
+            <span class="acct-avatar" id="acctInitial">E</span>
+            <span class="acct-txt"><b id="acctHello">Hello</b><span id="acctSub">Keep going!</span></span>
+            <span class="acct-chev">▾</span>
+          </button>
+          <!-- The three original controls keep their ids and handlers; they just
+               live in this menu now instead of side by side in the header. -->
+          <div id="acctMenu" class="acct-menu" style="display:none;">
+            <span class="am-head">Account</span>
+            <button id="accountBtn" class="btn ghost on-dark small topbar-btn" style="display:none;">👤 <span class="btn-label">Sign in</span></button>
+            <span class="am-head">This session</span>
+            <button id="sessionBtn" class="btn ghost on-dark small topbar-btn">💾 <span class="btn-label">Session</span></button>
+            <button id="settingsBtn" class="btn ghost on-dark small topbar-btn">⚙ <span class="btn-label">AI engine</span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="shell">
+      <main>
+        <div class="panel" id="panel"></div>
+      </main>
+    </div>
+    <p class="footer-note">Original practice materials in the official IELTS Academic format. Band scores are AI-estimated against published assessment criteria and are a study aid, not an official result.</p>
+    <footer class="app-foot">
+      <button data-info="about">About</button>
+      <button data-info="help">Help</button>
+      <button data-info="contact">Contact</button>
+      <span class="af-right">Designed for your success. <span class="af-heart">❤</span></span>
+    </footer>
+  </div>
 </div>
-
-<p class="footer-note">Original practice materials in the official IELTS Academic format. Band scores are AI-estimated against published assessment criteria and are a study aid, not an official result.</p>
 
 <script>
 /* =========================================================================
@@ -2512,7 +3059,8 @@ function recordScore(module, band, detail){
 }
 
 function renderDashboardIfActive(){
-  if(state.mod==="dashboard") renderDashboard();
+  if(state.mod==="dashboard") renderHome();
+  else if(state.mod==="progress") renderProgress();
 }
 
 window.addEventListener("DOMContentLoaded", async ()=>{
@@ -2567,6 +3115,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   await restoreGeneratedContent();
   await trLoadPrefs();
   await loadHistory();
+  refreshGreeting();      // name, initial and the bell badge in the top rail
   render();
   // Tells the intro curtain the app is genuinely ready. Fired before auth so a
   // slow or unreachable Supabase never holds the curtain down; the account UI
@@ -4875,6 +5424,250 @@ window.addEventListener("resize", trHideBubble);
    ========================================================================= */
 
 const panel = document.getElementById("panel");
+/* =========================================================================
+   SHELL BEHAVIOUR — search, account menu, notifications, footer info
+   ========================================================================= */
+
+/* The search field is a quick-jump, not a pretend search box: it matches the
+   places you can actually go and the things the app can actually do, and
+   Enter opens the first hit. */
+function searchTargets(){
+  const t = [
+    { label:"Home", hint:"dashboard", go:()=>setModule("dashboard"), keys:"home dashboard overview start" },
+    { label:"Listening", hint:"paper · ≈30 min", go:()=>setModule("listening"), keys:"listening audio sections gap fill" },
+    { label:"Reading", hint:"paper · 60 min", go:()=>setModule("reading"), keys:"reading passages true false not given headings" },
+    { label:"Writing Task 1", hint:"report · 20 min", go:()=>{ state.writing.activeTask="task1"; setModule("writing"); }, keys:"writing task 1 chart graph report 150 words" },
+    { label:"Writing Task 2", hint:"essay · 40 min", go:()=>{ state.writing.activeTask="task2"; setModule("writing"); }, keys:"writing task 2 essay opinion discussion 250 words" },
+    { label:"Speaking Part 1", hint:"interview", go:()=>{ state.speaking.part="part1"; setModule("speaking"); }, keys:"speaking part 1 interview questions" },
+    { label:"Speaking Part 2", hint:"long turn", go:()=>{ state.speaking.part="part2"; setModule("speaking"); }, keys:"speaking part 2 cue card long turn monologue" },
+    { label:"Speaking Part 3", hint:"discussion", go:()=>{ state.speaking.part="part3"; setModule("speaking"); }, keys:"speaking part 3 discussion abstract" },
+    { label:"Full mock test", hint:"all four papers", go:()=>setModule("mock"), keys:"full mock test exam simulate complete" },
+    { label:"Progress", hint:"bands & history", go:()=>setModule("progress"), keys:"progress statistics history charts scores bands" },
+    { label:"Band descriptors", hint:"how marking works", go:()=>setModule("descriptors"), keys:"band descriptors criteria marking rubric tips strategies" },
+    { label:"AI engine settings", hint:"Gemini key", go:()=>openSettings(), keys:"settings api key gemini model translator drive" },
+    { label:"Session snapshots", hint:"save & restore", go:()=>openSessionPanel(), keys:"session save export import snapshot backup" },
+    { label:"About this simulator", hint:"help", go:()=>openInfoModal("about"), keys:"about help contact information" }
+  ];
+  if(typeof isTeacher === "function" && isTeacher()){
+    t.push({ label:"My class", hint:"teacher", go:()=>setModule("class"), keys:"class students roster teacher feedback" });
+  }
+  return t;
+}
+
+let searchSel = 0;
+function searchMatches(q){
+  const needle = q.trim().toLowerCase();
+  if(!needle) return [];
+  return searchTargets().filter(t =>
+    t.label.toLowerCase().includes(needle) || t.keys.includes(needle) ||
+    needle.split(/\s+/).every(w => (t.label + " " + t.keys).toLowerCase().includes(w))
+  ).slice(0, 8);
+}
+
+function paintSearchPop(){
+  const input = document.getElementById("globalSearch");
+  const pop = document.getElementById("searchPop");
+  if(!input || !pop) return;
+  const hits = searchMatches(input.value);
+  if(!input.value.trim()){
+    pop.style.display = "none";
+    input.setAttribute("aria-expanded","false");
+    return;
+  }
+  pop.style.display = "";
+  input.setAttribute("aria-expanded","true");
+  if(searchSel >= hits.length) searchSel = 0;
+  pop.innerHTML = hits.length
+    ? hits.map((h,i)=>`<button type="button" role="option" data-si="${i}" class="${i===searchSel?"sel":""}">${escapeHtml(h.label)}<em>${escapeHtml(h.hint)}</em></button>`).join("")
+    : `<div class="sp-none">Nothing matches “${escapeHtml(input.value)}”. Try “writing”, “part 3”, “mock” or “bands”.</div>`;
+  pop.querySelectorAll("[data-si]").forEach(btn=>{
+    btn.addEventListener("mousedown", e=>{
+      e.preventDefault();                       // keep focus until we navigate
+      runSearchHit(Number(btn.dataset.si));
+    });
+  });
+}
+
+function runSearchHit(i){
+  const input = document.getElementById("globalSearch");
+  const hits = searchMatches(input ? input.value : "");
+  const hit = hits[i];
+  if(!hit) return;
+  closeSearchPop();
+  if(input){ input.value = ""; input.blur(); }
+  hit.go();
+}
+
+function closeSearchPop(){
+  const pop = document.getElementById("searchPop");
+  const input = document.getElementById("globalSearch");
+  if(pop) pop.style.display = "none";
+  if(input) input.setAttribute("aria-expanded","false");
+  searchSel = 0;
+}
+
+(function wireSearch(){
+  const input = document.getElementById("globalSearch");
+  if(!input) return;
+  input.addEventListener("input", ()=>{ searchSel = 0; paintSearchPop(); });
+  input.addEventListener("focus", paintSearchPop);
+  input.addEventListener("keydown", e=>{
+    const hits = searchMatches(input.value);
+    if(e.key === "ArrowDown"){ e.preventDefault(); searchSel = Math.min(searchSel+1, hits.length-1); paintSearchPop(); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); paintSearchPop(); }
+    else if(e.key === "Enter"){ e.preventDefault(); runSearchHit(searchSel); }
+    else if(e.key === "Escape"){ input.value = ""; closeSearchPop(); input.blur(); }
+  });
+  document.addEventListener("click", e=>{
+    if(!e.target.closest(".search-wrap")) closeSearchPop();
+  });
+  // ⌘K / Ctrl-K is the shortcut everyone now expects from a search field.
+  document.addEventListener("keydown", e=>{
+    if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k"){
+      e.preventDefault();
+      input.focus();
+      input.select();
+    }
+  });
+})();
+
+/* ---------- the account cluster ---------- */
+function greetingName(){
+  if(typeof AUTH === "object" && AUTH && AUTH.profile){
+    const n = (AUTH.profile.full_name || AUTH.profile.email || "").trim();
+    if(n) return n.split(/[\s@]+/)[0];
+  }
+  return "candidate";
+}
+
+// Called on boot and whenever the account state changes.
+function refreshGreeting(){
+  const name = greetingName();
+  const hello = document.getElementById("acctHello");
+  const initial = document.getElementById("acctInitial");
+  const sub = document.getElementById("acctSub");
+  if(hello) hello.textContent = `Hello, ${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+  if(initial) initial.textContent = name.charAt(0).toUpperCase();
+  if(sub) sub.textContent = GREETING_SUBS[Math.floor(Date.now()/86400000) % GREETING_SUBS.length];
+  // The rail's quote moves with the day too, one step out of phase with the hero's.
+  const sq = document.getElementById("sideQuote");
+  if(sq) sq.textContent = `“${motivationFor(3)}”`;
+  const bell = document.getElementById("bellBtn");
+  if(bell){
+    const unread = (typeof unreadFeedbackCount === "function" && typeof isStudent === "function" && isStudent())
+      ? unreadFeedbackCount() : 0;
+    bell.innerHTML = `🔔${unread ? `<span class="dot count">${unread}</span>` : `<span class="dot" style="display:none;"></span>`}`;
+    bell.title = unread ? `${unread} unread message${unread===1?"":"s"} from your teacher` : "Messages from your teacher";
+  }
+}
+
+function toggleAcctMenu(force){
+  const menu = document.getElementById("acctMenu");
+  const btn = document.getElementById("acctBtn");
+  if(!menu) return;
+  const open = force != null ? force : menu.style.display === "none";
+  menu.style.display = open ? "" : "none";
+  if(btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+(function wireAccountCluster(){
+  const btn = document.getElementById("acctBtn");
+  if(btn){
+    btn.addEventListener("click", e=>{ e.stopPropagation(); toggleAcctMenu(); });
+  }
+  document.addEventListener("click", e=>{
+    if(!e.target.closest(".acct-cluster")) toggleAcctMenu(false);
+    // Any menu action closes the menu behind it.
+    if(e.target.closest("#acctMenu .btn")) toggleAcctMenu(false);
+  });
+  const bell = document.getElementById("bellBtn");
+  if(bell){
+    bell.addEventListener("click", ()=>{
+      setModule("dashboard");
+      // The teacher's messages render at the foot of Home.
+      setTimeout(()=>{
+        const inbox = document.querySelector(".fb-inbox");
+        if(inbox) inbox.scrollIntoView({ behavior:"smooth", block:"center" });
+        else alert("No messages from your teacher yet. Sign in as a student to receive feedback here.");
+      }, 220);
+    });
+  }
+})();
+
+/* ---------- About / Help / Contact ---------- */
+const INFO_CONTENT = {
+  about: {
+    title:"About this simulator",
+    body:`<p>An IELTS Academic mock examination built as a single page: four papers on their official clocks, marked against the published band descriptors, with the examiner's feedback quoted back against your own words.</p>
+      <h4>What it is</h4>
+      <p>Original practice material in the official Academic format — Listening, Reading, Writing and Speaking — plus a generator that writes fresh tests on any topic. Your work stays in this browser unless you sign in to share it with a teacher.</p>
+      <h4>What it is not</h4>
+      <p>Band scores here are AI estimates against the public descriptors. They are a study aid and a good guide to where you stand, not an official result: only a real test centre can award that.</p>`
+  },
+  help: {
+    title:"Help & resources",
+    body:`<p><b>Start here.</b> Open <b>Full Mock Test</b> and work through the four papers in order, or pick a single paper from the rail on the left.</p>
+      <h4>Getting marked</h4>
+      <p>Writing and Speaking need a Gemini API key — add it under the account menu → <b>AI engine</b>. Listening and Reading mark themselves against the answer key, with no key needed.</p>
+      <h4>The clocks</h4>
+      <p>Writing runs 60:00 (20 for Task 1, 40 for Task 2), Reading 60:00, and Listening for the length of the audio you attach. At 00:00 your answers lock for marking — press <b>Reset</b> on the clock to keep practising.</p>
+      <h4>Templates, vocabulary and strategy</h4>
+      <p><b>Band descriptors</b> holds the full official criteria the marking applies. Every Writing and Speaking report offers your own answer rewritten at each band from 5.0 to 9.0 — the fastest way to see what the next half-band actually sounds like. The 🌐 <b>Language desk</b> on each paper gives translations, verb tables and register-ranked alternatives.</p>`
+  },
+  contact: {
+    title:"Contact",
+    body:`<p>This simulator is used with <b>Teacher Esteban Yepes</b>' IELTS classes.</p>
+      <h4>If you are a student</h4>
+      <p>Sign in from the account menu with the class code your teacher gave you. Your bands then sync to their roster, and any feedback they write appears on your Home page and under the 🔔 bell.</p>
+      <h4>If you are a teacher</h4>
+      <p>Sign in as a teacher to see <b>My class</b>: every student's bands, their submitted work, and a box to write feedback against any submission.</p>
+      <h4>Something broken?</h4>
+      <p>Export a session snapshot (account menu → <b>Session</b>) and send it on with a note about what you were doing — it carries your answers and the reports, which is usually enough to reproduce the problem.</p>`
+  }
+};
+
+function openInfoModal(which){
+  const c = INFO_CONTENT[which] || INFO_CONTENT.about;
+  let overlay = document.getElementById("infoOverlay");
+  if(!overlay){
+    overlay = document.createElement("div");
+    overlay.id = "infoOverlay";
+    overlay.className = "settings-overlay";
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", e=>{ if(e.target === overlay) overlay.style.display = "none"; });
+  }
+  overlay.innerHTML = `
+    <div class="settings-modal info-modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:12px;">
+        <h3 style="font-family:'Fraunces',serif;margin:0;font-size:19px;">${escapeHtml(c.title)}</h3>
+        <button class="btn ghost small" data-close-info="1">Close</button>
+      </div>
+      ${c.body}
+      <p style="font-size:11.5px;color:var(--slate);margin:18px 0 0;font-style:italic;">“${escapeHtml(motivationFor(1))}”</p>
+    </div>`;
+  overlay.style.display = "flex";
+  overlay.querySelector("[data-close-info]").addEventListener("click", ()=>{ overlay.style.display = "none"; });
+}
+
+document.addEventListener("click", e=>{
+  const t = e.target.closest("[data-info]");
+  if(t) openInfoModal(t.dataset.info);
+});
+
+/* ---------- liquid glass: the ripple follows the pointer ---------- */
+document.addEventListener("pointerdown", e=>{
+  const btn = e.target.closest(".btn");
+  if(!btn || btn.disabled) return;
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r = btn.getBoundingClientRect();
+  const ripple = document.createElement("span");
+  ripple.className = "glass-ripple";
+  ripple.style.setProperty("--rx", (e.clientX - r.left) + "px");
+  ripple.style.setProperty("--ry", (e.clientY - r.top) + "px");
+  btn.appendChild(ripple);
+  setTimeout(()=>ripple.remove(), 600);
+});
+
 document.getElementById("candNo").textContent = "SM-"+state.candNo;
 document.getElementById("testDate").textContent = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 
@@ -4887,7 +5680,9 @@ document.getElementById("tabs").addEventListener("click", (e)=>{
 function setModule(mod){
   state.mod = mod;
   document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.mod===mod));
-  const labels = {dashboard:"Dashboard", listening:"Listening", reading:"Reading", writing:"Writing", speaking:"Speaking", class:"My class", descriptors:"Band descriptors"};
+  const labels = {dashboard:"Home", listening:"Listening", reading:"Reading", writing:"Writing",
+                  speaking:"Speaking", mock:"Full mock test", progress:"Progress",
+                  class:"My class", descriptors:"Band descriptors"};
   document.getElementById("modLabel").textContent = labels[mod] || mod;
   render();
   window.scrollTo({top:0, behavior:"smooth"});
@@ -5195,7 +5990,9 @@ function render(){
   // Leaving a paper stops its clock; only the module on screen is being sat.
   pauseTimersOutside(state.mod, state.mod === "writing" ? activeTimerKey("writing") : null);
   if(state.mod==="class") return renderClassDashboard();
-  if(state.mod==="dashboard") return renderDashboard();
+  if(state.mod==="dashboard") return renderHome();
+  if(state.mod==="mock") return renderMockTest();
+  if(state.mod==="progress") return renderProgress();
   if(state.mod==="listening") return renderListening();
   if(state.mod==="reading") return renderReading();
   if(state.mod==="writing") return renderWriting();
@@ -5250,7 +6047,8 @@ function addMobileGeneratorShortcut(mod){
    ========================================================================= */
 
 const sOverlay = document.getElementById("settingsOverlay");
-document.getElementById("settingsBtn").addEventListener("click", ()=>sOverlay.style.display="flex");
+function openSettings(){ sOverlay.style.display = "flex"; }
+document.getElementById("settingsBtn").addEventListener("click", openSettings);
 document.getElementById("closeSettings").addEventListener("click", ()=>sOverlay.style.display="none");
 document.getElementById("saveSettings").addEventListener("click", async ()=>{
   state.settings.geminiKey = document.getElementById("geminiKeyInput").value.trim();
@@ -5301,10 +6099,11 @@ document.getElementById("clearSettings").addEventListener("click", async ()=>{
    ========================================================================= */
 
 const sessionOverlay = document.getElementById("sessionOverlay");
-document.getElementById("sessionBtn").addEventListener("click", ()=>{
+function openSessionPanel(){
   sessionOverlay.style.display = "flex";
   renderSessionList();
-});
+}
+document.getElementById("sessionBtn").addEventListener("click", openSessionPanel);
 document.getElementById("closeSession").addEventListener("click", ()=>sessionOverlay.style.display="none");
 document.getElementById("exportSessionBtn").addEventListener("click", exportSessionToFile);
 document.getElementById("importSessionInput").addEventListener("change", (e)=>{
@@ -5558,6 +6357,343 @@ async function renderSessionList(){
    ========================================================================= */
 
 let radarChart=null, barChart=null;
+/* =========================================================================
+   HOME
+   -------------------------------------------------------------------------
+   Built to the supplied page template — hero, four skill cards, then
+   progress / recent activity / quick links — in the app's own palette, with
+   the artwork drawn as inline SVG because this app ships as a single file
+   with no remote images.
+   ========================================================================= */
+
+// The motivational lines from the template. The hero rotates through them so
+// the page does not read the same every morning; the sidebar keeps its own.
+// Short lines for the greeting under the candidate's name.
+const GREETING_SUBS = [
+  "Keep going!", "One paper at a time.", "Today counts.", "Steady progress.",
+  "You're closer than you think.", "Small steps, every day."
+];
+
+const MOTIVATION = [
+  "A little progress every day adds up to big results.",
+  "Discipline today, opportunities tomorrow.",
+  "Practice today. A brighter tomorrow.",
+  "Small steps, taken daily, beat big plans taken never.",
+  "Every answer you record is a band you are building.",
+  "Fluency is not a talent. It is a habit with a start date."
+];
+
+function motivationFor(offset){
+  // Keyed to the day so it is stable within a session but moves on tomorrow.
+  const day = Math.floor(Date.now() / 86400000);
+  return MOTIVATION[(day + (offset||0)) % MOTIVATION.length];
+}
+
+const SKILL_CARDS = [
+  { mod:"listening", icon:"🎧", title:"Listening", copy:"Practice with real IELTS listening tests.",
+    bg:"linear-gradient(180deg,#eef4fb,#e6eef8)", tint:"#dbe8f7", ink:"#3567a6" },
+  { mod:"reading", icon:"📖", title:"Reading", copy:"Build your reading skills with authentic questions.",
+    bg:"linear-gradient(180deg,#eef7f2,#e5f1ea)", tint:"#d8ece1", ink:"#2f6f62" },
+  { mod:"writing", icon:"✍️", title:"Writing", copy:"Get feedback and improve your writing.",
+    bg:"linear-gradient(180deg,#fdf3ea,#faeade)", tint:"#f7e3cd", ink:"#b1671f" },
+  { mod:"speaking", icon:"🎙", title:"Speaking", copy:"Practice speaking with timed tasks and tips.",
+    bg:"linear-gradient(180deg,#f3eff9,#ece5f5)", tint:"#e5dcf3", ink:"#5b4b8a" }
+];
+
+// A drawn version of the template's mountain-and-lake photograph.
+function heroArtSVG(){
+  return `
+    <svg viewBox="0 0 520 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="hAir" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f7f4ec"/><stop offset="1" stop-color="#e7e0cd"/>
+        </linearGradient>
+        <linearGradient id="hFar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#c9d3df"/><stop offset="1" stop-color="#e3e6e2"/>
+        </linearGradient>
+        <linearGradient id="hMid" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#9fb0c4"/><stop offset="1" stop-color="#c6cfd6"/>
+        </linearGradient>
+        <linearGradient id="hNear" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#6f8296"/><stop offset="1" stop-color="#93a4b3"/>
+        </linearGradient>
+        <linearGradient id="hLake" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#dfe6e8"/><stop offset="1" stop-color="#eceadd"/>
+        </linearGradient>
+      </defs>
+      <rect width="520" height="300" fill="url(#hAir)"/>
+      <path d="M0 150 L70 96 L118 132 L170 78 L232 148 L288 104 L350 152 L410 118 L470 160 L520 130 L520 210 L0 210 Z" fill="url(#hFar)"/>
+      <path d="M120 132 L170 78 L200 112 L176 118 L158 106 Z" fill="#fdfdfb" opacity=".85"/>
+      <path d="M262 126 L288 104 L312 130 L292 132 L278 122 Z" fill="#fdfdfb" opacity=".7"/>
+      <path d="M0 176 L58 130 L112 164 L168 120 L226 176 L286 140 L344 182 L404 150 L460 186 L520 158 L520 212 L0 212 Z" fill="url(#hMid)" opacity=".95"/>
+      <path d="M0 200 L74 164 L140 194 L206 160 L272 198 L340 172 L404 202 L470 180 L520 202 L520 214 L0 214 Z" fill="url(#hNear)" opacity=".9"/>
+      <rect y="210" width="520" height="90" fill="url(#hLake)"/>
+      <path d="M0 210 L74 244 L140 216 L206 248 L272 214 L340 240 L404 212 L470 234 L520 214 L520 210 Z" fill="#b9c4cd" opacity=".35"/>
+      <g stroke="#ffffff" stroke-opacity=".5" stroke-width="1.4">
+        <path d="M40 232 H120"/><path d="M210 252 H320"/><path d="M360 240 H450"/><path d="M90 266 H240"/>
+      </g>
+    </svg>`;
+}
+
+function overallBandNow(){
+  const vals = ["listening","reading","writing","speaking"]
+    .map(m=>state.scores[m]).filter(v=>v !== null && isFinite(v));
+  if(!vals.length) return null;
+  return officialRound(vals.reduce((a,b)=>a+b,0) / vals.length);
+}
+
+const ACTIVITY_META = {
+  listening:{ icon:"🎧", label:"Listening test" },
+  reading:{ icon:"📖", label:"Reading test" },
+  writing:{ icon:"✍️", label:"Writing task" },
+  speaking:{ icon:"🎙", label:"Speaking" }
+};
+
+function relativeWhen(iso){
+  const then = new Date(iso).getTime();
+  if(!isFinite(then)) return "";
+  const days = Math.floor((Date.now() - then) / 86400000);
+  if(days <= 0) return "today";
+  if(days === 1) return "yesterday";
+  if(days < 7) return `${days} days ago`;
+  const weeks = Math.floor(days/7);
+  if(weeks === 1) return "1 week ago";
+  if(weeks < 5) return `${weeks} weeks ago`;
+  return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+}
+
+function renderHome(){
+  const overall = overallBandNow();
+  const done = ["listening","reading","writing","speaking"].filter(m=>state.scores[m] !== null).length;
+
+  panel.innerHTML = `
+    <section class="home-hero">
+      <div class="hero-copy">
+        <p class="hero-eyebrow">Practice • Improve • Succeed</p>
+        <h2 class="hero-title">Your IELTS goal<br>is closer than you think.</h2>
+        <p class="hero-sub">Real practice. Real progress. Real results.</p>
+        <button class="btn coral hero-cta" data-go-mock="1">Start a Full Mock Test <span class="arrow">→</span></button>
+      </div>
+      <div class="hero-art">
+        ${heroArtSVG()}
+        <div class="hero-script" aria-hidden="true"><b>Same</b><i>Higher</i><i>Further</i><u></u></div>
+      </div>
+      <div class="hero-quote">
+        <p id="heroQuote">“${escapeHtml(motivationFor(0))}”</p>
+        <span class="hq-rule"></span>
+      </div>
+    </section>
+
+    <div class="home-skills">
+      ${SKILL_CARDS.map(c=>{
+        const b = state.scores[c.mod];
+        return `
+          <button class="hs-card" data-mod="${c.mod}"
+                  style="--hs-bg:${c.bg};--hs-tint:${c.tint};--hs-ink:${c.ink};">
+            <span class="hs-icon">${c.icon}</span>
+            <h3>${c.title}</h3>
+            <p>${c.copy}</p>
+            <span class="hs-foot">
+              <span class="hs-band">${b !== null ? fmtBand(b) : "—"}${b !== null ? `<span>${bandToCEFR(b)}</span>` : `<span>not taken</span>`}</span>
+              <span class="hs-go">→</span>
+            </span>
+          </button>`;
+      }).join("")}
+    </div>
+
+    <div class="home-panels">
+      <div class="hp">
+        <div class="hp-head">
+          <span class="hp-ico">📊</span><b>Your Progress</b>
+          <span class="hp-ring">
+            <span class="hr-lbl">Overall<br>Band</span>
+            <span class="band-ring" style="--pct:${overall !== null ? Math.round((overall/9)*100) : 0};"><b>${overall !== null ? fmtBand(overall) : "—"}</b></span>
+          </span>
+        </div>
+        <p class="hp-sub">Track your performance over time${done ? ` — ${done} of 4 papers scored` : " — no papers scored yet"}.</p>
+        <div class="chart-canvas" style="height:210px;"><canvas id="homeTrendCanvas"></canvas></div>
+      </div>
+
+      <div class="hp">
+        <div class="hp-head">
+          <span class="hp-ico">🕒</span><b>Recent Activity</b>
+          <button class="hp-link" data-mod="progress">See all</button>
+        </div>
+        ${state.history.length ? `
+          <ul class="act-list">
+            ${state.history.slice(0,4).map(h=>{
+              const meta = ACTIVITY_META[h.module] || { icon:"•", label:h.module };
+              return `
+                <li>
+                  <span class="act-ico">${meta.icon}</span>
+                  <span class="act-txt"><b>${meta.label}</b><span>Score: ${fmtBand(h.band)}</span></span>
+                  <span class="act-when">${relativeWhen(h.date)}</span>
+                </li>`;
+            }).join("")}
+          </ul>` : `<p class="act-empty">Nothing yet. Finish a paper and it will appear here with its band and the date you took it.</p>`}
+      </div>
+
+      <div class="hp">
+        <div class="hp-head"><span class="hp-ico">⚡</span><b>Quick Links</b></div>
+        <div class="ql-grid">
+          <button class="ql-tile" data-mod="mock"><span class="ql-ico">📋</span><b>Full Mock Test</b><span>Simulate the real exam</span></button>
+          <button class="ql-tile" data-mod="progress"><span class="ql-ico">📈</span><b>View Statistics</b><span>See your progress</span></button>
+          <button class="ql-tile" data-mod="descriptors"><span class="ql-ico">💡</span><b>Tips &amp; Strategies</b><span>How the marking works</span></button>
+          <button class="ql-tile" data-info="help"><span class="ql-ico">⭐</span><b>Useful Resources</b><span>Templates, vocabulary and more</span></button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  panel.querySelectorAll("[data-mod]").forEach(b=>b.addEventListener("click", ()=>setModule(b.dataset.mod)));
+  panel.querySelectorAll("[data-go-mock]").forEach(b=>b.addEventListener("click", ()=>setModule("mock")));
+  try{ drawHomeTrend(); }catch(e){ console.error("home trend failed to draw", e); }
+  renderFeedbackInbox();
+}
+
+/* The band trend on Home. Same data as the Progress page's bar chart, drawn as
+   the template's rising line. */
+let homeTrendChart = null;
+
+/* Chart.js comes from a CDN. When it is missing the panel would be an empty
+   box, so the same points are drawn as a plain inline SVG instead — no
+   library, no tooltips, but the shape of the progress is there. */
+function homeTrendFallback(){
+  const host = document.getElementById("homeTrendCanvas");
+  if(!host || !host.parentElement) return;
+  const rows = state.history.slice(0,8).reverse();
+  const box = host.parentElement;
+  if(!rows.length){
+    box.style.height = "auto";
+    box.innerHTML = `<p class="act-empty">No bands recorded yet — your trend line appears here after your first marked paper.</p>`;
+    return;
+  }
+  const W = 320, H = 150, pad = 26;
+  const lo = 4, hi = 9;
+  const x = i => pad + (rows.length === 1 ? (W - pad*2)/2 : (i * (W - pad*2)) / (rows.length - 1));
+  const y = v => H - pad - ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * (H - pad*2);
+  const pts = rows.map((h,i)=>`${x(i).toFixed(1)},${y(Number(h.band)).toFixed(1)}`);
+  const grid = [4,5,6,7,8,9].map(v=>
+    `<line x1="${pad}" y1="${y(v).toFixed(1)}" x2="${W-pad}" y2="${y(v).toFixed(1)}" stroke="rgba(19,27,46,.08)"/>
+     <text x="4" y="${(y(v)+3.5).toFixed(1)}" font-size="8" fill="#98a0b0" font-family="monospace">${v}</text>`).join("");
+  box.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;" role="img"
+         aria-label="Band trend across your ${rows.length} most recent marked papers">
+      ${grid}
+      <polyline points="${pts.join(" ")}" fill="none" stroke="#3567a6" stroke-width="2.5"
+                stroke-linejoin="round" stroke-linecap="round"/>
+      <polygon points="${pts.join(" ")} ${x(rows.length-1).toFixed(1)},${H-pad} ${x(0).toFixed(1)},${H-pad}"
+               fill="rgba(53,103,166,.14)"/>
+      ${rows.map((h,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(Number(h.band)).toFixed(1)}" r="3.4"
+               fill="#3567a6" stroke="#fff" stroke-width="1.6"/>`).join("")}
+      ${rows.map((h,i)=>`<text x="${x(i).toFixed(1)}" y="${H-8}" font-size="8" fill="#98a0b0"
+               text-anchor="middle" font-family="monospace">${new Date(h.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</text>`).join("")}
+    </svg>`;
+}
+
+function drawHomeTrend(){
+  const el = document.getElementById("homeTrendCanvas");
+  if(!el) return;
+  if(typeof Chart === "undefined"){ homeTrendFallback(); return; }
+  if(homeTrendChart){ homeTrendChart.destroy(); homeTrendChart = null; }
+  const rows = state.history.slice(0,8).reverse();
+  if(!rows.length){ homeTrendFallback(); return; }
+  const labels = rows.map(h=>new Date(h.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}));
+  const data = rows.map(h=>Number(h.band));
+  homeTrendChart = new Chart(el, {
+    type:"line",
+    data:{ labels, datasets:[{
+      data, borderColor:"#3567a6", backgroundColor:"rgba(53,103,166,.14)",
+      borderWidth:2.5, tension:.35, fill:true, pointRadius:4,
+      pointBackgroundColor:"#3567a6", pointBorderColor:"#fff", pointBorderWidth:2
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => "Band " + Number(c.raw).toFixed(1) } } },
+      scales:{
+        y:{ min:4, max:9, ticks:{ stepSize:1, color:"#98a0b0", font:{size:10.5} },
+            grid:{ color:"rgba(19,27,46,.07)" } },
+        x:{ ticks:{ color:"#98a0b0", font:{size:10.5}, maxRotation:0 }, grid:{ display:false } }
+      },
+      animation:{ duration:700, easing:"easeOutQuart" }
+    }
+  });
+}
+
+/* =========================================================================
+   FULL MOCK TEST
+   The hero's promise, made real: the four papers in exam order, each with its
+   official timing, tracked to the band it earned. It sequences what the app
+   already has rather than adding a parallel test engine — "continue" opens the
+   next paper that has no band yet, with its clock ready to start.
+   ========================================================================= */
+const MOCK_ORDER = [
+  { mod:"listening", label:"Listening", time:"≈30 minutes", note:"Four sections, 40 questions, timed by the audio you attach." },
+  { mod:"reading",   label:"Reading",   time:"60 minutes", note:"Four passages, 40 questions, no extra transfer time." },
+  { mod:"writing",   label:"Writing",   time:"60 minutes", note:"Task 1 in 20 minutes, Task 2 in 40." },
+  { mod:"speaking",  label:"Speaking",  time:"11–14 minutes", note:"Part 1 and Part 3 question by question, Part 2 as one long turn." }
+];
+
+function nextMockPaper(){
+  const pending = MOCK_ORDER.find(p => state.scores[p.mod] === null);
+  return pending ? pending.mod : null;
+}
+
+function renderMockTest(){
+  const nextMod = nextMockPaper();
+  const doneCount = MOCK_ORDER.filter(p=>state.scores[p.mod] !== null).length;
+  const overall = overallBandNow();
+
+  panel.innerHTML = `
+    <p class="section-title">Full mock test</p>
+    <p class="section-sub">The four papers in exam order, each on its official clock. Sit them in one session for a realistic result, or pick up wherever you left off — a paper counts as done once it has a band.</p>
+
+    <div class="mock-bar" style="max-width:420px;"><i style="width:${(doneCount/4)*100}%;"></i></div>
+    <p style="font-size:12.5px;color:var(--slate);margin:8px 0 0;">${doneCount} of 4 papers complete${overall !== null ? ` · overall band so far <b style="color:var(--ink);">${fmtBand(overall)}</b>` : ""}</p>
+
+    <div class="mock-grid">
+      ${MOCK_ORDER.map((p,i)=>{
+        const band = state.scores[p.mod];
+        const isNext = p.mod === nextMod;
+        return `
+          <div class="mock-card ${band !== null ? "done" : ""} ${isNext ? "next" : ""}">
+            <span class="mock-step">Paper ${i+1} of 4${isNext ? " · next" : ""}</span>
+            <h4>${p.label}</h4>
+            <span class="mc-time">${p.time}</span>
+            <p style="font-size:12.5px;color:var(--slate);line-height:1.55;margin:0;">${p.note}</p>
+            ${band !== null
+              ? `<span class="mc-band">${fmtBand(band)} <span style="font-size:12px;color:var(--slate);">band</span></span>
+                 <span class="mc-state">✓ complete</span>`
+              : `<span class="mc-state" style="color:var(--slate);">Not attempted yet</span>`}
+            <button class="btn ${isNext ? "brass" : "ghost"} small" data-mod="${p.mod}" style="margin-top:8px;">
+              ${band !== null ? "Retake this paper" : (isNext ? "Start this paper →" : "Open")}
+            </button>
+          </div>`;
+      }).join("")}
+    </div>
+
+    ${nextMod
+      ? `<button class="btn coral" data-mod="${nextMod}">Continue the mock test — ${MOCK_ORDER.find(p=>p.mod===nextMod).label} →</button>`
+      : `<div class="hint-box"><b>All four papers are done.</b> Your overall band is ${fmtBand(overall)}. Open <b>Progress</b> for the full breakdown, or retake any paper above to improve it.</div>`}
+
+    <hr class="rule">
+    <p style="font-size:12.5px;color:var(--slate);line-height:1.7;">
+      On exam day the four papers are sat back to back — Listening, Reading and Writing in one sitting, Speaking on the same day or within seven days.
+      Each paper here carries the clock from the real thing, and at 00:00 your answers are locked for marking, so a practice run tells you what a real one would.
+    </p>
+  `;
+  panel.querySelectorAll("[data-mod]").forEach(b=>b.addEventListener("click", ()=>setModule(b.dataset.mod)));
+}
+
+/* =========================================================================
+   PROGRESS
+   The analytics that used to sit on the dashboard, now that Home is a
+   launcher: the seal, the per-skill cards, both charts and the full history.
+   ========================================================================= */
+function renderProgress(){
+  renderDashboard();
+}
+
 function renderDashboard(){
   panel.innerHTML = `
     <div class="dash-grid">
@@ -10170,6 +11306,7 @@ async function sendFeedback(studentId, message){
 
 /* ---- header + tabs ---- */
 function refreshAccountUI(){
+  refreshGreeting();          // name, initial and unread badge in the top rail
   const btn = document.getElementById("accountBtn");
   if(btn && AUTH.enabled){
     if(AUTH.profile){

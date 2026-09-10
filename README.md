@@ -8,7 +8,16 @@ Open `index.html` in any modern browser. No build step, no server required.
 
 ## Features
 
-- **Dashboard** — overall band, per-skill cards, and progress charts.
+- **Home** — a launcher built to the project's page template: hero, the four
+  papers as cards with the band each one earned, a band-trend chart with the
+  overall-band ring, recent activity and quick links. The app runs in a sidebar
+  shell with a quick-jump search (⌘K), a notifications bell for teacher
+  feedback, and an account menu.
+- **Full mock test** — the four papers in exam order on their official clocks,
+  tracked to the band each earned, with a "continue" that opens the next paper
+  you have not finished.
+- **Progress** — the overall seal, per-skill cards, skill-profile and
+  band-history charts, and the full attempt history.
 - **Listening / Reading** — full question sets with answer keys and auto-marking.
 - **Writing** — Task 1 & Task 2 drafting with word count, AI coaching hints,
   paragraph-level feedback, and band-score estimation against the four official
@@ -32,6 +41,10 @@ Open `index.html` in any modern browser. No build step, no server required.
   tables, register-ranked alternative words and collocations (see below).
 - **Sessions** — export/import progress to a file, or quick-save snapshots in
   the browser.
+- **Liquid Glass controls** — every button is a translucent pill with a
+  backdrop blur, a domed specular highlight, a sheen that sweeps across on
+  hover and a ripple from the point of contact, all of it dropped under
+  `prefers-reduced-motion`.
 
 ## Writing Task 1 — 3D graphic generator
 
