@@ -11,7 +11,7 @@
 <meta name="format-detection" content="telephone=no">
 <title>IELTS Academic — Full Mock Test (v6.5)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <!-- Optional private config: copy config.example.js to config.local.js (gitignored)
@@ -121,19 +121,20 @@ html,body{margin:0;padding:0;}
 .intro.is-leaving .intro-panels span:nth-child(5){transition-delay:.26s;}
 /* The app itself eases up behind the curtain as it lifts. */
 body.intro-active{overflow:hidden;}
-body.intro-active .topbar,body.intro-active nav.tabs,body.intro-active .shell{
+body.intro-active .sidebar,body.intro-active .topbar,body.intro-active .shell,body.intro-active .app-foot{
   opacity:0;transform:translateY(26px) scale(.988);
 }
-body.intro-done .topbar,body.intro-done nav.tabs,body.intro-done .shell{
+body.intro-done .sidebar,body.intro-done .topbar,body.intro-done .shell,body.intro-done .app-foot{
   opacity:1;transform:none;
   transition:opacity .8s var(--ease-out), transform 1s cubic-bezier(.22,1,.36,1);
 }
-body.intro-done nav.tabs{transition-delay:.06s;}
+body.intro-done .topbar{transition-delay:.06s;}
 body.intro-done .shell{transition-delay:.12s;}
+body.intro-done .app-foot{transition-delay:.18s;}
 @media (prefers-reduced-motion: reduce){
   .intro-eyebrow,.intro-title,.intro-count{animation:none;opacity:1;}
   .intro-panels span,.intro-inner,.intro-bar span{transition:none;}
-  body.intro-done .topbar,body.intro-done nav.tabs,body.intro-done .shell{transition:none;}
+  body.intro-done .sidebar,body.intro-done .topbar,body.intro-done .shell,body.intro-done .app-foot{transition:none;}
 }
 body{
   background:var(--ink);
@@ -151,29 +152,321 @@ button{font-family:inherit;cursor:pointer;}
 ::selection{background:var(--brass);color:var(--ink);}
 :focus-visible{outline:2px solid var(--brass-2);outline-offset:2px;}
 
-/* ---------- shell ---------- */
-.shell{max-width:1080px;margin:0 auto;padding:0 20px 80px;}
+/* =========================================================================
+   APP SHELL — sidebar rail, top rail, content column
+   -------------------------------------------------------------------------
+   `nav.tabs` and `header.topbar` keep their names on purpose: setModule
+   toggles `#tabs button`, the account code injects the teacher's Class tab
+   into it, and the phone layer turns the same element into the fixed bottom
+   bar. The desktop rail is a restyling of that one nav, not a second one.
+   ========================================================================= */
+.app-shell{display:grid;grid-template-columns:264px minmax(0,1fr);align-items:start;}
+.app-col{min-width:0;display:flex;flex-direction:column;min-height:100vh;}
+.shell{max-width:1180px;margin:0 auto;padding:0 26px 60px;width:100%;}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+  display:flex;flex-direction:column;gap:20px;
+  padding:24px 18px calc(24px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg, rgba(246,243,234,.055), rgba(246,243,234,.02));
+  border-right:1px solid var(--paper-line);scrollbar-width:thin;
+}
+.side-brand{display:flex;align-items:center;gap:12px;padding:2px 8px 0;}
+.side-brand .sb-mark{display:flex;align-items:flex-end;gap:3px;height:30px;}
+.side-brand .sb-mark i{display:block;width:6px;border-radius:3px;background:var(--brass-2);}
+.side-brand .sb-mark i:nth-child(1){height:15px;background:var(--coral);}
+.side-brand .sb-mark i:nth-child(2){height:24px;background:var(--brass);}
+.side-brand .sb-mark i:nth-child(3){height:30px;background:var(--brass-2);}
+.side-brand b{font-family:'Fraunces',serif;font-size:23px;font-weight:700;line-height:1;letter-spacing:-.01em;}
+.side-brand span{display:block;font-size:12px;color:var(--paper-2);opacity:.7;margin-top:2px;letter-spacing:.02em;}
+
+/* ---------- motivational card + sidebar footer ---------- */
+.motiv-card{
+  position:relative;border-radius:16px;overflow:hidden;margin-top:auto;
+  border:1px solid var(--paper-line);background:var(--ink-2);
+}
+.motiv-card .mc-text{position:relative;z-index:2;padding:16px 16px 10px;}
+.motiv-card .mc-text b{
+  display:block;font-family:'Fraunces',serif;font-size:19px;line-height:1.2;color:var(--paper);
+}
+.motiv-card .mc-text i{
+  display:block;font-style:normal;font-size:14px;color:var(--paper-2);opacity:.82;margin-top:2px;
+}
+.motiv-card .mc-rule{width:26px;height:2px;background:var(--coral);margin:9px 0 0;border-radius:2px;}
+.motiv-card svg{display:block;width:100%;height:120px;}
+.motiv-quote{
+  font-size:12.5px;line-height:1.6;color:var(--paper-2);opacity:.72;
+  padding:0 8px;font-style:italic;
+}
+.side-foot{padding:0 8px;border-top:1px solid var(--paper-line);padding-top:14px;}
+.side-foot b{display:block;font-size:12.5px;color:var(--paper);}
+.side-foot span{display:block;font-size:11.5px;color:var(--paper-2);opacity:.6;margin-top:2px;line-height:1.5;}
+
+/* ---------- top rail ---------- */
 header.topbar{
-  display:flex;justify-content:space-between;align-items:flex-end;
-  padding:28px 20px 18px;border-bottom:1px solid var(--paper-line);
-  max-width:1080px;margin:0 auto;flex-wrap:wrap;gap:14px;
+  position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:14px;
+  padding:16px 26px;background:rgba(19,27,46,.72);
+  -webkit-backdrop-filter:saturate(160%) blur(16px);backdrop-filter:saturate(160%) blur(16px);
+  border-bottom:1px solid var(--paper-line);
 }
-.brand-block .eyebrow{
-  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--brass-2);margin:0 0 6px;
+.brand-block{display:none;}                 /* the sidebar carries the brand on desktop */
+.search-wrap{position:relative;flex:1 1 auto;max-width:520px;}
+.search-field{
+  display:flex;align-items:center;gap:10px;padding:0 14px;height:44px;
+  border-radius:999px;border:1px solid var(--paper-line);
+  background:rgba(246,243,234,.06);transition:border-color .2s, background .2s;
 }
-.brand-block h1{
-  font-family:'Fraunces',serif;font-weight:600;font-size:30px;margin:0;
-  letter-spacing:-0.01em;
+.search-field:focus-within{border-color:var(--brass-2);background:rgba(246,243,234,.10);}
+.search-field svg{width:17px;height:17px;flex-shrink:0;opacity:.55;}
+.search-field input{
+  flex:1;min-width:0;border:none;background:transparent;color:var(--paper);
+  font-family:inherit;font-size:13.5px;outline:none;
+}
+.search-field input::placeholder{color:var(--paper-2);opacity:.5;}
+.search-pop{
+  position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:50;
+  background:var(--ink-2);border:1px solid var(--paper-line);border-radius:14px;
+  box-shadow:var(--shadow);padding:6px;max-height:60vh;overflow-y:auto;
+}
+.search-pop button{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+  background:transparent;border:none;color:var(--paper);border-radius:10px;
+  padding:10px 12px;font-size:13.5px;font-family:inherit;
+}
+.search-pop button em{font-style:normal;color:var(--paper-2);opacity:.6;font-size:12px;margin-left:auto;}
+.search-pop button:hover,.search-pop button.sel{background:rgba(201,162,39,.18);}
+.search-pop .sp-none{padding:12px;font-size:13px;color:var(--paper-2);opacity:.7;}
+
+.topbar-actions{display:flex;align-items:center;gap:10px;margin-left:auto;}
+header.topbar .topbar-btn{border-color:var(--paper-line);color:var(--paper);}
+.icon-btn{
+  position:relative;width:42px;height:42px;border-radius:999px;flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--paper-line);background:rgba(246,243,234,.06);color:var(--paper);
+  font-size:17px;transition:background .2s, transform .15s var(--ease-spring);
+}
+.icon-btn:hover{background:rgba(246,243,234,.13);}
+.icon-btn:active{transform:scale(.94);}
+.icon-btn .dot{
+  position:absolute;top:8px;right:9px;min-width:9px;height:9px;border-radius:999px;
+  background:var(--coral);border:2px solid var(--ink);
+}
+.icon-btn .dot.count{
+  min-width:17px;height:17px;top:-2px;right:-2px;font-size:10px;font-weight:700;
+  color:#fff;display:flex;align-items:center;justify-content:center;padding:0 4px;
+  font-family:'IBM Plex Mono',monospace;
+}
+.acct-cluster{position:relative;}
+.acct-btn{
+  display:flex;align-items:center;gap:10px;padding:5px 12px 5px 5px;border-radius:999px;
+  border:1px solid var(--paper-line);background:rgba(246,243,234,.06);color:var(--paper);
+  transition:background .2s;
+}
+.acct-btn:hover{background:rgba(246,243,234,.13);}
+.acct-avatar{
+  width:34px;height:34px;border-radius:999px;flex-shrink:0;
+  background:radial-gradient(circle at 35% 30%,var(--brass-2),var(--brass) 72%);
+  color:var(--ink);display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-weight:700;font-size:15px;
+}
+.acct-btn .acct-txt{text-align:left;line-height:1.25;}
+.acct-btn .acct-txt b{display:block;font-size:13px;font-weight:600;}
+.acct-btn .acct-txt span{display:block;font-size:11.5px;color:var(--paper-2);opacity:.68;}
+.acct-btn .acct-chev{opacity:.5;font-size:11px;}
+.acct-menu{
+  position:absolute;right:0;top:calc(100% + 8px);z-index:50;min-width:238px;
+  background:var(--ink-2);border:1px solid var(--paper-line);border-radius:14px;
+  box-shadow:var(--shadow);padding:8px;display:flex;flex-direction:column;gap:4px;
+}
+.acct-menu .btn{width:100%;justify-content:flex-start;border-radius:10px;}
+.acct-menu .am-head{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--paper-2);opacity:.55;padding:6px 10px 2px;
 }
 .candidate-card{
-  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper);
-  background:var(--ink-2);border:1px solid var(--paper-line);border-radius:10px;
-  padding:10px 16px;line-height:1.7;text-align:right;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper-2);
+  background:rgba(246,243,234,.05);border:1px solid var(--paper-line);border-radius:999px;
+  padding:7px 14px;line-height:1.4;display:flex;gap:14px;flex-wrap:wrap;
 }
 .candidate-card b{color:var(--brass-2);}
-.topbar-actions{display:flex;align-items:flex-end;gap:12px;}
-header.topbar .topbar-btn{border-color:var(--paper-line);color:var(--paper);}
+.candidate-card br,.candidate-card .cc-lbl{display:none;}
+.candidate-card #candNo::before{content:"№ ";opacity:.55;}
+.candidate-card #testDate::before{content:"📅 ";}
+.candidate-card #modLabel::before{content:"▸ ";opacity:.55;}
+
+/* ---------- app footer ---------- */
+.app-foot{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  padding:18px 26px calc(22px + env(safe-area-inset-bottom));margin-top:auto;
+  border-top:1px solid var(--paper-line);font-size:12.5px;color:var(--paper-2);
+}
+.app-foot button{
+  background:none;border:none;color:var(--paper-2);font-family:inherit;font-size:12.5px;
+  opacity:.75;padding:4px 2px;
+}
+.app-foot button:hover{opacity:1;color:var(--brass-2);text-decoration:underline;}
+.app-foot .af-right{margin-left:auto;display:flex;align-items:center;gap:8px;opacity:.75;}
+.app-foot .af-heart{color:var(--coral);}
+
+@media (max-width:1180px) and (min-width:821px){
+  .app-shell{grid-template-columns:216px minmax(0,1fr);}
+  .shell{padding:0 18px 50px;}
+  .home-hero{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);}
+  .hero-quote{grid-column:1 / -1;border-left:none;border-top:1px solid rgba(19,27,46,.07);padding:20px 26px;}
+  .hero-title{font-size:32px;}
+  .home-skills{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .home-panels{grid-template-columns:1fr 1fr;}
+  .home-panels .hp:first-child{grid-column:1 / -1;}
+}
+
+/* =========================================================================
+   HOME — hero, skill cards, progress / activity / quick links
+   Laid out to the supplied template, painted in the app's own palette.
+   ========================================================================= */
+.home-hero{
+  position:relative;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr) 210px;
+  align-items:stretch;gap:0;border-radius:22px;overflow:hidden;
+  background:linear-gradient(120deg,#fbf9f2 0%, #f3efe1 55%, #eae4d2 100%);
+  border:1px solid var(--line);box-shadow:var(--elev-2);margin-bottom:22px;
+}
+.hero-copy{padding:34px 30px;position:relative;z-index:3;}
+.hero-eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.26em;
+  text-transform:uppercase;color:var(--brass);margin:0 0 14px;
+}
+.hero-title{
+  font-family:'Fraunces',serif;font-size:38px;line-height:1.08;font-weight:600;
+  letter-spacing:-.02em;color:var(--ink);margin:0 0 12px;
+}
+.hero-sub{font-size:15px;color:var(--slate);margin:0 0 22px;line-height:1.6;}
+.hero-cta{font-size:14.5px;padding:14px 26px;white-space:nowrap;}
+.hero-cta .arrow{display:inline-block;margin-left:8px;transition:transform .25s var(--ease-spring);}
+.hero-cta:hover .arrow{transform:translateX(4px);}
+.hero-art{position:relative;overflow:hidden;}
+.hero-art svg{position:absolute;inset:0;width:100%;height:100%;}
+.hero-script{
+  position:absolute;right:14%;top:46%;z-index:2;transform:rotate(-7deg);
+  font-family:'Caveat',cursive;font-size:29px;line-height:1.05;color:var(--ink);
+  text-align:center;opacity:.9;
+}
+.hero-script b{display:block;font-weight:600;}
+.hero-script i{display:block;font-style:normal;padding-left:14px;}
+.hero-script u{
+  display:block;width:58px;height:2px;background:var(--coral);border:none;
+  margin:6px 0 0 auto;border-radius:2px;text-decoration:none;
+}
+.hero-quote{
+  position:relative;z-index:3;display:flex;flex-direction:column;justify-content:center;
+  padding:30px 26px;background:rgba(255,255,255,.55);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  border-left:1px solid rgba(19,27,46,.07);
+}
+.hero-quote p{font-size:15px;line-height:1.6;color:var(--ink);margin:0;font-style:italic;}
+.hero-quote .hq-rule{width:34px;height:2px;background:var(--coral);border-radius:2px;margin-top:14px;}
+
+/* ---------- four skill cards ---------- */
+.home-skills{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:22px;}
+.hs-card{
+  position:relative;display:flex;flex-direction:column;gap:10px;
+  border-radius:18px;padding:20px;border:1px solid var(--line);
+  background:var(--hs-bg,#fff);box-shadow:var(--elev-1);
+  transition:transform .25s var(--ease-spring), box-shadow .25s var(--ease-out);
+  text-align:left;color:var(--ink);font-family:inherit;overflow:hidden;
+}
+.hs-card:hover{transform:translateY(-3px);box-shadow:var(--elev-3);}
+.hs-icon{
+  width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-size:25px;background:var(--hs-tint,#fff);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+.hs-card h3{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin:6px 0 0;color:var(--ink);}
+.hs-card p{font-size:13px;line-height:1.55;color:var(--slate);margin:0;}
+.hs-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px;}
+.hs-band{font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--ink);}
+.hs-band span{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--slate);margin-left:5px;}
+.hs-go{
+  width:40px;height:40px;border-radius:999px;border:none;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  background:rgba(255,255,255,.85);color:var(--hs-ink,var(--azure));
+  box-shadow:var(--elev-1);transition:transform .22s var(--ease-spring), box-shadow .22s;
+}
+.hs-card:hover .hs-go{transform:translateX(3px);box-shadow:var(--elev-2);}
+
+/* ---------- the three lower panels ---------- */
+.home-panels{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr);gap:16px;}
+.hp{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 20px;box-shadow:var(--elev-1);}
+.hp-head{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+.hp-head b{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--ink);}
+.hp-head .hp-ico{font-size:15px;opacity:.75;}
+.hp-head .hp-link{
+  margin-left:auto;background:none;border:none;color:var(--azure);font-family:inherit;
+  font-size:12.5px;font-weight:600;padding:2px 4px;
+}
+.hp-head .hp-link:hover{text-decoration:underline;}
+.hp-sub{font-size:12.5px;color:var(--slate);margin:0 0 14px;line-height:1.5;}
+.hp-ring{
+  margin-left:auto;display:flex;align-items:center;gap:10px;
+}
+.hp-ring .hr-lbl{font-size:11.5px;color:var(--slate);text-align:right;line-height:1.3;}
+.band-ring{
+  position:relative;width:62px;height:62px;flex-shrink:0;border-radius:999px;
+  display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(var(--azure) calc(var(--pct,0) * 1%), var(--paper-2) 0);
+}
+.band-ring::before{content:"";position:absolute;inset:5px;border-radius:999px;background:#fff;}
+.band-ring b{position:relative;font-family:'Fraunces',serif;font-size:19px;font-weight:600;color:var(--ink);}
+
+.act-list{list-style:none;margin:0;padding:0;}
+.act-list li{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);}
+.act-list li:first-child{border-top:none;}
+.act-ico{
+  width:36px;height:36px;border-radius:999px;flex-shrink:0;font-size:15px;
+  display:flex;align-items:center;justify-content:center;background:var(--paper-2);
+}
+.act-txt{min-width:0;flex:1;}
+.act-txt b{display:block;font-size:13.5px;font-weight:600;color:var(--ink);}
+.act-txt span{display:block;font-size:12px;color:var(--slate);margin-top:1px;}
+.act-when{font-size:11.5px;color:var(--slate);white-space:nowrap;font-family:'IBM Plex Mono',monospace;}
+.act-empty{font-size:13px;color:var(--slate);line-height:1.6;padding:6px 0;}
+
+.ql-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ql-tile{
+  display:flex;flex-direction:column;gap:6px;text-align:left;
+  border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:var(--surface-1);
+  font-family:inherit;transition:transform .22s var(--ease-spring), box-shadow .22s, background .22s;
+}
+.ql-tile:hover{transform:translateY(-2px);box-shadow:var(--elev-2);background:#fff;}
+.ql-tile .ql-ico{
+  width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;background:var(--paper-2);
+}
+.ql-tile b{font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;}
+.ql-tile span{font-size:11.5px;color:var(--slate);line-height:1.45;}
+
+/* ---------- full mock test page ---------- */
+.mock-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:18px 0 22px;}
+.mock-card{
+  position:relative;border:1px solid var(--line);border-radius:16px;padding:18px;
+  background:#fff;box-shadow:var(--elev-1);display:flex;flex-direction:column;gap:8px;
+}
+.mock-card.done{background:linear-gradient(180deg,#f2f8f4,#fff);border-color:#a5d6a7;}
+.mock-card.next{border-color:var(--brass);box-shadow:0 0 0 3px rgba(201,162,39,.16), var(--elev-2);}
+.mock-step{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--slate);
+}
+.mock-card h4{font-family:'Fraunces',serif;font-size:19px;margin:0;color:var(--ink);font-weight:600;}
+.mock-card .mc-time{font-size:12.5px;color:var(--slate);}
+.mock-card .mc-band{font-family:'Fraunces',serif;font-size:22px;color:var(--ink);}
+.mock-card .mc-state{font-size:12px;color:var(--teal);font-weight:600;}
+.mock-bar{
+  height:8px;border-radius:999px;background:var(--paper-2);overflow:hidden;margin:6px 0 0;
+}
+.mock-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brass),var(--brass-2));transition:width .5s var(--ease-out);}
+
+/* ---------- about / help modal ---------- */
+.info-modal p{font-size:13.5px;line-height:1.7;color:#2a3145;}
+.info-modal h4{font-family:'Fraunces',serif;font-size:16px;margin:16px 0 6px;color:var(--ink);}
 
 /* ---------- shared blocks (same look as the inline styles they replaced) ---------- */
 .gen-card{
@@ -189,24 +482,36 @@ header.topbar .topbar-btn{border-color:var(--paper-line);color:var(--paper);}
 .key-cols{columns:2;column-gap:24px;}
 .q-item input[type=text].match-input{min-width:40px;max-width:50px;text-align:center;}
 
-/* ---------- tabs ---------- */
-nav.tabs{
-  display:flex;gap:6px;padding:18px 20px 0;max-width:1080px;margin:0 auto;
-  flex-wrap:wrap;
-}
+/* ---------- sidebar nav rail (the same nav the phone pins to the bottom) --- */
+nav.tabs{display:flex;flex-direction:column;gap:3px;}
 nav.tabs button{
-  background:transparent;border:1px solid var(--paper-line);color:var(--paper);
-  padding:10px 18px;border-radius:999px 999px 0 0;font-size:13px;font-weight:600;
-  letter-spacing:.02em;opacity:.55;transition:opacity .2s, background .2s;
-  border-bottom:none;
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:transparent;border:1px solid transparent;color:var(--paper);
+  padding:11px 14px;border-radius:12px;font-size:14px;font-weight:600;
+  letter-spacing:.01em;opacity:.62;
+  transition:opacity .2s, background .2s, color .2s;
 }
-nav.tabs button.active{opacity:1;background:var(--paper);color:var(--ink);}
-nav.tabs button:hover{opacity:.9;}
-/* Reference tab — sits right after Speaking, tinted brass so it reads as a
-   reference rather than a fifth test module. */
-nav.tabs button.tab-ref{margin-left:14px;border-color:var(--brass);color:var(--brass-2);opacity:.8;}
-nav.tabs button.tab-ref:hover{opacity:1;}
-nav.tabs button.tab-ref.active{background:var(--paper);color:var(--ink);border-color:var(--paper);opacity:1;}
+nav.tabs button::before{content:"";font-size:17px;line-height:1;width:22px;text-align:center;flex-shrink:0;}
+nav.tabs button[data-mod="dashboard"]::before{content:"🏠";}
+nav.tabs button[data-mod="listening"]::before{content:"🎧";}
+nav.tabs button[data-mod="reading"]::before{content:"📖";}
+nav.tabs button[data-mod="writing"]::before{content:"✍️";}
+nav.tabs button[data-mod="speaking"]::before{content:"🎙";}
+nav.tabs button[data-mod="mock"]::before{content:"📋";}
+nav.tabs button[data-mod="progress"]::before{content:"📊";}
+nav.tabs button[data-mod="descriptors"]::before{content:"📐";}
+nav.tabs button[data-mod="class"]::before{content:"👥";}
+nav.tabs button:hover{opacity:.9;background:rgba(246,243,234,.06);}
+nav.tabs button.active{
+  opacity:1;background:rgba(201,162,39,.16);color:var(--brass-2);
+  border-color:rgba(201,162,39,.28);
+}
+nav.tabs button.tab-ref{color:var(--paper);}
+nav.tabs button.tab-ref.active{color:var(--brass-2);}
+.side-nav-head{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--paper-2);opacity:.5;padding:10px 14px 4px;
+}
 
 main{padding-top:0;}
 .panel{
@@ -334,6 +639,117 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
   color:#fff;box-shadow:var(--elev-2), inset 0 1px 0 rgba(255,255,255,.22);
 }
 .btn.small{padding:8px 15px;font-size:12px;}
+
+/* =========================================================================
+   LIQUID GLASS — the button surface
+   -------------------------------------------------------------------------
+   Every .btn keeps the colours it already had; what is added is the glass
+   behaviour on top of them: a real backdrop blur so what is behind the pill
+   bends through it, a specular highlight raked across the top edge, a sheen
+   that sweeps over on hover, and a press that squashes the pill and pulls the
+   highlight in — the "liquid" part. A tap also releases a ripple from the
+   point of contact (see the JS that sets --rx/--ry).
+
+   The layers are pseudo-elements so no markup changes, and everything is
+   pointer-events:none so hit targets are unchanged. Under
+   prefers-reduced-motion the sweep and ripple are dropped and only the
+   colour/elevation change remains.
+   ========================================================================= */
+.btn{
+  overflow:hidden;isolation:isolate;
+  -webkit-backdrop-filter:saturate(150%) blur(8px);
+  backdrop-filter:saturate(150%) blur(8px);
+}
+/* The domed specular is an INSET SHADOW, not an overlay: inset shadows paint
+   above the background but below the label, so the glass can be bright without
+   washing out the text. An absolutely-positioned pseudo-element cannot do this
+   — at any z-index it paints over inline content. */
+.btn{
+  box-shadow:
+    var(--elev-1),
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 7px 14px -8px rgba(255,255,255,.40),
+    inset 0 -6px 12px -8px rgba(0,0,0,.28);
+}
+/* the sweeping sheen: a narrow, low-alpha reflection that passes across on
+   hover — brief and moving, so it reads as light on glass */
+.btn::after{
+  content:"";position:absolute;top:0;bottom:0;left:-60%;width:42%;border-radius:inherit;
+  pointer-events:none;z-index:2;transform:skewX(-18deg);
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.26), transparent);
+  opacity:0;transition:opacity .2s var(--ease-out);
+}
+.btn:hover{
+  box-shadow:
+    var(--elev-3),
+    inset 0 1px 0 rgba(255,255,255,.30),
+    inset 0 9px 18px -8px rgba(255,255,255,.50),
+    inset 0 -6px 12px -8px rgba(0,0,0,.24);
+}
+.btn:hover::after{opacity:1;animation:glassSweep .85s var(--ease-out);}
+@keyframes glassSweep{
+  from{left:-60%;}
+  to{left:130%;}
+}
+/* the liquid press: the pill compresses and the highlight sinks into it */
+.btn:active{
+  transform:scale(.955) scaleX(.985);
+  box-shadow:
+    var(--elev-1),
+    inset 0 2px 6px rgba(0,0,0,.22),
+    inset 0 -5px 10px -8px rgba(255,255,255,.30);
+}
+.btn:active::after{opacity:0;animation:none;}
+/* ripple from the point of contact, positioned by the pointer handler */
+.btn .glass-ripple{
+  position:absolute;left:var(--rx,50%);top:var(--ry,50%);width:10px;height:10px;
+  margin:-5px 0 0 -5px;border-radius:999px;pointer-events:none;z-index:2;
+  background:radial-gradient(circle, rgba(255,255,255,.34), rgba(255,255,255,0) 70%);
+  animation:glassRipple .55s var(--ease-out) forwards;
+}
+@keyframes glassRipple{
+  from{transform:scale(1);opacity:.7;}
+  to{transform:scale(26);opacity:0;}
+}
+/* Light-surfaced pills need a dark press and a dark ripple instead. */
+.btn.ghost,.btn.brass{
+  box-shadow:
+    var(--elev-1),
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 8px 16px -9px rgba(255,255,255,.75),
+    inset 0 -6px 12px -9px rgba(19,27,46,.22);
+}
+.btn.ghost:hover,.btn.brass:hover{
+  box-shadow:
+    var(--elev-2),
+    inset 0 1px 0 rgba(255,255,255,.75),
+    inset 0 10px 20px -9px rgba(255,255,255,.9),
+    inset 0 -6px 12px -9px rgba(19,27,46,.18);
+}
+.btn.ghost .glass-ripple,.btn.brass .glass-ripple{
+  background:radial-gradient(circle, rgba(19,27,46,.16), rgba(19,27,46,0) 70%);
+}
+.btn.secondary{backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;}
+.btn.secondary:hover{box-shadow:var(--elev-1), inset 0 1px 0 rgba(255,255,255,.5);}
+.btn:disabled{box-shadow:none;}
+.btn:disabled::after{display:none;}
+
+/* The same glass on the rail and top-rail controls, again as inset light. */
+.icon-btn,.acct-btn{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16), inset 0 6px 12px -8px rgba(255,255,255,.28);
+}
+.icon-btn:hover,.acct-btn:hover{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24), inset 0 8px 16px -8px rgba(255,255,255,.4);
+}
+.qstrip button,.part-nav button,.band-tab,.tb-btn{position:relative;overflow:hidden;}
+
+@media (prefers-reduced-motion: reduce){
+  .btn::after{display:none;}
+  .btn:hover::before{transform:none;}
+  .btn:active{transform:none;}
+  .btn .glass-ripple{display:none;}
+}
+
 @media (prefers-reduced-motion: reduce){
   .btn,.btn:hover,.btn:active{transition:none;transform:none;}
 }
@@ -620,6 +1036,107 @@ textarea.essay{
   background:#fff;border:2px solid var(--ink);border-radius:10px;padding:22px 24px;font-size:14.5px;line-height:1.85;
   box-shadow:4px 4px 0 var(--brass);
 }
+/* ---------- speaking: one answer per question (Parts 1 & 3) ---------- */
+.qstrip{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;}
+.qstrip button{
+  position:relative;border:1px solid var(--line);background:#fff;color:var(--slate);
+  border-radius:9px;padding:7px 13px 7px 11px;font-size:12.5px;font-weight:700;
+  font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:7px;min-height:38px;
+}
+.qstrip button.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.qstrip button .qdot{width:8px;height:8px;border-radius:50%;background:var(--line);flex-shrink:0;}
+.qstrip button.recorded .qdot{background:var(--brass);}
+.qstrip button.scored .qdot{background:var(--teal);}
+.qstrip button .qband{
+  font-family:'Fraunces',serif;font-size:12.5px;font-weight:600;
+  background:var(--paper-2);color:var(--ink);border-radius:5px;padding:0 5px;
+}
+.qstrip button.active .qband{background:rgba(255,255,255,.16);color:var(--paper);}
+.qstrip-hint{font-size:12px;color:var(--slate);margin:-6px 0 16px;line-height:1.6;}
+
+.q-focus{
+  background:#fff;border:1px solid var(--line);border-left:4px solid var(--azure);
+  border-radius:0 14px 14px 0;padding:16px 20px;margin-bottom:6px;box-shadow:var(--elev-1);
+}
+.q-focus .qf-lbl{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--azure);display:block;margin-bottom:5px;
+}
+.q-focus .qf-text{font-size:16px;line-height:1.6;color:var(--ink);font-weight:500;margin:0;}
+.q-focus .qf-meta{font-size:12px;color:var(--slate);margin:8px 0 0;line-height:1.6;}
+
+/* per-question answer report */
+.answer-report{
+  background:linear-gradient(180deg,#fbf9f2,#f5f1e4);border:1px solid var(--line);
+  border-radius:16px;padding:18px 20px;margin-top:16px;box-shadow:var(--elev-2);
+}
+.answer-report .ar-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+.answer-report .ar-band{
+  font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--ink);line-height:1;
+}
+.answer-report .ar-q{font-size:13px;color:var(--slate);flex:1;min-width:180px;line-height:1.5;}
+.ar-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.ar-tag{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;
+  border-radius:999px;padding:3px 9px;border:1px solid transparent;
+}
+.ar-tag.ok{background:#e8f3ea;color:#1b5e20;border-color:#a5d6a7;}
+.ar-tag.mid{background:#fdf6dd;color:#8a5300;border-color:#f0d98a;}
+.ar-tag.bad{background:#fdecea;color:#b71c1c;border-color:#ef9a9a;}
+.ar-crit{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+.ar-crit div{background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px;text-align:center;}
+.ar-crit span{
+  display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--slate);margin-bottom:3px;
+}
+.ar-crit b{font-family:'Fraunces',serif;font-size:17px;color:var(--ink);font-weight:600;}
+.ar-next{
+  background:#eef4f2;border-left:3px solid var(--teal);border-radius:0 8px 8px 0;
+  padding:10px 14px;font-size:13px;line-height:1.65;color:#1f4238;margin-top:12px;
+}
+
+/* part-level synthesis across every answer */
+.part-synth{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:18px;box-shadow:var(--elev-1);}
+.part-synth h4{font-family:'Fraunces',serif;font-size:17px;margin:0 0 3px;color:var(--ink);}
+.part-synth .ps-sub{font-size:12.5px;color:var(--slate);margin:0 0 14px;line-height:1.6;}
+.ps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px;}
+.ps-cell{background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;}
+.ps-cell span{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);}
+.ps-cell b{font-family:'Fraunces',serif;font-size:18px;color:var(--ink);font-weight:600;}
+.ps-qlist{list-style:none;margin:0 0 14px;padding:0;}
+.ps-qlist li{display:flex;gap:10px;align-items:baseline;border-top:1px solid var(--line);padding:9px 0;font-size:13px;line-height:1.6;}
+.ps-qlist li:first-child{border-top:none;}
+.ps-qlist .ps-n{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;color:var(--slate);flex-shrink:0;}
+.ps-qlist .ps-b{font-family:'Fraunces',serif;font-size:15px;color:var(--ink);flex-shrink:0;min-width:32px;}
+.ps-recurring{background:#fdf6dd;border:1px solid #f0d98a;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.7;color:#6b4b00;}
+.ps-recurring b{color:#8a5300;}
+.ps-recurring ul{margin:6px 0 0;padding-left:18px;}
+
+/* ---------- spoken-language detector ---------- */
+.det-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-top:16px;box-shadow:var(--elev-1);}
+.det-box .det-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px;}
+.det-box .det-head b{font-size:13.5px;color:var(--ink);}
+.det-src{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--slate);}
+.det-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:7px;margin:12px 0;}
+.det-stat{background:var(--paper-2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;text-align:center;}
+.det-stat span{display:block;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--slate);margin-bottom:2px;}
+.det-stat b{font-family:'Fraunces',serif;font-size:16px;color:var(--ink);font-weight:600;}
+.det-stat.warn b{color:var(--coral);}
+.det-list{list-style:none;margin:10px 0 0;padding:0;}
+.det-list li{border-top:1px solid var(--line);padding:11px 0;font-size:13px;line-height:1.65;}
+.det-list li:first-child{border-top:none;}
+.det-list .det-row{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;}
+.det-quote{font-weight:600;color:#b71c1c;}
+.det-quote.minor{color:#8a5300;}
+.det-fix{color:#1b5e20;font-weight:600;}
+.det-why{font-size:12.5px;color:var(--slate);margin-top:3px;}
+.det-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.05em;text-transform:uppercase;
+  border-radius:999px;padding:2px 7px;background:#f2eddd;color:#8a6c11;flex-shrink:0;
+}
+.det-badge.local{background:#e8eef6;color:#1b3a5c;}
+.det-badge.ai{background:#e8f3ea;color:#1b5e20;}
+
 .cue-card ul{margin:10px 0 0;padding-left:18px;}
 .rec-controls{display:flex;align-items:center;gap:14px;margin:20px 0;flex-wrap:wrap;}
 .rec-dot{
@@ -1243,6 +1760,64 @@ textarea.essay{
   .section-sub{font-size:13.5px;margin-bottom:18px;}
   hr.rule{margin:20px 0;}
 
+  /* ---- the shell collapses to one column; the nav is pinned to the bottom
+       by the rules further down, so the sidebar only has to give up its
+       desktop furniture ---- */
+  .app-shell{display:flex;flex-direction:column;}
+  .app-col{min-height:0;order:1;}
+  .sidebar{order:2;}
+  .sidebar{
+    position:static;height:auto;overflow:visible;display:block;
+    padding:0;border-right:none;background:none;
+  }
+  .side-brand,.motiv-quote,.side-foot{display:none;}
+  /* The motivational card is worth keeping on a phone, but at the foot of the
+     page rather than above the test. */
+  .motiv-card{
+    margin:4px 12px 14px;border-radius:16px;
+  }
+  .motiv-card svg{height:96px;}
+  .app-foot{padding:14px 14px calc(76px + env(safe-area-inset-bottom));font-size:12px;gap:12px;}
+  .app-foot .af-right{flex:1 0 100%;margin-left:0;}
+
+  /* ---- top rail: brand + icons, search under them ---- */
+  .brand-block{display:block;}
+  header.topbar{
+    position:static;flex-wrap:wrap;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;
+    background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;
+  }
+  .search-wrap{order:4;flex:1 0 100%;max-width:none;}
+  .search-field{height:42px;}
+  .search-pop{background:var(--ink-2);}
+  .topbar-actions{order:3;margin-left:auto;gap:8px;}
+  .icon-btn{width:40px;height:40px;font-size:16px;}
+  .acct-btn{padding:4px;gap:0;}
+  .acct-btn .acct-txt,.acct-btn .acct-chev{display:none;}
+  .acct-menu{min-width:212px;}
+  .candidate-card{order:5;flex:1 0 100%;border-radius:12px;justify-content:space-between;}
+
+  /* ---- home page ---- */
+  .home-hero{grid-template-columns:1fr;border-radius:18px;}
+  .hero-copy{padding:22px 18px 20px;}
+  .hero-title{font-size:29px;}
+  .hero-sub{font-size:14px;margin-bottom:18px;}
+  .hero-art{height:170px;order:2;}
+  .hero-art svg{position:relative;}
+  .hero-script{font-size:25px;right:10%;top:38%;}
+  .hero-quote{
+    order:3;padding:18px;border-left:none;border-top:1px solid rgba(19,27,46,.07);
+    background:rgba(255,255,255,.6);
+  }
+  .home-skills{grid-template-columns:1fr 1fr;gap:12px;}
+  .hs-card{padding:15px;border-radius:16px;}
+  .hs-icon{width:46px;height:46px;border-radius:14px;font-size:21px;}
+  .hs-card h3{font-size:17px;}
+  .hs-card p{font-size:12.5px;}
+  .home-panels{grid-template-columns:1fr;gap:12px;}
+  .hp{padding:15px 16px;border-radius:16px;}
+  .ql-grid{grid-template-columns:1fr 1fr;}
+  .mock-grid{grid-template-columns:1fr;}
+
   /* ---- header: brand + icon buttons, exam details on their own line ---- */
   header.topbar{
     padding:calc(12px + env(safe-area-inset-top)) 14px 12px;
@@ -1275,6 +1850,7 @@ textarea.essay{
   /* ---- navigation: fixed bottom bar with icons ---- */
   nav.tabs{
     position:fixed;left:0;right:0;bottom:0;z-index:60;
+    flex-direction:row;                      /* the desktop rail stacks; the bar does not */
     max-width:none;margin:0;gap:2px;flex-wrap:nowrap;
     padding:5px 6px calc(4px + env(safe-area-inset-bottom));
     overflow-x:auto;scrollbar-width:none;
@@ -1291,13 +1867,12 @@ textarea.essay{
     font-size:9.5px;font-weight:600;line-height:1.2;letter-spacing:0;
     white-space:nowrap;opacity:.5;transition:background .18s,opacity .18s;
   }
-  nav.tabs button::before{content:"";font-size:19px;line-height:1;filter:grayscale(.4);}
-  nav.tabs button[data-mod="dashboard"]::before{content:"📊";}
-  nav.tabs button[data-mod="listening"]::before{content:"🎧";}
-  nav.tabs button[data-mod="reading"]::before{content:"📖";}
-  nav.tabs button[data-mod="writing"]::before{content:"✍️";}
-  nav.tabs button[data-mod="speaking"]::before{content:"🎙";}
-  nav.tabs button[data-mod="descriptors"]::before{content:"📐";}
+  /* Icons are declared once in the base layer (the desktop rail uses the same
+     ones); the bar only resizes them. */
+  nav.tabs button::before{font-size:19px;width:auto;filter:grayscale(.4);}
+  /* Nine rows fit a sidebar but not a phone bar: the two pages that are
+     launchers rather than papers are reachable from Home instead. */
+  nav.tabs button[data-mod="mock"],nav.tabs button[data-mod="progress"]{display:none;}
   /* "📋 Band descriptors" is far too long for a sixth bar slot: the label is
      zeroed out and replaced with a short one (the ::before/::after keep their
      own explicit sizes, so only the button's own text collapses). */
@@ -1407,6 +1982,11 @@ textarea.essay{
   .timerbar .tb-btn{min-height:38px;padding:6px 10px;}
   .annotated-text{font-size:14px;padding:13px 14px;line-height:1.95;}
   .feedback-legend-container{flex-direction:column;gap:8px;}
+  .ar-crit{grid-template-columns:repeat(2,1fr);}
+  .qstrip button{min-height:44px;}
+  .q-focus{padding:14px 16px;}
+  .q-focus .qf-text{font-size:15px;}
+  .answer-report,.part-synth,.det-box{padding:15px 14px;border-radius:14px;}
   .timeout-banner{bottom:12px;padding:12px 14px;font-size:13px;}
   .gf-cols{grid-template-columns:1fr;}
 
@@ -1737,22 +2317,7 @@ textarea.essay{
 })();
 </script>
 
-<header class="topbar">
-  <div class="brand-block">
-    <p class="eyebrow">Teacher Esteban Yepes · Mock Examination</p>
-    <h1>IELTS Academic Simulator</h1>
-  </div>
-  <div class="topbar-actions">
-    <div class="candidate-card">
-      <span class="cc-lbl">Candidate No.</span> <b id="candNo">—</b><br>
-      <span class="cc-lbl">Test date:</span> <b id="testDate">—</b><br>
-      <span class="cc-lbl">Module:</span> <b id="modLabel">Dashboard</b>
-    </div>
-    <button id="accountBtn" class="btn ghost on-dark small topbar-btn" style="display:none;">👤 <span class="btn-label">Sign in</span></button>
-    <button id="sessionBtn" class="btn ghost on-dark small topbar-btn">💾 <span class="btn-label">Session</span></button>
-    <button id="settingsBtn" class="btn ghost on-dark small topbar-btn">⚙ <span class="btn-label">AI engine</span></button>
-  </div>
-</header>
+
 
 <div id="settingsOverlay" class="settings-overlay" style="display:none;">
   <div class="settings-modal">
@@ -1916,22 +2481,110 @@ textarea.essay{
   </div>
 </div>
 
-<nav class="tabs" id="tabs">
-  <button data-mod="dashboard" class="active">Dashboard</button>
-  <button data-mod="listening">Listening</button>
-  <button data-mod="reading">Reading</button>
-  <button data-mod="writing">Writing</button>
-  <button data-mod="speaking">Speaking</button>
-  <button data-mod="descriptors" class="tab-ref">📋 Band descriptors</button>
-</nav>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="side-brand">
+      <span class="sb-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span><b>IELTS</b><span>Simulator</span></span>
+    </div>
 
-<div class="shell">
-  <main>
-    <div class="panel" id="panel"></div>
-  </main>
+    <nav class="tabs" id="tabs">
+      <button data-mod="dashboard" class="active">Home</button>
+      <button data-mod="listening">Listening</button>
+      <button data-mod="reading">Reading</button>
+      <button data-mod="writing">Writing</button>
+      <button data-mod="speaking">Speaking</button>
+      <button data-mod="mock">Full Mock Test</button>
+      <button data-mod="progress">Progress</button>
+      <button data-mod="descriptors" class="tab-ref">Band descriptors</button>
+    </nav>
+
+    <div class="motiv-card">
+      <div class="mc-text">
+        <b>Better<br>English</b>
+        <i>A Brighter You</i>
+        <span class="mc-rule"></span>
+      </div>
+      <!-- Drawn rather than photographed: the app ships as a single file with no
+           remote images, and the palette stays the app's own. -->
+      <svg viewBox="0 0 240 120" preserveAspectRatio="none" aria-hidden="true">
+        <rect width="240" height="120" fill="#1c2740"/>
+        <path d="M0 96 L44 52 L74 78 L104 40 L146 92 L176 62 L240 104 L240 120 L0 120 Z" fill="#243350"/>
+        <path d="M0 108 L38 74 L70 96 L110 62 L150 104 L190 80 L240 112 L240 120 L0 120 Z" fill="#2f3d5c" opacity=".9"/>
+        <path d="M0 118 L60 96 L120 112 L180 92 L240 116 L240 120 L0 120 Z" fill="#3a4a6b" opacity=".85"/>
+        <g fill="#0f1626">
+          <rect x="118" y="52" width="2.6" height="12" rx="1.2"/>
+          <circle cx="119.3" cy="49" r="2.4"/>
+        </g>
+      </svg>
+    </div>
+
+    <p class="motiv-quote" id="sideQuote">“Discipline today, opportunities tomorrow.”</p>
+
+    <div class="side-foot">
+      <b>IELTS Simulator</b>
+      <span>Practice today. A brighter tomorrow.</span>
+    </div>
+  </aside>
+
+  <div class="app-col">
+<header class="topbar">
+      <!-- The brand shows here only on phones; the sidebar carries it on desktop. -->
+      <div class="brand-block">
+        <p class="eyebrow">Teacher Esteban Yepes · Mock Examination</p>
+        <h1>IELTS Academic Simulator</h1>
+      </div>
+    
+      <div class="search-wrap">
+        <label class="search-field" for="globalSearch">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.6-3.6"></path>
+          </svg>
+          <input id="globalSearch" type="search" autocomplete="off" placeholder="Search for practice tests, topics or skills…"
+                 aria-label="Search practice tests, topics or skills" aria-expanded="false" aria-controls="searchPop">
+        </label>
+        <div id="searchPop" class="search-pop" role="listbox" style="display:none;"></div>
+      </div>
+    
+      <div class="topbar-actions">
+        <div class="candidate-card">
+          <span class="cc-lbl">Candidate No.</span> <b id="candNo">—</b><br>
+          <span class="cc-lbl">Test date:</span> <b id="testDate">—</b><br>
+          <span class="cc-lbl">Module:</span> <b id="modLabel">Home</b>
+        </div>
+        <button id="bellBtn" class="icon-btn" title="Messages from your teacher" aria-label="Messages from your teacher">🔔</button>
+        <div class="acct-cluster">
+          <button id="acctBtn" class="acct-btn" aria-haspopup="true" aria-expanded="false">
+            <span class="acct-avatar" id="acctInitial">E</span>
+            <span class="acct-txt"><b id="acctHello">Hello</b><span id="acctSub">Keep going!</span></span>
+            <span class="acct-chev">▾</span>
+          </button>
+          <!-- The three original controls keep their ids and handlers; they just
+               live in this menu now instead of side by side in the header. -->
+          <div id="acctMenu" class="acct-menu" style="display:none;">
+            <span class="am-head">Account</span>
+            <button id="accountBtn" class="btn ghost on-dark small topbar-btn" style="display:none;">👤 <span class="btn-label">Sign in</span></button>
+            <span class="am-head">This session</span>
+            <button id="sessionBtn" class="btn ghost on-dark small topbar-btn">💾 <span class="btn-label">Session</span></button>
+            <button id="settingsBtn" class="btn ghost on-dark small topbar-btn">⚙ <span class="btn-label">AI engine</span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="shell">
+      <main>
+        <div class="panel" id="panel"></div>
+      </main>
+    </div>
+    <p class="footer-note">Original practice materials in the official IELTS Academic format. Band scores are AI-estimated against published assessment criteria and are a study aid, not an official result.</p>
+    <footer class="app-foot">
+      <button data-info="about">About</button>
+      <button data-info="help">Help</button>
+      <button data-info="contact">Contact</button>
+      <span class="af-right">Designed for your success. <span class="af-heart">❤</span></span>
+    </footer>
+  </div>
 </div>
-
-<p class="footer-note">Original practice materials in the official IELTS Academic format. Band scores are AI-estimated against published assessment criteria and are a study aid, not an official result.</p>
 
 <script>
 /* =========================================================================
@@ -2284,7 +2937,14 @@ const state = {
   timers: {}, timeUp: {},
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
-  speaking: { part:"part1", topic:"random", transcripts:{}, metrics:{}, report:null, reports:{}, loading:false, recording:false, audioB64:{}, audioMime:{}, language:{}, hesitation:{}, bandVersions:{} },
+  /* Speaking is keyed by SLOT, not by part. Parts 1 and 3 are interviews, so
+     every question is recorded and marked as its own answer ("part1:0",
+     "part1:1", …); Part 2 is a single long turn, so its slot is just "part2".
+     `answers` holds the per-question report, `reports` the part-level band
+     aggregated from them, and `activeQ` which question the recorder is on. */
+  speaking: { part:"part1", topic:"random", activeQ:{part1:0,part3:0}, transcripts:{}, metrics:{},
+              reports:{}, answers:{}, loading:false, recording:false,
+              audioB64:{}, audioMime:{}, language:{}, detector:{}, hesitation:{}, bandVersions:{} },
   // Translator ("Language desk") — one card per skill tab. `open` is keyed by
   // module so a tab remembers whether the desk was left open; `result` carries
   // `forMod` so a lookup shows only on the tab it was made from.
@@ -2399,7 +3059,8 @@ function recordScore(module, band, detail){
 }
 
 function renderDashboardIfActive(){
-  if(state.mod==="dashboard") renderDashboard();
+  if(state.mod==="dashboard") renderHome();
+  else if(state.mod==="progress") renderProgress();
 }
 
 window.addEventListener("DOMContentLoaded", async ()=>{
@@ -2454,6 +3115,7 @@ window.addEventListener("DOMContentLoaded", async ()=>{
   await restoreGeneratedContent();
   await trLoadPrefs();
   await loadHistory();
+  refreshGreeting();      // name, initial and the bell badge in the top rail
   render();
   // Tells the intro curtain the app is genuinely ready. Fired before auth so a
   // slow or unreachable Supabase never holds the curtain down; the account UI
@@ -2899,18 +3561,25 @@ function annotatedTextHTML(text, found){
   return out;
 }
 
-// The legend the brief specifies, rendered above every annotated panel.
-function feedbackLegendHTML(legend){
-  const L = normalizeLegend(legend);
+/* The legend the brief specifies. `opts.only` narrows it to the colours a
+   given panel actually uses — the error detector marks nothing green, and a
+   legend that explains a colour the reader cannot see is noise. */
+function feedbackLegendHTML(legend, opts){
+  const o = opts || {};
+  const L = Object.assign({}, normalizeLegend(legend), o.text || {});
   const row = (bg, border, label, text) => `
     <div>
       <span class="swatch" style="background-color:${bg};border:1px solid ${border};"></span>
       <span><strong>${label}:</strong> ${escapeHtml(text)}</span>
     </div>`;
+  const defs = {
+    green:  ()=>row("#a5d6a7","#2e7d32","Verde",   L.green),
+    yellow: ()=>row("#fff59d","#f57f17","Amarillo",L.yellow),
+    red:    ()=>row("#ef9a9a","#c62828","Rojo",    L.red)
+  };
+  const want = Array.isArray(o.only) && o.only.length ? o.only : ["green","yellow","red"];
   return `<div class="feedback-legend-container">
-    ${row("#a5d6a7","#2e7d32","Verde",  L.green)}
-    ${row("#fff59d","#f57f17","Amarillo",L.yellow)}
-    ${row("#ef9a9a","#c62828","Rojo",   L.red)}
+    ${want.map(k => defs[k] ? defs[k]() : "").join("")}
   </div>`;
 }
 
@@ -3304,8 +3973,8 @@ const SPEAKING_PART_BRIEF = {
    and then threw all of it away at scoring time, leaving the examiner to
    judge fluency blind to the very timing a real examiner hears. It is passed
    as supporting evidence only, explicitly subordinate to the audio. */
-function speakingDeliveryEvidence(part){
-  const m = (state.speaking.metrics || {})[part] || {};
+function speakingDeliveryEvidence(slot){
+  const m = (state.speaking.metrics || {})[slot] || {};
   const spoken = Number(m.speakingSec || m.duration || 0);
   const lines = [];
   if(spoken >= 5){
@@ -3322,7 +3991,7 @@ function speakingDeliveryEvidence(part){
   if(!lines.length) return "";
 
   let note = `MEASURED DELIVERY — the app timed this take. Treat it as corroborating evidence for Fluency & Coherence only, and ignore it wherever it contradicts what you can actually hear. It says nothing about vocabulary, grammar or pronunciation.\n${lines.join("\n")}`;
-  if(part === "part2" && spoken >= 5){
+  if(slot === "part2" && spoken >= 5){
     note += spoken < 60
       ? `\n- The long turn ran under the one-minute minimum: weigh that as an incomplete task, not merely as slow speech.`
       : `\n- The long turn reached the expected one-to-two-minute window.`;
@@ -3398,6 +4067,295 @@ function randomSpeakingTopic(){
   return all[Math.floor(Math.random()*all.length)];
 }
 
+/* =========================================================================
+   SPEAKING SLOTS
+   -------------------------------------------------------------------------
+   A real Part 1 or Part 3 is a series of separate exchanges: the examiner asks,
+   the candidate answers, and the next question is a fresh piece of evidence.
+   Marking one recording that ran across five questions could only ever produce
+   five answers' worth of averaged, general feedback — so each question is now
+   its own recording, its own transcript and its own marked answer, and the part
+   band is built from them. Part 2 is a single uninterrupted long turn and stays
+   one slot.
+   ========================================================================= */
+
+function speakingIsPerQuestion(part){ return part === "part1" || part === "part3"; }
+
+function speakingQuestions(part){
+  const d = SPEAKING[part] || {};
+  return Array.isArray(d.questions) ? d.questions : [];
+}
+
+// "part1:2" for the third Part 1 question; "part2" for the long turn.
+function speakingSlot(part, qi){
+  return speakingIsPerQuestion(part) ? `${part}:${qi}` : part;
+}
+
+function speakingActiveQ(part){
+  if(!speakingIsPerQuestion(part)) return 0;
+  const S = state.speaking;
+  S.activeQ = S.activeQ || {};
+  const n = speakingQuestions(part).length;
+  let qi = Number(S.activeQ[part] || 0);
+  if(!isFinite(qi) || qi < 0) qi = 0;
+  if(n && qi > n-1) qi = n-1;          // a regenerated set can be shorter
+  S.activeQ[part] = qi;
+  return qi;
+}
+
+function currentSpeakingSlot(){
+  const part = state.speaking.part;
+  return speakingSlot(part, speakingActiveQ(part));
+}
+
+function speakingSlotsFor(part){
+  return speakingIsPerQuestion(part)
+    ? speakingQuestions(part).map((_,i)=>speakingSlot(part,i))
+    : [part];
+}
+
+// The examiner prompt behind one slot.
+function speakingSlotPrompt(slot){
+  const [part, qi] = slot.split(":");
+  if(part === "part2"){
+    const cue = (SPEAKING.part2 && SPEAKING.part2.cue) || {};
+    return cue.title || "";
+  }
+  return speakingQuestions(part)[Number(qi)||0] || "";
+}
+
+function slotHasAnswer(slot){
+  const S = state.speaking;
+  return !!((S.transcripts[slot] || "").trim() || S.audioB64[slot]);
+}
+
+/* Older saved sessions stored one transcript, one recording and one set of
+   metrics per part. They are moved onto the part's first question rather than
+   dropped, so an imported session still shows the work it captured. */
+function migrateSpeakingSlots(){
+  const S = state.speaking;
+  ["part1","part3"].forEach(part=>{
+    const first = speakingSlot(part, 0);
+    ["transcripts","metrics","audioB64","audioMime","language","hesitation","detector"].forEach(map=>{
+      const store = S[map] || (S[map] = {});
+      if(store[part] !== undefined && store[first] === undefined){
+        store[first] = store[part];
+      }
+      delete store[part];
+    });
+  });
+  S.activeQ = S.activeQ || {part1:0, part3:0};
+  S.answers = S.answers || {};
+  // Part 2 was always one slot, so an older part-level report for it IS the
+  // answer report; adopting it keeps an imported session's marking on screen.
+  if(S.reports && S.reports.part2 && !S.answers.part2) S.answers.part2 = S.reports.part2;
+}
+
+/* =========================================================================
+   SPOKEN-LANGUAGE DETECTOR  (runs locally, no API key needed)
+   -------------------------------------------------------------------------
+   The old language check was one model call that returned a flat list of
+   corrections, so whatever the model happened to notice was all the candidate
+   ever saw — and with no key, nothing at all. This is a deterministic pass
+   over the transcript that finds the errors an IELTS candidate actually makes,
+   with exact character offsets so each one can be highlighted in place. It
+   runs instantly, offline, and its findings are merged with the examiner's so
+   the two cover each other's blind spots.
+
+   Every rule is written to be quiet rather than clever: a rule that would fire
+   on correct English is worse than a rule that misses. `re` must expose the
+   offending text in capture group 1 (or match it whole) so the offsets land on
+   the words at fault and not on the surrounding context used to identify them.
+   ========================================================================= */
+
+const SPOKEN_ERROR_RULES = [
+  // ---- subject-verb agreement -------------------------------------------
+  { id:"sva-3sg", type:"subject-verb agreement", severity:"major",
+    re:/\b(?:he|she|it)\s+(don't|doesn't\s+\w+s|are|were|have\b(?!\s+been\s+\w+ing)|do)\b/gi,
+    msg:"Third-person singular takes 'doesn't / is / was / has / does'." },
+  { id:"sva-i-verbs", type:"subject-verb agreement", severity:"major",
+    re:/\bI\s+(is|are|was\s+been|has|does\s+not\s+\w+s)\b/g,
+    msg:"With 'I' use 'am / was / have / do not'." },
+  { id:"sva-i-verb-s", type:"subject-verb agreement", severity:"major",
+    // "I really enjoys", "I thinks" — an -s verb after I, allowing one adverb.
+    re:/\bI\s+(?:\w+ly\s+)?((?:think|enjoy|like|love|want|need|feel|believe|prefer|go|do|have|make|take|know|live|work|study|speak|use|find|say|get|see)s)\b/gi,
+    msg:"'I' never takes the -s form of the verb." },
+  { id:"sva-plural", type:"subject-verb agreement", severity:"major",
+    re:/\b(?:people|children|men|women)\s+(is|was|has|doesn't)\b/gi,
+    msg:"These nouns are plural, so they take 'are / were / have / don't'." },
+  { id:"sva-they", type:"subject-verb agreement", severity:"major",
+    re:/\b(?:they|we|you)\s+(is|was\b(?!\s+n)|has|doesn't)\b/gi,
+    msg:"Plural subjects take 'are / were / have / don't'." },
+
+  // ---- tense and verb form ----------------------------------------------
+  { id:"did-past", type:"verb form", severity:"major",
+    re:/\b(?:did|didn't|did\s+not)\s+((?:went|saw|had|was|were|came|took|made|got|said|ate|felt|found|knew|thought|gave|told|left|began|brought|bought|spent))\b/gi,
+    msg:"After 'did' or 'didn't' use the base form of the verb." },
+  { id:"modal-to", type:"verb form", severity:"major",
+    re:/\b(?:can|could|must|should|will|would|may|might)\s+(to\s+\w+)\b/gi,
+    msg:"Modal verbs are followed by the bare infinitive — no 'to'." },
+  { id:"modal-s", type:"verb form", severity:"major",
+    re:/\b(?:can|could|must|should|will|would|may|might)\s+((?:go|do|have|make|take|get|give|say|know|think|come|see|want|need|help|work|live|speak|use|find)es?s)\b/gi,
+    msg:"A verb after a modal never takes -s." },
+  { id:"am-agree", type:"verb form", severity:"major",
+    re:/\b(?:I\s*(?:'m|\s+am)|we\s*(?:'re|\s+are)|they\s*(?:'re|\s+are))\s+(agree|disagree)\b/gi,
+    msg:"'Agree' is a verb: say 'I agree', not 'I am agree'." },
+  { id:"since-for", type:"preposition", severity:"minor",
+    re:/\bsince\s+(\d+\s+(?:year|years|month|months|week|weeks|day|days|hour|hours))\b/gi,
+    msg:"Use 'for' with a length of time and 'since' with a starting point." },
+
+  // ---- articles and number ----------------------------------------------
+  { id:"a-vowel", type:"article", severity:"minor",
+    re:/\ba\s+([aeiou]\w+)\b/gi, msg:"Use 'an' before a vowel sound.",
+    // "a university", "a European", "a one-off" all start with a consonant sound.
+    skip:/^(?:uni|use|user|usual|useful|euro|europe|one|once|ubiquit)/i },
+  { id:"an-consonant", type:"article", severity:"minor",
+    re:/\ban\s+([bcdfgjklmnpqrstvwxyz]\w+)\b/gi, msg:"Use 'a' before a consonant sound.",
+    skip:/^(?:hour|honest|honour|honor|heir)/i },
+  { id:"uncountable-plural", type:"plural", severity:"major",
+    re:/\b(informations|advices|knowledges|furnitures|equipments|researches|homeworks|softwares|traffics|moneys|luggages|accommodations|feedbacks|staffs|progresses)\b/gi,
+    msg:"This noun is uncountable in English and has no plural -s." },
+  { id:"much-countable", type:"quantifier", severity:"minor",
+    re:/\bmuch\s+((?:people|things|friends|places|options|students|jobs|cars|books|hours|years)\b)/gi,
+    msg:"Use 'many' with countable nouns." },
+  { id:"double-comparative", type:"comparison", severity:"major",
+    re:/\b(more\s+(?:better|worse|easier|bigger|harder|faster|cheaper|higher|lower|larger|smaller|stronger)|most\s+(?:best|worst|easiest|biggest|hardest|cheapest|highest|largest))\b/gi,
+    msg:"Never combine 'more/most' with a comparative or superlative form." },
+  { id:"than-then", type:"word choice", severity:"minor",
+    re:/\b(?:more|less|better|worse|bigger|smaller|cheaper|higher|lower|faster|slower|rather)\s+(then)\b/gi,
+    msg:"Comparisons use 'than'; 'then' is about time." },
+
+  // ---- prepositions and collocation --------------------------------------
+  { id:"depend-of", type:"collocation", severity:"major",
+    re:/\b(depends?\s+(?:of|from))\b/gi, msg:"The collocation is 'depend on'." },
+  { id:"discuss-about", type:"collocation", severity:"major",
+    re:/\b(discuss(?:ing|ed|es)?\s+about)\b/gi, msg:"'Discuss' takes no preposition: 'discuss the problem'." },
+  { id:"explain-me", type:"collocation", severity:"major",
+    re:/\b(explain(?:ed|ing|s)?\s+(?:me|him|her|us|them))\b/gi, msg:"Say 'explain something to someone'." },
+  { id:"married-with", type:"collocation", severity:"minor",
+    re:/\b(married\s+with)\b/gi, msg:"You are 'married to' someone." },
+  { id:"good-in", type:"collocation", severity:"minor",
+    re:/\b((?:good|bad|skilled|talented|brilliant)\s+in)\s+\w/gi, msg:"Say 'good at' something." },
+  { id:"interested-for", type:"collocation", severity:"minor",
+    re:/\b(interested\s+(?:about|for|on))\b/gi, msg:"Say 'interested in'." },
+  { id:"listen-noto", type:"collocation", severity:"minor",
+    re:/\b(listen(?:ing|ed|s)?\s+(?:music|the\s+radio|podcasts?|songs?))\b/gi, msg:"You 'listen to' something." },
+  { id:"arrive-to", type:"collocation", severity:"minor",
+    re:/\b(arrive[ds]?\s+to)\b/gi, msg:"You 'arrive at' a place or 'arrive in' a city." },
+  { id:"according-me", type:"collocation", severity:"minor",
+    re:/\b(according\s+to\s+me)\b/gi, msg:"'According to' is for other sources — say 'in my view'." },
+  { id:"nowadays-in", type:"collocation", severity:"minor",
+    re:/\b(in\s+nowadays)\b/gi, msg:"'Nowadays' stands alone, with no preposition." },
+
+  // ---- word form ---------------------------------------------------------
+  { id:"very-much-adj", type:"word form", severity:"minor",
+    re:/\b(very\s+much\s+(?:interesting|important|difficult|easy|good|useful|nice|beautiful|happy|tired))\b/gi,
+    msg:"Use 'very' with an adjective; 'very much' modifies verbs." },
+  { id:"advice-verb", type:"word form", severity:"minor",
+    re:/\b(advice\s+(?:me|him|her|them|us|people))\b/gi, msg:"The verb is 'advise'; 'advice' is the noun." },
+  { id:"succeed-form", type:"word form", severity:"minor",
+    re:/\b(success\s+(?:in|to)\s+\w+ing)\b/gi, msg:"Use the verb 'succeed in doing' or 'manage to do'." }
+];
+
+// Basic words that keep a good answer at band 6; each is worth upgrading.
+const SPOKEN_UPGRADE_WORDS = [
+  { re:/\bvery\s+(good|nice|big|bad|important|interesting)\b/gi, better:"a precise adjective — 'excellent', 'substantial', 'crucial', 'compelling'" },
+  { re:/\b(?:a\s+lot\s+of|lots\s+of)\b/gi, better:"'a great deal of', 'a considerable number of', 'plenty of'" },
+  { re:/\b(?:thing|things|stuff)\b/gi, better:"the specific noun — 'aspect', 'factor', 'issue', 'feature'" },
+  { re:/\bgood\b/gi, better:"'beneficial', 'rewarding', 'worthwhile', 'effective'" },
+  { re:/\bbad\b/gi, better:"'detrimental', 'harmful', 'poor', 'disappointing'" },
+  { re:/\bbig\b/gi, better:"'significant', 'considerable', 'substantial'" },
+  { re:/\bI\s+think\b/gi, better:"'I'd say', 'to my mind', 'as far as I'm concerned', 'I reckon'" }
+];
+
+const SUBORDINATORS = /\b(?:because|although|though|whereas|while|unless|since|if|when|which|who|that|so\s+that|even\s+though|in\s+order\s+to|despite|however|therefore|whenever|as\s+long\s+as)\b/gi;
+
+function countMatches(text, re){
+  const m = String(text||"").match(re);
+  return m ? m.length : 0;
+}
+
+/* One deterministic pass over a transcript. Returns issues with real character
+   offsets, vocabulary upgrade candidates, and the range/diversity statistics a
+   candidate can actually act on. */
+function analyseSpokenLanguage(text){
+  const src = String(text || "");
+  const issues = [];
+  const taken = [];
+
+  SPOKEN_ERROR_RULES.forEach(rule=>{
+    const re = new RegExp(rule.re.source, rule.re.flags.includes("g") ? rule.re.flags : rule.re.flags + "g");
+    let m;
+    while((m = re.exec(src)) !== null){
+      if(m[0] === ""){ re.lastIndex++; continue; }         // never spin on a zero-width match
+      const captured = m[1] != null ? m[1] : m[0];
+      const at = m[1] != null ? m[0].lastIndexOf(m[1]) : 0;
+      const start = m.index + (at < 0 ? 0 : at);
+      const end = start + captured.length;
+      if(rule.skip && rule.skip.test(captured)) continue;
+      // One flag per stretch of text: the first rule to claim it wins, so a
+      // phrase never collects three overlapping labels.
+      if(taken.some(r => start < r.end && end > r.start)) continue;
+      taken.push({ start, end });
+      issues.push({
+        start, end, text: captured, type: rule.type, severity: rule.severity,
+        message: rule.msg, source: "local", rule: rule.id
+      });
+    }
+  });
+
+  // Immediate repetition ("I I think", "the the") — a stalling signal, and
+  // visible in a transcript in a way it never is to the speaker.
+  const rep = /\b(\w+)\s+\1\b/gi;
+  let rm;
+  while((rm = rep.exec(src)) !== null){
+    const start = rm.index, end = start + rm[0].length;
+    if(taken.some(r => start < r.end && end > r.start)) continue;
+    taken.push({ start, end });
+    issues.push({
+      start, end, text: rm[0], type:"repetition", severity:"minor",
+      message:"The word is repeated — a self-correction the examiner hears as hesitation.",
+      source:"local", rule:"immediate-repetition"
+    });
+  }
+
+  issues.sort((a,b)=> a.start - b.start);
+
+  // ---- upgrade candidates (not errors) ----
+  // Each phrase is blanked out of a working copy once counted, so "very good"
+  // is reported once as an over-used intensifier rather than a second time by
+  // the plain "good" rule below it.
+  const upgrades = [];
+  let scratch = src;
+  SPOKEN_UPGRADE_WORDS.forEach(u=>{
+    const re = new RegExp(u.re.source, "gi");
+    const found = scratch.match(re);
+    if(!found || !found.length) return;
+    upgrades.push({ phrase: found[0], count: found.length, better: u.better });
+    scratch = scratch.replace(re, m => " ".repeat(m.length));
+  });
+
+  // ---- statistics ----
+  const words = src.trim() ? src.trim().split(/\s+/) : [];
+  const lower = words.map(w=>w.toLowerCase().replace(/[^a-z']/g,"")).filter(Boolean);
+  const unique = new Set(lower);
+  const sentences = src.split(/[.!?]+|\s+(?:and then|and)\s+/i).map(x=>x.trim()).filter(x=>x.split(/\s+/).length > 2);
+  const fillers = countFillers(src);
+  const stats = {
+    words: words.length,
+    diversity: lower.length ? Math.round((unique.size / lower.length) * 100) : 0,
+    subordinators: countMatches(src, SUBORDINATORS),
+    complexPer100: words.length ? Math.round((countMatches(src, SUBORDINATORS) / words.length) * 1000)/10 : 0,
+    fillers: fillers.total,
+    fillerPer100: words.length ? Math.round((fillers.total / words.length) * 1000)/10 : 0,
+    sentences: sentences.length,
+    avgSentence: sentences.length ? Math.round(words.length / sentences.length) : 0,
+    majorIssues: issues.filter(i=>i.severity === "major").length,
+    minorIssues: issues.filter(i=>i.severity !== "major").length
+  };
+  return { issues, upgrades, stats, fillerBreakdown: fillers.breakdown };
+}
+
 const SPEAKING_RUBRIC_TRANSCRIPT = `You are an experienced, calibrated IELTS Speaking examiner. You are given only an un-timed text transcript of the speaker's answers.
 
 ${SPEAKING_BAND_DESCRIPTORS}
@@ -3427,6 +4385,42 @@ ${highlightContract('your own transcription of what the candidate said, which yo
 
 Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","evidence":"sufficient","examiner_note":"","heard_transcript":"",${EXAMINER_JSON_TAIL}}. Set "evidence" to "thin" when the recording was too short, too sparse or too unclear to mark safely. Use "examiner_note" for the one remark you would make to a colleague about this candidate that does not belong under any single criterion — a sentence at most, or "" if there is nothing worth adding. In "heard_transcript", write your own transcription in English of what the candidate said.`;
 
+
+/* =========================================================================
+   SINGLE-ANSWER EXAMINER RUBRIC  (Parts 1 & 3, one question at a time)
+   -------------------------------------------------------------------------
+   Marking a whole part in one pass produced one set of general comments for
+   five different answers, which is why the feedback read thin. This rubric
+   marks ONE answer to ONE question: whether that question was actually
+   answered, whether the idea was developed, what the language did, every
+   correction worth making, and the one thing that would raise this answer.
+   The part band is then built from the answers rather than guessed across
+   them.
+   ========================================================================= */
+
+const SPEAKING_ANSWER_DEPTH = `DEPTH — this is one answer, so mark it closely rather than generally:
+- Judge FIRST whether the candidate answered the question that was asked. An eloquent answer to a different question is a relevance failure, however good the language; note it plainly and let it weigh on Fluency & Coherence, not on Lexical Resource or Grammar.
+- Then judge DEVELOPMENT: an IELTS answer needs a position plus support — a reason, an example, a comparison, a concession. Say explicitly what the candidate did and did not develop, quoting them.
+- Report EVERY correction worth making, not a representative sample. Work through the answer from the first word to the last; if the same mistake appears three times, that is three entries. A candidate who sees two corrections for a minute of speech learns nothing.
+- Separate real errors from stylistic thinness. An error is wrong English ("he don't", "depends of"); thinness is basic English used correctly ("very good", "a lot of things") — the first goes in "corrections", the second in "upgrades".
+- "next_step" is the single highest-value thing this candidate should change on their next answer. One sentence, concrete, actionable, in Spanish. Not "expand your vocabulary" — name the phrase to drop and the phrase to use instead.
+- Every band you award must be supported by something you quote. A comment that would fit any candidate is a failed comment.`;
+
+function speakingAnswerRubric(hasAudio){
+  return `You are an experienced, calibrated IELTS Speaking examiner marking ONE answer to ONE examiner question, as part of a full interview. ${hasAudio
+    ? "You have the candidate's actual audio recording of this answer — listen to it directly and judge real pronunciation, hesitation and connected speech from what you hear."
+    : "You have only a text transcript of this answer: score Fluency & Coherence from repetition, restarts, fillers and abandoned sentences, and treat Pronunciation as a cautious estimate that you must label as such in its comment."}
+
+${SPEAKING_BAND_DESCRIPTORS}
+
+${SPEAKING_SCORING_PROCEDURE}
+
+${SPEAKING_ANSWER_DEPTH}
+
+${highlightContract(hasAudio ? 'your own transcription of this answer, which you must also return in "heard_transcript" — quote segments exactly as you write them there' : "the transcript of this answer")}
+
+Respond ONLY with raw JSON, no markdown, no preamble, in this exact shape: {"relevance":"fully|partially|off-topic","relevance_comment":"","development":"","fluency_coherence":{"band":0,"comment":""},"lexical_resource":{"band":0,"comment":""},"grammar":{"band":0,"comment":""},"pronunciation":{"band":0,"comment":""},"overall_band":0,"summary":"","next_step":"","corrections":[{"original":"exact words the candidate said","correction":"the corrected words","type":"verb tense | subject-verb agreement | article | preposition | plural | word form | pronoun | word order | word choice | collocation | other","explanation":"one short reason in Spanish","severity":"major|minor"}],"upgrades":[{"original":"a basic word or phrase they used","suggestion":"a higher-band natural alternative","why":"one short reason in Spanish"}],"evidence":"sufficient","${hasAudio ? 'heard_transcript":"","' : ''}${EXAMINER_JSON_TAIL}}. Set "evidence" to "thin" when the answer was too short or too unclear to mark safely. "relevance_comment", "development", "summary" and "next_step" are written in SPANISH.`;
+}
 
 /* =========================================================================
    OFFICIAL IELTS BAND DESCRIPTORS (public criteria, summarised per skill)
@@ -4430,6 +5424,250 @@ window.addEventListener("resize", trHideBubble);
    ========================================================================= */
 
 const panel = document.getElementById("panel");
+/* =========================================================================
+   SHELL BEHAVIOUR — search, account menu, notifications, footer info
+   ========================================================================= */
+
+/* The search field is a quick-jump, not a pretend search box: it matches the
+   places you can actually go and the things the app can actually do, and
+   Enter opens the first hit. */
+function searchTargets(){
+  const t = [
+    { label:"Home", hint:"dashboard", go:()=>setModule("dashboard"), keys:"home dashboard overview start" },
+    { label:"Listening", hint:"paper · ≈30 min", go:()=>setModule("listening"), keys:"listening audio sections gap fill" },
+    { label:"Reading", hint:"paper · 60 min", go:()=>setModule("reading"), keys:"reading passages true false not given headings" },
+    { label:"Writing Task 1", hint:"report · 20 min", go:()=>{ state.writing.activeTask="task1"; setModule("writing"); }, keys:"writing task 1 chart graph report 150 words" },
+    { label:"Writing Task 2", hint:"essay · 40 min", go:()=>{ state.writing.activeTask="task2"; setModule("writing"); }, keys:"writing task 2 essay opinion discussion 250 words" },
+    { label:"Speaking Part 1", hint:"interview", go:()=>{ state.speaking.part="part1"; setModule("speaking"); }, keys:"speaking part 1 interview questions" },
+    { label:"Speaking Part 2", hint:"long turn", go:()=>{ state.speaking.part="part2"; setModule("speaking"); }, keys:"speaking part 2 cue card long turn monologue" },
+    { label:"Speaking Part 3", hint:"discussion", go:()=>{ state.speaking.part="part3"; setModule("speaking"); }, keys:"speaking part 3 discussion abstract" },
+    { label:"Full mock test", hint:"all four papers", go:()=>setModule("mock"), keys:"full mock test exam simulate complete" },
+    { label:"Progress", hint:"bands & history", go:()=>setModule("progress"), keys:"progress statistics history charts scores bands" },
+    { label:"Band descriptors", hint:"how marking works", go:()=>setModule("descriptors"), keys:"band descriptors criteria marking rubric tips strategies" },
+    { label:"AI engine settings", hint:"Gemini key", go:()=>openSettings(), keys:"settings api key gemini model translator drive" },
+    { label:"Session snapshots", hint:"save & restore", go:()=>openSessionPanel(), keys:"session save export import snapshot backup" },
+    { label:"About this simulator", hint:"help", go:()=>openInfoModal("about"), keys:"about help contact information" }
+  ];
+  if(typeof isTeacher === "function" && isTeacher()){
+    t.push({ label:"My class", hint:"teacher", go:()=>setModule("class"), keys:"class students roster teacher feedback" });
+  }
+  return t;
+}
+
+let searchSel = 0;
+function searchMatches(q){
+  const needle = q.trim().toLowerCase();
+  if(!needle) return [];
+  return searchTargets().filter(t =>
+    t.label.toLowerCase().includes(needle) || t.keys.includes(needle) ||
+    needle.split(/\s+/).every(w => (t.label + " " + t.keys).toLowerCase().includes(w))
+  ).slice(0, 8);
+}
+
+function paintSearchPop(){
+  const input = document.getElementById("globalSearch");
+  const pop = document.getElementById("searchPop");
+  if(!input || !pop) return;
+  const hits = searchMatches(input.value);
+  if(!input.value.trim()){
+    pop.style.display = "none";
+    input.setAttribute("aria-expanded","false");
+    return;
+  }
+  pop.style.display = "";
+  input.setAttribute("aria-expanded","true");
+  if(searchSel >= hits.length) searchSel = 0;
+  pop.innerHTML = hits.length
+    ? hits.map((h,i)=>`<button type="button" role="option" data-si="${i}" class="${i===searchSel?"sel":""}">${escapeHtml(h.label)}<em>${escapeHtml(h.hint)}</em></button>`).join("")
+    : `<div class="sp-none">Nothing matches “${escapeHtml(input.value)}”. Try “writing”, “part 3”, “mock” or “bands”.</div>`;
+  pop.querySelectorAll("[data-si]").forEach(btn=>{
+    btn.addEventListener("mousedown", e=>{
+      e.preventDefault();                       // keep focus until we navigate
+      runSearchHit(Number(btn.dataset.si));
+    });
+  });
+}
+
+function runSearchHit(i){
+  const input = document.getElementById("globalSearch");
+  const hits = searchMatches(input ? input.value : "");
+  const hit = hits[i];
+  if(!hit) return;
+  closeSearchPop();
+  if(input){ input.value = ""; input.blur(); }
+  hit.go();
+}
+
+function closeSearchPop(){
+  const pop = document.getElementById("searchPop");
+  const input = document.getElementById("globalSearch");
+  if(pop) pop.style.display = "none";
+  if(input) input.setAttribute("aria-expanded","false");
+  searchSel = 0;
+}
+
+(function wireSearch(){
+  const input = document.getElementById("globalSearch");
+  if(!input) return;
+  input.addEventListener("input", ()=>{ searchSel = 0; paintSearchPop(); });
+  input.addEventListener("focus", paintSearchPop);
+  input.addEventListener("keydown", e=>{
+    const hits = searchMatches(input.value);
+    if(e.key === "ArrowDown"){ e.preventDefault(); searchSel = Math.min(searchSel+1, hits.length-1); paintSearchPop(); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); searchSel = Math.max(searchSel-1, 0); paintSearchPop(); }
+    else if(e.key === "Enter"){ e.preventDefault(); runSearchHit(searchSel); }
+    else if(e.key === "Escape"){ input.value = ""; closeSearchPop(); input.blur(); }
+  });
+  document.addEventListener("click", e=>{
+    if(!e.target.closest(".search-wrap")) closeSearchPop();
+  });
+  // ⌘K / Ctrl-K is the shortcut everyone now expects from a search field.
+  document.addEventListener("keydown", e=>{
+    if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k"){
+      e.preventDefault();
+      input.focus();
+      input.select();
+    }
+  });
+})();
+
+/* ---------- the account cluster ---------- */
+function greetingName(){
+  if(typeof AUTH === "object" && AUTH && AUTH.profile){
+    const n = (AUTH.profile.full_name || AUTH.profile.email || "").trim();
+    if(n) return n.split(/[\s@]+/)[0];
+  }
+  return "candidate";
+}
+
+// Called on boot and whenever the account state changes.
+function refreshGreeting(){
+  const name = greetingName();
+  const hello = document.getElementById("acctHello");
+  const initial = document.getElementById("acctInitial");
+  const sub = document.getElementById("acctSub");
+  if(hello) hello.textContent = `Hello, ${name.charAt(0).toUpperCase()}${name.slice(1)}`;
+  if(initial) initial.textContent = name.charAt(0).toUpperCase();
+  if(sub) sub.textContent = GREETING_SUBS[Math.floor(Date.now()/86400000) % GREETING_SUBS.length];
+  // The rail's quote moves with the day too, one step out of phase with the hero's.
+  const sq = document.getElementById("sideQuote");
+  if(sq) sq.textContent = `“${motivationFor(3)}”`;
+  const bell = document.getElementById("bellBtn");
+  if(bell){
+    const unread = (typeof unreadFeedbackCount === "function" && typeof isStudent === "function" && isStudent())
+      ? unreadFeedbackCount() : 0;
+    bell.innerHTML = `🔔${unread ? `<span class="dot count">${unread}</span>` : `<span class="dot" style="display:none;"></span>`}`;
+    bell.title = unread ? `${unread} unread message${unread===1?"":"s"} from your teacher` : "Messages from your teacher";
+  }
+}
+
+function toggleAcctMenu(force){
+  const menu = document.getElementById("acctMenu");
+  const btn = document.getElementById("acctBtn");
+  if(!menu) return;
+  const open = force != null ? force : menu.style.display === "none";
+  menu.style.display = open ? "" : "none";
+  if(btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+(function wireAccountCluster(){
+  const btn = document.getElementById("acctBtn");
+  if(btn){
+    btn.addEventListener("click", e=>{ e.stopPropagation(); toggleAcctMenu(); });
+  }
+  document.addEventListener("click", e=>{
+    if(!e.target.closest(".acct-cluster")) toggleAcctMenu(false);
+    // Any menu action closes the menu behind it.
+    if(e.target.closest("#acctMenu .btn")) toggleAcctMenu(false);
+  });
+  const bell = document.getElementById("bellBtn");
+  if(bell){
+    bell.addEventListener("click", ()=>{
+      setModule("dashboard");
+      // The teacher's messages render at the foot of Home.
+      setTimeout(()=>{
+        const inbox = document.querySelector(".fb-inbox");
+        if(inbox) inbox.scrollIntoView({ behavior:"smooth", block:"center" });
+        else alert("No messages from your teacher yet. Sign in as a student to receive feedback here.");
+      }, 220);
+    });
+  }
+})();
+
+/* ---------- About / Help / Contact ---------- */
+const INFO_CONTENT = {
+  about: {
+    title:"About this simulator",
+    body:`<p>An IELTS Academic mock examination built as a single page: four papers on their official clocks, marked against the published band descriptors, with the examiner's feedback quoted back against your own words.</p>
+      <h4>What it is</h4>
+      <p>Original practice material in the official Academic format — Listening, Reading, Writing and Speaking — plus a generator that writes fresh tests on any topic. Your work stays in this browser unless you sign in to share it with a teacher.</p>
+      <h4>What it is not</h4>
+      <p>Band scores here are AI estimates against the public descriptors. They are a study aid and a good guide to where you stand, not an official result: only a real test centre can award that.</p>`
+  },
+  help: {
+    title:"Help & resources",
+    body:`<p><b>Start here.</b> Open <b>Full Mock Test</b> and work through the four papers in order, or pick a single paper from the rail on the left.</p>
+      <h4>Getting marked</h4>
+      <p>Writing and Speaking need a Gemini API key — add it under the account menu → <b>AI engine</b>. Listening and Reading mark themselves against the answer key, with no key needed.</p>
+      <h4>The clocks</h4>
+      <p>Writing runs 60:00 (20 for Task 1, 40 for Task 2), Reading 60:00, and Listening for the length of the audio you attach. At 00:00 your answers lock for marking — press <b>Reset</b> on the clock to keep practising.</p>
+      <h4>Templates, vocabulary and strategy</h4>
+      <p><b>Band descriptors</b> holds the full official criteria the marking applies. Every Writing and Speaking report offers your own answer rewritten at each band from 5.0 to 9.0 — the fastest way to see what the next half-band actually sounds like. The 🌐 <b>Language desk</b> on each paper gives translations, verb tables and register-ranked alternatives.</p>`
+  },
+  contact: {
+    title:"Contact",
+    body:`<p>This simulator is used with <b>Teacher Esteban Yepes</b>' IELTS classes.</p>
+      <h4>If you are a student</h4>
+      <p>Sign in from the account menu with the class code your teacher gave you. Your bands then sync to their roster, and any feedback they write appears on your Home page and under the 🔔 bell.</p>
+      <h4>If you are a teacher</h4>
+      <p>Sign in as a teacher to see <b>My class</b>: every student's bands, their submitted work, and a box to write feedback against any submission.</p>
+      <h4>Something broken?</h4>
+      <p>Export a session snapshot (account menu → <b>Session</b>) and send it on with a note about what you were doing — it carries your answers and the reports, which is usually enough to reproduce the problem.</p>`
+  }
+};
+
+function openInfoModal(which){
+  const c = INFO_CONTENT[which] || INFO_CONTENT.about;
+  let overlay = document.getElementById("infoOverlay");
+  if(!overlay){
+    overlay = document.createElement("div");
+    overlay.id = "infoOverlay";
+    overlay.className = "settings-overlay";
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", e=>{ if(e.target === overlay) overlay.style.display = "none"; });
+  }
+  overlay.innerHTML = `
+    <div class="settings-modal info-modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:12px;">
+        <h3 style="font-family:'Fraunces',serif;margin:0;font-size:19px;">${escapeHtml(c.title)}</h3>
+        <button class="btn ghost small" data-close-info="1">Close</button>
+      </div>
+      ${c.body}
+      <p style="font-size:11.5px;color:var(--slate);margin:18px 0 0;font-style:italic;">“${escapeHtml(motivationFor(1))}”</p>
+    </div>`;
+  overlay.style.display = "flex";
+  overlay.querySelector("[data-close-info]").addEventListener("click", ()=>{ overlay.style.display = "none"; });
+}
+
+document.addEventListener("click", e=>{
+  const t = e.target.closest("[data-info]");
+  if(t) openInfoModal(t.dataset.info);
+});
+
+/* ---------- liquid glass: the ripple follows the pointer ---------- */
+document.addEventListener("pointerdown", e=>{
+  const btn = e.target.closest(".btn");
+  if(!btn || btn.disabled) return;
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r = btn.getBoundingClientRect();
+  const ripple = document.createElement("span");
+  ripple.className = "glass-ripple";
+  ripple.style.setProperty("--rx", (e.clientX - r.left) + "px");
+  ripple.style.setProperty("--ry", (e.clientY - r.top) + "px");
+  btn.appendChild(ripple);
+  setTimeout(()=>ripple.remove(), 600);
+});
+
 document.getElementById("candNo").textContent = "SM-"+state.candNo;
 document.getElementById("testDate").textContent = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 
@@ -4442,7 +5680,9 @@ document.getElementById("tabs").addEventListener("click", (e)=>{
 function setModule(mod){
   state.mod = mod;
   document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.mod===mod));
-  const labels = {dashboard:"Dashboard", listening:"Listening", reading:"Reading", writing:"Writing", speaking:"Speaking", class:"My class", descriptors:"Band descriptors"};
+  const labels = {dashboard:"Home", listening:"Listening", reading:"Reading", writing:"Writing",
+                  speaking:"Speaking", mock:"Full mock test", progress:"Progress",
+                  class:"My class", descriptors:"Band descriptors"};
   document.getElementById("modLabel").textContent = labels[mod] || mod;
   render();
   window.scrollTo({top:0, behavior:"smooth"});
@@ -4750,7 +5990,9 @@ function render(){
   // Leaving a paper stops its clock; only the module on screen is being sat.
   pauseTimersOutside(state.mod, state.mod === "writing" ? activeTimerKey("writing") : null);
   if(state.mod==="class") return renderClassDashboard();
-  if(state.mod==="dashboard") return renderDashboard();
+  if(state.mod==="dashboard") return renderHome();
+  if(state.mod==="mock") return renderMockTest();
+  if(state.mod==="progress") return renderProgress();
   if(state.mod==="listening") return renderListening();
   if(state.mod==="reading") return renderReading();
   if(state.mod==="writing") return renderWriting();
@@ -4805,7 +6047,8 @@ function addMobileGeneratorShortcut(mod){
    ========================================================================= */
 
 const sOverlay = document.getElementById("settingsOverlay");
-document.getElementById("settingsBtn").addEventListener("click", ()=>sOverlay.style.display="flex");
+function openSettings(){ sOverlay.style.display = "flex"; }
+document.getElementById("settingsBtn").addEventListener("click", openSettings);
 document.getElementById("closeSettings").addEventListener("click", ()=>sOverlay.style.display="none");
 document.getElementById("saveSettings").addEventListener("click", async ()=>{
   state.settings.geminiKey = document.getElementById("geminiKeyInput").value.trim();
@@ -4856,10 +6099,11 @@ document.getElementById("clearSettings").addEventListener("click", async ()=>{
    ========================================================================= */
 
 const sessionOverlay = document.getElementById("sessionOverlay");
-document.getElementById("sessionBtn").addEventListener("click", ()=>{
+function openSessionPanel(){
   sessionOverlay.style.display = "flex";
   renderSessionList();
-});
+}
+document.getElementById("sessionBtn").addEventListener("click", openSessionPanel);
 document.getElementById("closeSession").addEventListener("click", ()=>sessionOverlay.style.display="none");
 document.getElementById("exportSessionBtn").addEventListener("click", exportSessionToFile);
 document.getElementById("importSessionInput").addEventListener("change", (e)=>{
@@ -4900,10 +6144,11 @@ function collectSessionData(){
     },
     speaking: {
       part: state.speaking.part,
+      activeQ: state.speaking.activeQ || {part1:0, part3:0},
       transcripts: state.speaking.transcripts,
       metrics: state.speaking.metrics,
-      report: state.speaking.report,
       reports: state.speaking.reports || {},
+      answers: state.speaking.answers || {},
       language: state.speaking.language || {},
       hesitation: state.speaking.hesitation || {},
       bandVersions: state.speaking.bandVersions || {},
@@ -4961,14 +6206,19 @@ function applySessionData(data){
     state.speaking.part = data.speaking.part || "part1";
     state.speaking.transcripts = data.speaking.transcripts || {};
     state.speaking.metrics = data.speaking.metrics || {};
-    state.speaking.report = data.speaking.report || null;
     state.speaking.reports = data.speaking.reports || {};
+    state.speaking.answers = data.speaking.answers || {};
+    state.speaking.activeQ = data.speaking.activeQ || {part1:0, part3:0};
     state.speaking.language = data.speaking.language || {};
+    state.speaking.detector = {};          // rebuilt locally from the transcripts
     state.speaking.hesitation = data.speaking.hesitation || {};
     state.speaking.bandVersions = data.speaking.bandVersions || {};
     if(data.speaking.questions && data.speaking.questions.part1 && data.speaking.questions.part2 && data.speaking.questions.part3){
       SPEAKING = data.speaking.questions;
     }
+    // A session saved before Parts 1 and 3 were recorded question by question
+    // holds one transcript per part; it is moved onto the first question.
+    migrateSpeakingSlots();
   }
   if(data.translator){
     if(data.translator.from) state.translator.from = data.translator.from;
@@ -5107,6 +6357,343 @@ async function renderSessionList(){
    ========================================================================= */
 
 let radarChart=null, barChart=null;
+/* =========================================================================
+   HOME
+   -------------------------------------------------------------------------
+   Built to the supplied page template — hero, four skill cards, then
+   progress / recent activity / quick links — in the app's own palette, with
+   the artwork drawn as inline SVG because this app ships as a single file
+   with no remote images.
+   ========================================================================= */
+
+// The motivational lines from the template. The hero rotates through them so
+// the page does not read the same every morning; the sidebar keeps its own.
+// Short lines for the greeting under the candidate's name.
+const GREETING_SUBS = [
+  "Keep going!", "One paper at a time.", "Today counts.", "Steady progress.",
+  "You're closer than you think.", "Small steps, every day."
+];
+
+const MOTIVATION = [
+  "A little progress every day adds up to big results.",
+  "Discipline today, opportunities tomorrow.",
+  "Practice today. A brighter tomorrow.",
+  "Small steps, taken daily, beat big plans taken never.",
+  "Every answer you record is a band you are building.",
+  "Fluency is not a talent. It is a habit with a start date."
+];
+
+function motivationFor(offset){
+  // Keyed to the day so it is stable within a session but moves on tomorrow.
+  const day = Math.floor(Date.now() / 86400000);
+  return MOTIVATION[(day + (offset||0)) % MOTIVATION.length];
+}
+
+const SKILL_CARDS = [
+  { mod:"listening", icon:"🎧", title:"Listening", copy:"Practice with real IELTS listening tests.",
+    bg:"linear-gradient(180deg,#eef4fb,#e6eef8)", tint:"#dbe8f7", ink:"#3567a6" },
+  { mod:"reading", icon:"📖", title:"Reading", copy:"Build your reading skills with authentic questions.",
+    bg:"linear-gradient(180deg,#eef7f2,#e5f1ea)", tint:"#d8ece1", ink:"#2f6f62" },
+  { mod:"writing", icon:"✍️", title:"Writing", copy:"Get feedback and improve your writing.",
+    bg:"linear-gradient(180deg,#fdf3ea,#faeade)", tint:"#f7e3cd", ink:"#b1671f" },
+  { mod:"speaking", icon:"🎙", title:"Speaking", copy:"Practice speaking with timed tasks and tips.",
+    bg:"linear-gradient(180deg,#f3eff9,#ece5f5)", tint:"#e5dcf3", ink:"#5b4b8a" }
+];
+
+// A drawn version of the template's mountain-and-lake photograph.
+function heroArtSVG(){
+  return `
+    <svg viewBox="0 0 520 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="hAir" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f7f4ec"/><stop offset="1" stop-color="#e7e0cd"/>
+        </linearGradient>
+        <linearGradient id="hFar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#c9d3df"/><stop offset="1" stop-color="#e3e6e2"/>
+        </linearGradient>
+        <linearGradient id="hMid" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#9fb0c4"/><stop offset="1" stop-color="#c6cfd6"/>
+        </linearGradient>
+        <linearGradient id="hNear" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#6f8296"/><stop offset="1" stop-color="#93a4b3"/>
+        </linearGradient>
+        <linearGradient id="hLake" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#dfe6e8"/><stop offset="1" stop-color="#eceadd"/>
+        </linearGradient>
+      </defs>
+      <rect width="520" height="300" fill="url(#hAir)"/>
+      <path d="M0 150 L70 96 L118 132 L170 78 L232 148 L288 104 L350 152 L410 118 L470 160 L520 130 L520 210 L0 210 Z" fill="url(#hFar)"/>
+      <path d="M120 132 L170 78 L200 112 L176 118 L158 106 Z" fill="#fdfdfb" opacity=".85"/>
+      <path d="M262 126 L288 104 L312 130 L292 132 L278 122 Z" fill="#fdfdfb" opacity=".7"/>
+      <path d="M0 176 L58 130 L112 164 L168 120 L226 176 L286 140 L344 182 L404 150 L460 186 L520 158 L520 212 L0 212 Z" fill="url(#hMid)" opacity=".95"/>
+      <path d="M0 200 L74 164 L140 194 L206 160 L272 198 L340 172 L404 202 L470 180 L520 202 L520 214 L0 214 Z" fill="url(#hNear)" opacity=".9"/>
+      <rect y="210" width="520" height="90" fill="url(#hLake)"/>
+      <path d="M0 210 L74 244 L140 216 L206 248 L272 214 L340 240 L404 212 L470 234 L520 214 L520 210 Z" fill="#b9c4cd" opacity=".35"/>
+      <g stroke="#ffffff" stroke-opacity=".5" stroke-width="1.4">
+        <path d="M40 232 H120"/><path d="M210 252 H320"/><path d="M360 240 H450"/><path d="M90 266 H240"/>
+      </g>
+    </svg>`;
+}
+
+function overallBandNow(){
+  const vals = ["listening","reading","writing","speaking"]
+    .map(m=>state.scores[m]).filter(v=>v !== null && isFinite(v));
+  if(!vals.length) return null;
+  return officialRound(vals.reduce((a,b)=>a+b,0) / vals.length);
+}
+
+const ACTIVITY_META = {
+  listening:{ icon:"🎧", label:"Listening test" },
+  reading:{ icon:"📖", label:"Reading test" },
+  writing:{ icon:"✍️", label:"Writing task" },
+  speaking:{ icon:"🎙", label:"Speaking" }
+};
+
+function relativeWhen(iso){
+  const then = new Date(iso).getTime();
+  if(!isFinite(then)) return "";
+  const days = Math.floor((Date.now() - then) / 86400000);
+  if(days <= 0) return "today";
+  if(days === 1) return "yesterday";
+  if(days < 7) return `${days} days ago`;
+  const weeks = Math.floor(days/7);
+  if(weeks === 1) return "1 week ago";
+  if(weeks < 5) return `${weeks} weeks ago`;
+  return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+}
+
+function renderHome(){
+  const overall = overallBandNow();
+  const done = ["listening","reading","writing","speaking"].filter(m=>state.scores[m] !== null).length;
+
+  panel.innerHTML = `
+    <section class="home-hero">
+      <div class="hero-copy">
+        <p class="hero-eyebrow">Practice • Improve • Succeed</p>
+        <h2 class="hero-title">Your IELTS goal<br>is closer than you think.</h2>
+        <p class="hero-sub">Real practice. Real progress. Real results.</p>
+        <button class="btn coral hero-cta" data-go-mock="1">Start a Full Mock Test <span class="arrow">→</span></button>
+      </div>
+      <div class="hero-art">
+        ${heroArtSVG()}
+        <div class="hero-script" aria-hidden="true"><b>Same</b><i>Higher</i><i>Further</i><u></u></div>
+      </div>
+      <div class="hero-quote">
+        <p id="heroQuote">“${escapeHtml(motivationFor(0))}”</p>
+        <span class="hq-rule"></span>
+      </div>
+    </section>
+
+    <div class="home-skills">
+      ${SKILL_CARDS.map(c=>{
+        const b = state.scores[c.mod];
+        return `
+          <button class="hs-card" data-mod="${c.mod}"
+                  style="--hs-bg:${c.bg};--hs-tint:${c.tint};--hs-ink:${c.ink};">
+            <span class="hs-icon">${c.icon}</span>
+            <h3>${c.title}</h3>
+            <p>${c.copy}</p>
+            <span class="hs-foot">
+              <span class="hs-band">${b !== null ? fmtBand(b) : "—"}${b !== null ? `<span>${bandToCEFR(b)}</span>` : `<span>not taken</span>`}</span>
+              <span class="hs-go">→</span>
+            </span>
+          </button>`;
+      }).join("")}
+    </div>
+
+    <div class="home-panels">
+      <div class="hp">
+        <div class="hp-head">
+          <span class="hp-ico">📊</span><b>Your Progress</b>
+          <span class="hp-ring">
+            <span class="hr-lbl">Overall<br>Band</span>
+            <span class="band-ring" style="--pct:${overall !== null ? Math.round((overall/9)*100) : 0};"><b>${overall !== null ? fmtBand(overall) : "—"}</b></span>
+          </span>
+        </div>
+        <p class="hp-sub">Track your performance over time${done ? ` — ${done} of 4 papers scored` : " — no papers scored yet"}.</p>
+        <div class="chart-canvas" style="height:210px;"><canvas id="homeTrendCanvas"></canvas></div>
+      </div>
+
+      <div class="hp">
+        <div class="hp-head">
+          <span class="hp-ico">🕒</span><b>Recent Activity</b>
+          <button class="hp-link" data-mod="progress">See all</button>
+        </div>
+        ${state.history.length ? `
+          <ul class="act-list">
+            ${state.history.slice(0,4).map(h=>{
+              const meta = ACTIVITY_META[h.module] || { icon:"•", label:h.module };
+              return `
+                <li>
+                  <span class="act-ico">${meta.icon}</span>
+                  <span class="act-txt"><b>${meta.label}</b><span>Score: ${fmtBand(h.band)}</span></span>
+                  <span class="act-when">${relativeWhen(h.date)}</span>
+                </li>`;
+            }).join("")}
+          </ul>` : `<p class="act-empty">Nothing yet. Finish a paper and it will appear here with its band and the date you took it.</p>`}
+      </div>
+
+      <div class="hp">
+        <div class="hp-head"><span class="hp-ico">⚡</span><b>Quick Links</b></div>
+        <div class="ql-grid">
+          <button class="ql-tile" data-mod="mock"><span class="ql-ico">📋</span><b>Full Mock Test</b><span>Simulate the real exam</span></button>
+          <button class="ql-tile" data-mod="progress"><span class="ql-ico">📈</span><b>View Statistics</b><span>See your progress</span></button>
+          <button class="ql-tile" data-mod="descriptors"><span class="ql-ico">💡</span><b>Tips &amp; Strategies</b><span>How the marking works</span></button>
+          <button class="ql-tile" data-info="help"><span class="ql-ico">⭐</span><b>Useful Resources</b><span>Templates, vocabulary and more</span></button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  panel.querySelectorAll("[data-mod]").forEach(b=>b.addEventListener("click", ()=>setModule(b.dataset.mod)));
+  panel.querySelectorAll("[data-go-mock]").forEach(b=>b.addEventListener("click", ()=>setModule("mock")));
+  try{ drawHomeTrend(); }catch(e){ console.error("home trend failed to draw", e); }
+  renderFeedbackInbox();
+}
+
+/* The band trend on Home. Same data as the Progress page's bar chart, drawn as
+   the template's rising line. */
+let homeTrendChart = null;
+
+/* Chart.js comes from a CDN. When it is missing the panel would be an empty
+   box, so the same points are drawn as a plain inline SVG instead — no
+   library, no tooltips, but the shape of the progress is there. */
+function homeTrendFallback(){
+  const host = document.getElementById("homeTrendCanvas");
+  if(!host || !host.parentElement) return;
+  const rows = state.history.slice(0,8).reverse();
+  const box = host.parentElement;
+  if(!rows.length){
+    box.style.height = "auto";
+    box.innerHTML = `<p class="act-empty">No bands recorded yet — your trend line appears here after your first marked paper.</p>`;
+    return;
+  }
+  const W = 320, H = 150, pad = 26;
+  const lo = 4, hi = 9;
+  const x = i => pad + (rows.length === 1 ? (W - pad*2)/2 : (i * (W - pad*2)) / (rows.length - 1));
+  const y = v => H - pad - ((Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo)) * (H - pad*2);
+  const pts = rows.map((h,i)=>`${x(i).toFixed(1)},${y(Number(h.band)).toFixed(1)}`);
+  const grid = [4,5,6,7,8,9].map(v=>
+    `<line x1="${pad}" y1="${y(v).toFixed(1)}" x2="${W-pad}" y2="${y(v).toFixed(1)}" stroke="rgba(19,27,46,.08)"/>
+     <text x="4" y="${(y(v)+3.5).toFixed(1)}" font-size="8" fill="#98a0b0" font-family="monospace">${v}</text>`).join("");
+  box.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;" role="img"
+         aria-label="Band trend across your ${rows.length} most recent marked papers">
+      ${grid}
+      <polyline points="${pts.join(" ")}" fill="none" stroke="#3567a6" stroke-width="2.5"
+                stroke-linejoin="round" stroke-linecap="round"/>
+      <polygon points="${pts.join(" ")} ${x(rows.length-1).toFixed(1)},${H-pad} ${x(0).toFixed(1)},${H-pad}"
+               fill="rgba(53,103,166,.14)"/>
+      ${rows.map((h,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(Number(h.band)).toFixed(1)}" r="3.4"
+               fill="#3567a6" stroke="#fff" stroke-width="1.6"/>`).join("")}
+      ${rows.map((h,i)=>`<text x="${x(i).toFixed(1)}" y="${H-8}" font-size="8" fill="#98a0b0"
+               text-anchor="middle" font-family="monospace">${new Date(h.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</text>`).join("")}
+    </svg>`;
+}
+
+function drawHomeTrend(){
+  const el = document.getElementById("homeTrendCanvas");
+  if(!el) return;
+  if(typeof Chart === "undefined"){ homeTrendFallback(); return; }
+  if(homeTrendChart){ homeTrendChart.destroy(); homeTrendChart = null; }
+  const rows = state.history.slice(0,8).reverse();
+  if(!rows.length){ homeTrendFallback(); return; }
+  const labels = rows.map(h=>new Date(h.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}));
+  const data = rows.map(h=>Number(h.band));
+  homeTrendChart = new Chart(el, {
+    type:"line",
+    data:{ labels, datasets:[{
+      data, borderColor:"#3567a6", backgroundColor:"rgba(53,103,166,.14)",
+      borderWidth:2.5, tension:.35, fill:true, pointRadius:4,
+      pointBackgroundColor:"#3567a6", pointBorderColor:"#fff", pointBorderWidth:2
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => "Band " + Number(c.raw).toFixed(1) } } },
+      scales:{
+        y:{ min:4, max:9, ticks:{ stepSize:1, color:"#98a0b0", font:{size:10.5} },
+            grid:{ color:"rgba(19,27,46,.07)" } },
+        x:{ ticks:{ color:"#98a0b0", font:{size:10.5}, maxRotation:0 }, grid:{ display:false } }
+      },
+      animation:{ duration:700, easing:"easeOutQuart" }
+    }
+  });
+}
+
+/* =========================================================================
+   FULL MOCK TEST
+   The hero's promise, made real: the four papers in exam order, each with its
+   official timing, tracked to the band it earned. It sequences what the app
+   already has rather than adding a parallel test engine — "continue" opens the
+   next paper that has no band yet, with its clock ready to start.
+   ========================================================================= */
+const MOCK_ORDER = [
+  { mod:"listening", label:"Listening", time:"≈30 minutes", note:"Four sections, 40 questions, timed by the audio you attach." },
+  { mod:"reading",   label:"Reading",   time:"60 minutes", note:"Four passages, 40 questions, no extra transfer time." },
+  { mod:"writing",   label:"Writing",   time:"60 minutes", note:"Task 1 in 20 minutes, Task 2 in 40." },
+  { mod:"speaking",  label:"Speaking",  time:"11–14 minutes", note:"Part 1 and Part 3 question by question, Part 2 as one long turn." }
+];
+
+function nextMockPaper(){
+  const pending = MOCK_ORDER.find(p => state.scores[p.mod] === null);
+  return pending ? pending.mod : null;
+}
+
+function renderMockTest(){
+  const nextMod = nextMockPaper();
+  const doneCount = MOCK_ORDER.filter(p=>state.scores[p.mod] !== null).length;
+  const overall = overallBandNow();
+
+  panel.innerHTML = `
+    <p class="section-title">Full mock test</p>
+    <p class="section-sub">The four papers in exam order, each on its official clock. Sit them in one session for a realistic result, or pick up wherever you left off — a paper counts as done once it has a band.</p>
+
+    <div class="mock-bar" style="max-width:420px;"><i style="width:${(doneCount/4)*100}%;"></i></div>
+    <p style="font-size:12.5px;color:var(--slate);margin:8px 0 0;">${doneCount} of 4 papers complete${overall !== null ? ` · overall band so far <b style="color:var(--ink);">${fmtBand(overall)}</b>` : ""}</p>
+
+    <div class="mock-grid">
+      ${MOCK_ORDER.map((p,i)=>{
+        const band = state.scores[p.mod];
+        const isNext = p.mod === nextMod;
+        return `
+          <div class="mock-card ${band !== null ? "done" : ""} ${isNext ? "next" : ""}">
+            <span class="mock-step">Paper ${i+1} of 4${isNext ? " · next" : ""}</span>
+            <h4>${p.label}</h4>
+            <span class="mc-time">${p.time}</span>
+            <p style="font-size:12.5px;color:var(--slate);line-height:1.55;margin:0;">${p.note}</p>
+            ${band !== null
+              ? `<span class="mc-band">${fmtBand(band)} <span style="font-size:12px;color:var(--slate);">band</span></span>
+                 <span class="mc-state">✓ complete</span>`
+              : `<span class="mc-state" style="color:var(--slate);">Not attempted yet</span>`}
+            <button class="btn ${isNext ? "brass" : "ghost"} small" data-mod="${p.mod}" style="margin-top:8px;">
+              ${band !== null ? "Retake this paper" : (isNext ? "Start this paper →" : "Open")}
+            </button>
+          </div>`;
+      }).join("")}
+    </div>
+
+    ${nextMod
+      ? `<button class="btn coral" data-mod="${nextMod}">Continue the mock test — ${MOCK_ORDER.find(p=>p.mod===nextMod).label} →</button>`
+      : `<div class="hint-box"><b>All four papers are done.</b> Your overall band is ${fmtBand(overall)}. Open <b>Progress</b> for the full breakdown, or retake any paper above to improve it.</div>`}
+
+    <hr class="rule">
+    <p style="font-size:12.5px;color:var(--slate);line-height:1.7;">
+      On exam day the four papers are sat back to back — Listening, Reading and Writing in one sitting, Speaking on the same day or within seven days.
+      Each paper here carries the clock from the real thing, and at 00:00 your answers are locked for marking, so a practice run tells you what a real one would.
+    </p>
+  `;
+  panel.querySelectorAll("[data-mod]").forEach(b=>b.addEventListener("click", ()=>setModule(b.dataset.mod)));
+}
+
+/* =========================================================================
+   PROGRESS
+   The analytics that used to sit on the dashboard, now that Home is a
+   launcher: the seal, the per-skill cards, both charts and the full history.
+   ========================================================================= */
+function renderProgress(){
+  renderDashboard();
+}
+
 function renderDashboard(){
   panel.innerHTML = `
     <div class="dash-grid">
@@ -5175,7 +6762,10 @@ function renderDashboard(){
   `;
 
   panel.querySelectorAll("[data-mod]").forEach(b=>b.addEventListener("click", ()=>setModule(b.dataset.mod)));
-  drawDashCharts();
+  // The charts come from a CDN. When that script is blocked the draw throws,
+  // and because importing a session ends in render(), the throw used to abort
+  // the import itself. The numbers above the charts are the real content.
+  try{ drawDashCharts(); }catch(e){ console.error("dashboard charts failed to draw", e); }
   renderFeedbackInbox();
 }
 
@@ -8183,13 +9773,15 @@ Return ONLY raw JSON, no markdown, no commentary.`;
       alert("✨ Success! A new Speaking question set has been generated for all three parts.");
       state.speaking.transcripts = {};
       state.speaking.metrics = {};
-      state.speaking.report = null;
       state.speaking.reports = {};
       state.speaking.audioB64 = {};
       state.speaking.audioMime = {};
       state.speaking.language = {};
+      state.speaking.detector = {};
       state.speaking.hesitation = {};
       state.speaking.bandVersions = {};
+      state.speaking.answers = {};
+      state.speaking.activeQ = {part1:0, part3:0};
       renderSpeaking();
     } else {
       throw new Error("Missing required structure layers (part1/part2/part3).");
@@ -8208,21 +9800,51 @@ function renderSpeakingPart(part){
   const S = state.speaking;
   const body = document.getElementById("speakingBody");
   const data = SPEAKING[part];
-  const transcript = S.transcripts[part] || "";
-  let promptHtml = "";
+  const perQ = speakingIsPerQuestion(part);
+  const questions = speakingQuestions(part);
+  const qi = speakingActiveQ(part);
+  const slot = speakingSlot(part, qi);
+  const transcript = S.transcripts[slot] || "";
+  const geminiOn = !!state.settings.geminiKey;
+  const marked = !!S.answers[slot];
 
-  if(part==="part1" || part==="part3"){
-    promptHtml = `<div class="prompt-card"><span class="task-tag">${data.title}</span><p style="margin:0 0 8px;color:var(--slate);font-size:13px;">${data.note}</p> <ol style="padding-left:18px;line-height:2;">${data.questions.map(q=>`<li>${q}</li>`).join("")}</ol></div>`;
+  let promptHtml = "";
+  if(perQ){
+    // The whole list stays visible for context — a real interview is a
+    // sequence, and Part 3 questions build on each other — with the question
+    // being answered right now marked in it.
+    promptHtml = `<div class="prompt-card"><span class="task-tag">${data.title}</span>
+      <p style="margin:0 0 8px;color:var(--slate);font-size:13px;">${data.note}</p>
+      <ol style="padding-left:18px;line-height:2;">${questions.map((q,i)=>
+        `<li${i===qi ? ' style="font-weight:600;color:var(--ink);"' : ' style="opacity:.72;"'}>${q}</li>`).join("")}</ol></div>`;
   } else {
-    promptHtml = `<div class="prompt-card"><span class="task-tag">${data.title}</span><p style="margin:0 0 10px;color:var(--slate);font-size:13px;">${data.note}</p> <div class="cue-card"><b>${data.cue.title}</b><ul>${data.cue.points.map(p=>`<li>${p}</li>`).join("")}</ul></div></div>`;
+    promptHtml = `<div class="prompt-card"><span class="task-tag">${data.title}</span><p style="margin:0 0 10px;color:var(--slate);font-size:13px;">${data.note}</p> <div class="cue-card"><b>${data.cue.title}</b><ul>${data.cue.points.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>`;
   }
 
-  const geminiOn = !!state.settings.geminiKey;
+  const stripHtml = perQ ? `
+    <div class="qstrip" id="qstrip">
+      ${questions.map((q,i)=>`
+        <button data-qi="${i}" class="${i===qi ? "active" : ""}" title="${escapeXml(q)}">
+          <span class="qdot"></span>Q${i+1}<span class="qband" style="display:none;"></span>
+        </button>`).join("")}
+    </div>
+    <p class="qstrip-hint">One recording per question, marked on its own — that is what a real Part ${part.slice(-1)} is. The part band is built from every answer you record.</p>
+    <div class="q-focus">
+      <span class="qf-lbl">Question ${qi+1} of ${questions.length}</span>
+      <p class="qf-text">${escapeHtml(questions[qi] || "")}</p>
+      <p class="qf-meta">${marked
+        ? `Marked at band ${fmtBand(S.answers[slot].overall_band)}. Re-record to mark it again.`
+        : (slotHasAnswer(slot) ? "Recorded — not marked yet." : "Not recorded yet.")}</p>
+    </div>` : "";
+
+  const answered = perQ ? speakingSlotsFor(part).filter(slotHasAnswer).length : 0;
+
   body.innerHTML = `
     <div style="margin-bottom:14px;">
       <span class="engine-badge ${geminiOn?'on':''}"><span class="engine-dot"></span> ${geminiOn ? "Gemini is listening to your real audio" : "Transcript-based scoring (add a Gemini key for real audio analysis)"}</span>
     </div>
     ${promptHtml}
+    ${stripHtml}
     <div class="rec-controls">
       <button class="btn coral small" id="recBtn"><span class="rec-dot" id="recDot"></span> Record live</button>
       <button class="btn ghost small" id="pauseBtn" disabled>Pause</button>
@@ -8231,27 +9853,29 @@ function renderSpeakingPart(part){
       <span class="mono" id="recTimer" style="font-size:13px;color:var(--slate);">00:00</span>
       <span class="rec-paused-tag" id="recPausedTag" style="display:none;">Paused</span>
       <div style="flex:1;"></div>
-      <button class="btn small" id="speakScoreBtn" ${S.loading?"disabled":""}>Evaluate Part</button>
+      ${perQ ? `<button class="btn small" id="speakAnswerBtn">Evaluate this answer</button>` : ""}
+      <button class="btn ${perQ ? "secondary" : ""} small" id="speakScoreBtn" ${S.loading?"disabled":""}>${
+        perQ ? `Evaluate all ${answered || ""} answer${answered===1?"":"s"}`.replace("  "," ") : "Evaluate Part 2"}</button>
     </div>
 
     <div class="upload-row">
-      <span style="font-size:12px;color:var(--slate);">Or upload pre-recorded audio file:</span>
+      <span style="font-size:12px;color:var(--slate);">Or upload pre-recorded audio ${perQ ? `for question ${qi+1}` : "file"}:</span>
       <input type="file" id="audioUpload" accept="audio/*" style="font-size:12px;color:var(--slate);">
     </div>
 
     <div id="audioPlayback"></div>
 
     <div style="margin-top:14px;">
-      <label style="font-size:12px;font-weight:600;color:var(--slate);display:block;margin-bottom:4px;">Speech Transcript Framework <span style="font-weight:400;">— fills in as you speak; you can also type or paste here</span></label>
+      <label style="font-size:12px;font-weight:600;color:var(--slate);display:block;margin-bottom:4px;">Speech Transcript Framework <span style="font-weight:400;">— ${perQ ? `your answer to question ${qi+1}; ` : ""}fills in as you speak, or type/paste here</span></label>
       <div class="transcript-box" id="transcriptDisplay" contenteditable="true" spellcheck="false" data-placeholder="(Your spoken text renders here while recording — or type/paste a transcript.)">${escapeXml(transcript)}</div>
     </div>
 
     <div class="metrics-row">
-      <div class="metric">Duration<b><span id="mDuration">${S.metrics[part]?.duration||"0"}</span>s</b></div>
-      <div class="metric">Words<b><span id="mWords">${S.metrics[part]?.words||"0"}</span></b></div>
-      <div class="metric">Pace<b><span id="mPace">${S.metrics[part]?.pace||"0"}</span> wpm</b></div>
-      <div class="metric">Fillers<b><span id="mFillers">${S.metrics[part]?.fillers ?? "0"}</span></b></div>
-      <div class="metric">Long pauses<b><span id="mPauses">${S.metrics[part]?.longPauses ?? "0"}</span></b></div>
+      <div class="metric">Duration<b><span id="mDuration">${S.metrics[slot]?.duration||"0"}</span>s</b></div>
+      <div class="metric">Words<b><span id="mWords">${S.metrics[slot]?.words||"0"}</span></b></div>
+      <div class="metric">Pace<b><span id="mPace">${S.metrics[slot]?.pace||"0"}</span> wpm</b></div>
+      <div class="metric">Fillers<b><span id="mFillers">${S.metrics[slot]?.fillers ?? "0"}</span></b></div>
+      <div class="metric">Long pauses<b><span id="mPauses">${S.metrics[slot]?.longPauses ?? "0"}</span></b></div>
     </div>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
@@ -8260,8 +9884,11 @@ function renderSpeakingPart(part){
     </div>
 
     <div id="hesitationArea"></div>
+    <div id="detectorArea"></div>
     <div id="speakLangArea"></div>
+    <div id="answerReportArea"></div>
     <div id="speakReportArea"></div>
+    <div id="partSynthArea"></div>
     <div id="speakBandVersionsArea"></div>
     ${rubricPanel("speaking")}
   `;
@@ -8270,23 +9897,44 @@ function renderSpeakingPart(part){
   document.getElementById("pauseBtn").addEventListener("click", togglePauseRecording);
   document.getElementById("stopBtn").addEventListener("click", stopRecording);
   document.getElementById("speakScoreBtn").addEventListener("click", ()=>scoreSpeaking(part));
-  document.getElementById("speakLangBtn").addEventListener("click", ()=>requestSpeakingLanguageCheck(part));
-  document.getElementById("hesitationBtn").addEventListener("click", ()=>runHesitationAnalysis(part));
+  const oneBtn = document.getElementById("speakAnswerBtn");
+  if(oneBtn) oneBtn.addEventListener("click", ()=>scoreOneSpeakingAnswer(slot));
+  document.getElementById("speakLangBtn").addEventListener("click", ()=>requestSpeakingLanguageCheck(slot));
+  document.getElementById("hesitationBtn").addEventListener("click", ()=>runHesitationAnalysis(slot));
+
+  // Switching question is switching recording: refuse it mid-take rather than
+  // writing one answer's audio over another's slot.
+  panel.querySelectorAll("#qstrip [data-qi]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      if(mediaRecorder && mediaRecorder.state !== "inactive"){
+        alert("Stop the current recording before moving to another question.");
+        return;
+      }
+      S.activeQ[part] = Number(btn.dataset.qi);
+      renderSpeakingPart(part);
+    });
+  });
 
   // Typed/pasted transcripts feed the same analysis as recorded speech, so the
   // tools still work in browsers without SpeechRecognition or with uploaded audio.
   const tBox = document.getElementById("transcriptDisplay");
   tBox.addEventListener("input", ()=>{
     const txt = tBox.textContent || "";
-    S.transcripts[part] = txt;
+    S.transcripts[slot] = txt;
     const words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
-    const m = S.metrics[part] || (S.metrics[part] = {});
+    const m = S.metrics[slot] || (S.metrics[slot] = {});
     m.words = words;
     m.fillers = countFillers(txt).total;
     const wEl = document.getElementById("mWords"); if(wEl) wEl.textContent = words;
     const fEl = document.getElementById("mFillers"); if(fEl) fEl.textContent = m.fillers;
+    // The local detector is cheap, so it re-runs as the transcript changes and
+    // the correction panel stays live even with no API key.
+    S.detector[slot] = analyseSpokenLanguage(txt);
+    const det = document.getElementById("detectorArea");
+    if(det) det.innerHTML = detectorHTML(slot);
+    refreshQuestionStrip(part);
   });
-  
+
   const fileInp = document.getElementById("audioUpload");
   fileInp.addEventListener("change", async (e)=>{
     const file = e.target.files[0];
@@ -8295,21 +9943,28 @@ function renderSpeakingPart(part){
     document.getElementById("audioPlayback").innerHTML = `<audio controls src="${url}" style="width:100%;margin-bottom:10px;"></audio>`;
     try{
       const b64 = await blobToBase64(file);
-      S.audioB64[S.part] = b64;
-      S.audioMime[S.part] = file.type || "audio/mpeg";
+      S.audioB64[slot] = b64;
+      S.audioMime[slot] = file.type || "audio/mpeg";
+      refreshQuestionStrip(part);
     }catch(err){
       console.error(err);
     }
   });
 
-  if(S.hesitation && S.hesitation[part]) showHesitation(part);
-  if(S.language && S.language[part]) showSpeakingLanguage(part);
-  if(S.report && S.report.part === part) showSpeakingReport(S.report.data, geminiOn);
+  if(S.hesitation && S.hesitation[slot]) showHesitation(slot);
+  if(S.language && S.language[slot]) showSpeakingLanguage(slot);
+  renderSpeakingFeedback(part);
+  renderSpeakingBandVersions(slot);
 }
 
 let recTimerInterval=null;
 function startRecording(){
   const S = state.speaking;
+  // The slot is fixed when recording starts, not read live: the question strip
+  // is locked during a take, and a stray re-render must not redirect the audio
+  // or the transcript into a different answer.
+  const slot = currentSpeakingSlot();
+  const part = S.part;
   navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
     mediaChunks = [];
     mediaRecorder = new MediaRecorder(stream);
@@ -8321,10 +9976,19 @@ function startRecording(){
       stream.getTracks().forEach(t=>t.stop());
       try{
         const b64 = await blobToBase64(blob);
-        state.speaking.audioB64[state.speaking.part] = b64;
-        state.speaking.audioMime[state.speaking.part] = "audio/webm";
+        state.speaking.audioB64[slot] = b64;
+        state.speaking.audioMime[slot] = "audio/webm";
       }catch(err){
         console.error(err);
+      }
+      // A new take invalidates whatever was marked or rewritten for this answer.
+      delete state.speaking.answers[slot];
+      delete state.speaking.language[slot];
+      if(state.speaking.bandVersions) delete state.speaking.bandVersions[slot];
+      state.speaking.detector[slot] = analyseSpokenLanguage(state.speaking.transcripts[slot] || "");
+      if(state.speaking.part === part){
+        if(speakingIsPerQuestion(part)) finishSpeakingPart(part);
+        renderSpeakingFeedback(part);
       }
     };
 
@@ -8384,8 +10048,9 @@ function startRecording(){
           else interim += e.results[i][0].transcript;
         }
         const full = finalTrans + interim;
-        document.getElementById("transcriptDisplay").textContent = full;
-        S.transcripts[S.part] = full;
+        const tEl = document.getElementById("transcriptDisplay");
+        if(tEl) tEl.textContent = full;
+        S.transcripts[slot] = full;
 
         const wCount = full.trim() ? full.trim().split(/\s+/).length : 0;
         const dSec = Math.max(1, Math.floor(recElapsedMs()/1000));
@@ -8399,13 +10064,13 @@ function startRecording(){
 
         const fillerCount = countFillers(full).total;
         const longPauses = speechPauses.filter(p=>p>=2).length;
-        document.getElementById("mWords").textContent = wCount;
-        document.getElementById("mDuration").textContent = dSec;
-        document.getElementById("mPace").textContent = pace;
+        const wEl2 = document.getElementById("mWords"); if(wEl2) wEl2.textContent = wCount;
+        const dEl2 = document.getElementById("mDuration"); if(dEl2) dEl2.textContent = dSec;
+        const pcEl = document.getElementById("mPace"); if(pcEl) pcEl.textContent = pace;
         const fEl = document.getElementById("mFillers"); if(fEl) fEl.textContent = fillerCount;
         const pEl = document.getElementById("mPauses"); if(pEl) pEl.textContent = longPauses;
 
-        S.metrics[S.part] = { words:wCount, duration:dSec, pace, speakingSec: Math.round(spanSec),
+        S.metrics[slot] = { words:wCount, duration:dSec, pace, speakingSec: Math.round(spanSec),
                               fillers: fillerCount, longPauses, pauses: speechPauses.slice() };
       };
       // Restarting a stopped recogniser on resume fires onend first; the flag
@@ -8480,7 +10145,8 @@ function stopRecording(){
   // Finalise metrics against the true speaking span (excludes trailing silence
   // between the last word and pressing Stop, and any time spent paused).
   const S = state.speaking;
-  const m = S.metrics[S.part];
+  const slot = currentSpeakingSlot();
+  const m = S.metrics[slot];
   if(m && speechFirstTs!==null && speechLastTs!==null){
     const spanSec = Math.max(1, speakingSpanMs()/1000);
     if(spanSec >= 5){
@@ -8492,76 +10158,251 @@ function stopRecording(){
   }
 }
 
+/* =========================================================================
+   PER-ANSWER MARKING AND PART AGGREGATION  (Parts 1 & 3)
+   ========================================================================= */
+
+const SPEAKING_CRIT_KEYS = ["fluency_coherence","lexical_resource","grammar","pronunciation"];
+const SPEAKING_CRIT_LABELS = {
+  fluency_coherence:"Fluency & Coherence",
+  lexical_resource:"Lexical Resource",
+  grammar:"Grammatical Range & Accuracy",
+  pronunciation:"Pronunciation"
+};
+
+// Corrections from the examiner and from the local detector are merged into one
+// list. The detector is precise about position and never misses its own rules;
+// the examiner catches everything a regex cannot. Duplicates are dropped by
+// comparing the quoted words, so a mistake both of them found is shown once.
+function mergedCorrections(slot){
+  const S = state.speaking;
+  const rep = S.answers[slot] || {};
+  const local = (S.detector[slot] || analyseSpokenLanguage(S.transcripts[slot] || "")).issues || [];
+  const out = [];
+  const keys = [];
+  const key = t => String(t||"").toLowerCase().replace(/[^a-z0-9']+/g," ").trim();
+  /* The two sources quote the same mistake at different widths — the examiner
+     says "I really enjoys it", the detector says "enjoys" — so an exact-string
+     check would count one error twice and report it as recurring. Containment
+     either way means it is the same finding, and the one already accepted wins. */
+  const isDuplicate = k => !!k && keys.some(prev => prev === k || prev.includes(k) || k.includes(prev));
+
+  (Array.isArray(rep.corrections) ? rep.corrections : []).forEach(c=>{
+    const k = key(c.original);
+    if(!k || isDuplicate(k)) return;
+    keys.push(k);
+    out.push({
+      original: c.original || "", correction: c.correction || "",
+      type: c.type || "other", explanation: c.explanation || "",
+      severity: /minor/i.test(c.severity || "") ? "minor" : "major", source: "ai"
+    });
+  });
+  local.forEach(i=>{
+    const k = key(i.text);
+    if(!k || isDuplicate(k)) return;
+    keys.push(k);
+    out.push({
+      original: i.text, correction: "", type: i.type, explanation: i.message,
+      severity: i.severity, source: "local"
+    });
+  });
+  return out;
+}
+
+/* Marks one answer. Everything the examiner is entitled to know is assembled
+   first: which part it is and what that part demands, the exact question, and
+   the delivery the app measured for this answer alone. */
+async function scoreSpeakingAnswer(slot, opts){
+  const o = opts || {};
+  const S = state.speaking;
+  const part = slot.split(":")[0];
+  const transcript = S.transcripts[slot] || "";
+  const hasAudio = !!(state.settings.geminiKey && S.audioB64[slot]);
+  if(!state.settings.geminiKey) throw new Error("Add a Gemini API key in ⚙ AI engine settings first.");
+  if(!hasAudio && !transcript.trim()) throw new Error("Record an answer (or type a transcript) for this question first.");
+
+  const question = speakingSlotPrompt(slot);
+  const qi = Number(slot.split(":")[1] || 0);
+  const total = speakingIsPerQuestion(part) ? speakingQuestions(part).length : 1;
+  const brief = [
+    SPEAKING_PART_BRIEF[part] || "",
+    speakingIsPerQuestion(part)
+      ? `THIS IS QUESTION ${qi+1} OF ${total} IN THIS PART, RECORDED ON ITS OWN. Mark only the answer to this question:\n"${question}"`
+      : `THE TASK THE CANDIDATE ANSWERED:\n${question}`,
+    (part === "part2" && SPEAKING.part2.cue && Array.isArray(SPEAKING.part2.cue.points))
+      ? `Cue card bullet points the talk was meant to cover:\n${SPEAKING.part2.cue.points.map(x=>"- "+x).join("\n")}`
+      : "",
+    speakingDeliveryEvidence(slot)
+  ].filter(Boolean).join("\n\n");
+
+  const user = hasAudio
+    ? `${brief}\n\nLive transcript captured by the browser (may be imperfect or missing — the audio is authoritative):\n${transcript || "(none)"}`
+    : `${brief}\n\nWHAT THE CANDIDATE SAID (transcript):\n${transcript}`;
+
+  const text = await callGemini(
+    speakingAnswerRubric(hasAudio), user,
+    hasAudio ? S.audioB64[slot] : null,
+    hasAudio ? S.audioMime[slot] : null
+  );
+  const json = normalizeAnnotations(normalizeExamJSON(parseJSON(text), SPEAKING_CRITERIA_SPEC, "Speaking"));
+  json.overall_band = officialRound(SPEAKING_CRIT_KEYS.reduce((a,k)=>a + Number(json[k].band), 0) / 4);
+  json.corrections = Array.isArray(json.corrections) ? json.corrections : [];
+  json.upgrades = Array.isArray(json.upgrades) ? json.upgrades : [];
+  json.question = question;
+
+  // With uploaded audio there is no browser transcript; adopt the examiner's own
+  // so the detector, the hesitation tool and the band rewrites have text to use.
+  if(!transcript.trim() && json.heard_transcript){
+    S.transcripts[slot] = json.heard_transcript;
+  }
+  S.detector[slot] = analyseSpokenLanguage(S.transcripts[slot] || "");
+  S.answers[slot] = json;
+  if(!o.skipAggregate) finishSpeakingPart(part);
+  return json;
+}
+
+/* The part band is built from the answers, not estimated across them: each
+   criterion is the mean of that criterion over every answer marked so far,
+   rounded the official way. The spread is reported rather than smoothed —
+   a candidate who was a 7 on one question and a 5.5 on the next should see
+   both, and which question was which. */
+function aggregateSpeakingPart(part){
+  const S = state.speaking;
+  const slots = speakingSlotsFor(part).filter(sl => S.answers[sl]);
+  if(!slots.length) return null;
+
+  const rep = { perQuestion: [], answered: slots.length, of: speakingSlotsFor(part).length };
+  SPEAKING_CRIT_KEYS.forEach(k=>{
+    const bands = slots.map(sl => Number(S.answers[sl][k] && S.answers[sl][k].band)).filter(isFinite);
+    const mean = bands.reduce((a,b)=>a+b,0) / (bands.length || 1);
+    const lo = Math.min.apply(null, bands), hi = Math.max.apply(null, bands);
+    const weakIdx = bands.indexOf(lo);
+    const weakSlot = slots[weakIdx] || slots[0];
+    const weakQ = speakingIsPerQuestion(part) ? `Q${Number(weakSlot.split(":")[1])+1}` : "this answer";
+    const spread = (lo === hi)
+      ? `Steady at ${fmtBand(lo)} across ${bands.length} answer${bands.length>1?"s":""}.`
+      : `Mean ${mean.toFixed(2)} across ${bands.length} answers, ranging ${fmtBand(lo)}–${fmtBand(hi)}; weakest on ${weakQ}.`;
+    const weakComment = (S.answers[weakSlot][k] || {}).comment || "";
+    rep[k] = { band: officialRound(mean), comment: `${spread} ${weakComment}`.trim() };
+  });
+  rep.overall_band = officialRound(SPEAKING_CRIT_KEYS.reduce((a,k)=>a + rep[k].band, 0) / 4);
+
+  slots.forEach(sl=>{
+    const a = S.answers[sl];
+    rep.perQuestion.push({
+      slot: sl,
+      n: speakingIsPerQuestion(part) ? Number(sl.split(":")[1]) + 1 : 1,
+      question: a.question || speakingSlotPrompt(sl),
+      band: a.overall_band,
+      relevance: a.relevance || "",
+      summary: a.summary || "",
+      next_step: a.next_step || ""
+    });
+  });
+
+  // Recurring problems are the point of marking question by question: a slip
+  // in one answer is a slip, the same slip in four answers is the thing to
+  // teach. Both the examiner's corrections and the local detector feed this.
+  const counts = {};
+  slots.forEach(sl=>{
+    mergedCorrections(sl).forEach(c=>{
+      const t = String(c.type || "other").toLowerCase();
+      const e = counts[t] || (counts[t] = { type:t, count:0, examples:[], answers:new Set() });
+      e.count++;
+      e.answers.add(sl);
+      if(c.original && e.examples.length < 3 &&
+         !e.examples.some(x => x.toLowerCase() === String(c.original).toLowerCase())){
+        e.examples.push(c.original);
+      }
+    });
+  });
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  rep.recurring = Object.keys(counts).map(t=>({
+    type: counts[t].type, count: counts[t].count,
+    answers: counts[t].answers.size, examples: counts[t].examples
+  })).filter(r => r.answers > 1 || r.count > 2)
+     .sort((a,b)=> b.count - a.count).slice(0,4);
+
+  const best = rep.perQuestion.reduce((a,b)=> b.band > a.band ? b : a, rep.perQuestion[0]);
+  const worst = rep.perQuestion.reduce((a,b)=> b.band < a.band ? b : a, rep.perQuestion[0]);
+  const critOrder = SPEAKING_CRIT_KEYS.slice().sort((a,b)=> rep[a].band - rep[b].band);
+  const offTopic = rep.perQuestion.filter(q => /partial|off/i.test(q.relevance));
+  rep.summary = [
+    `Banda ${fmtBand(rep.overall_band)} sobre ${rep.answered} de ${rep.of} respuestas marcadas.`,
+    rep.perQuestion.length > 1 ? `Mejor respuesta: Q${best.n} (${fmtBand(best.band)}); más débil: Q${worst.n} (${fmtBand(worst.band)}).` : "",
+    `Punto más fuerte: ${SPEAKING_CRIT_LABELS[critOrder[3]]}; punto más débil: ${SPEAKING_CRIT_LABELS[critOrder[0]]}.`,
+    offTopic.length ? `Atención: ${plural(offTopic.length, "respuesta", "respuestas")} ${offTopic.length === 1 ? "no contestó" : "no contestaron"} del todo la pregunta (Q${offTopic.map(q=>q.n).join(", Q")}).` : "",
+    rep.recurring.length ? `Error recurrente: ${rep.recurring[0].type} — ${plural(rep.recurring[0].count, "vez", "veces")} en ${plural(rep.recurring[0].answers, "respuesta", "respuestas")}.` : ""
+  ].filter(Boolean).join(" ");
+  rep.evidence = slots.every(sl => String(S.answers[sl].evidence||"").toLowerCase() === "thin") ? "thin" : "sufficient";
+  return rep;
+}
+
+// Recompute the part band, publish it to the dashboard, and save it.
+function finishSpeakingPart(part){
+  const S = state.speaking;
+  const rep = speakingIsPerQuestion(part) ? aggregateSpeakingPart(part) : S.answers[part];
+  if(!rep) return null;
+  S.reports[part] = rep;
+  const combined = combinedSpeakingBand();
+  recordScore("speaking", combined.band, combined.detail);
+  const transcripts = speakingSlotsFor(part)
+    .filter(sl => S.answers[sl])
+    .map(sl => `[${speakingSlotPrompt(sl)}]\n${S.transcripts[sl] || ""}`).join("\n\n");
+  saveSubmission("speaking", part, speakingSlotsFor(part).map(speakingSlotPrompt).join(" / "),
+                 transcripts, rep.overall_band, rep);
+  return rep;
+}
+
+/* The part-level button. Part 2 is one answer, so it marks it. Parts 1 and 3
+   mark every question that has a recording, in order, then aggregate — a
+   candidate can also mark them one at a time as they go. */
 async function scoreSpeaking(part){
   const S = state.speaking;
-  const transcript = S.transcripts[part] || "";
-  const geminiOn = !!state.settings.geminiKey;
-  
   const btn = document.getElementById("speakScoreBtn");
   const original = btn.textContent;
-  btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
+  const area = document.getElementById("speakReportArea");
+  const fail = msg => { if(area) area.innerHTML = `<div class="hint-box" style="border-color:var(--coral);"><b>Assessment failed.</b><br>${escapeXml(msg)}</div>`; };
+
+  const slots = speakingSlotsFor(part).filter(slotHasAnswer);
+  if(!slots.length){
+    alert(speakingIsPerQuestion(part)
+      ? "Record an answer to at least one question in this part first."
+      : "Record (or type) your long turn first.");
+    return;
+  }
   btn.disabled = true;
-
   try{
-    const promptText = part==="part2" ? SPEAKING.part2.cue.title : SPEAKING[part].questions.join(" / ");
-    // Everything the examiner is entitled to know before marking: which part
-    // this is and what it demands, the exact task in front of the candidate
-    // (including the cue card's bullets, so coverage can be checked), and the
-    // delivery the app measured.
-    const brief = [
-      SPEAKING_PART_BRIEF[part] || "",
-      `THE TASK THE CANDIDATE ANSWERED:\n${promptText}`,
-      part === "part2" && SPEAKING.part2.cue && Array.isArray(SPEAKING.part2.cue.points)
-        ? `Cue card bullet points the talk was meant to cover:\n${SPEAKING.part2.cue.points.map(p=>"- "+p).join("\n")}`
-        : "",
-      speakingDeliveryEvidence(part)
-    ].filter(Boolean).join("\n\n");
-    let json;
-
-    if(geminiOn){
-      const user = `${brief}\n\nLive transcript captured by the browser (may be imperfect or missing — the audio is authoritative):\n${transcript || "(none)"}`;
-      const text = await callGemini(SPEAKING_RUBRIC_AUDIO, user, S.audioB64[part], S.audioMime[part]);
-      json = normalizeAnnotations(normalizeExamJSON(parseJSON(text), SPEAKING_CRITERIA_SPEC, "Speaking"));
-      json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].reduce((a,b)=>a+b,0)/4);
-    } else {
-      if(!transcript.trim()){
-        alert("Please record or provide text context first.");
-        btn.textContent = original; btn.disabled = false; return;
-      }
-      const user = `${brief}\n\nWHAT THE CANDIDATE SAID (transcript):\n${transcript}`;
-      const text = await callGemini(SPEAKING_RUBRIC_TRANSCRIPT, user, null, null);
-      json = normalizeAnnotations(normalizeExamJSON(parseJSON(text), SPEAKING_CRITERIA_SPEC, "Speaking"));
-      json.overall_band = officialRound([json.fluency_coherence.band, json.lexical_resource.band, json.grammar.band, json.pronunciation.band].reduce((a,b)=>a+b,0)/4);
+    for(let i=0;i<slots.length;i++){
+      btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span> ${
+        speakingIsPerQuestion(part) ? `Marking answer ${i+1} of ${slots.length}…` : "Marking…"}`;
+      await scoreSpeakingAnswer(slots[i], { skipAggregate:true });
     }
-
-    // With uploaded audio there is no live transcript; adopt the examiner's own
-    // transcription so the language check and hesitation tools have text to work on.
-    if(!transcript.trim() && json.heard_transcript){
-      S.transcripts[part] = json.heard_transcript;
-      const tBox = document.getElementById("transcriptDisplay");
-      if(tBox) tBox.textContent = json.heard_transcript;
-      const words = json.heard_transcript.trim().split(/\s+/).length;
-      const m = S.metrics[part] || (S.metrics[part] = {});
-      m.words = words; m.fillers = countFillers(json.heard_transcript).total;
-      const wEl = document.getElementById("mWords"); if(wEl) wEl.textContent = words;
-      const fEl = document.getElementById("mFillers"); if(fEl) fEl.textContent = m.fillers;
-    }
-
-    S.reports = S.reports || {};
-    S.reports[part] = json;
-    S.report = { part, data: json };
-    showSpeakingReport(json, geminiOn);
-    // IELTS awards one Speaking band for the whole test, so the dashboard
-    // takes every part marked so far, not just the most recent one.
-    const combined = combinedSpeakingBand();
-    recordScore("speaking", combined.band, combined.detail);
-    saveSubmission("speaking", part, promptText, S.transcripts[part] || json.heard_transcript || "", json.overall_band, json);
+    finishSpeakingPart(part);
+    renderSpeakingFeedback(part);
   }catch(e){
     console.error(e);
-    document.getElementById("speakReportArea").innerHTML = `<div class="hint-box" style="border-color:var(--coral);"><b>Assessment failed.</b><br>${escapeXml(e.message || "Couldn't reach the AI examiner right now.")}</div>`;
+    fail(e.message || "Couldn't reach the AI examiner right now.");
   }
+  btn.innerHTML = "";
   btn.textContent = original;
   btn.disabled = false;
+}
+
+// The single-answer button in Parts 1 and 3.
+async function scoreOneSpeakingAnswer(slot){
+  const btn = document.getElementById("speakAnswerBtn");
+  const original = btn ? btn.textContent : "";
+  if(btn){ btn.disabled = true; btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`; }
+  try{
+    await scoreSpeakingAnswer(slot);
+    renderSpeakingFeedback(slot.split(":")[0]);
+  }catch(e){
+    console.error(e);
+    const area = document.getElementById("answerReportArea");
+    if(area) area.innerHTML = `<div class="hint-box" style="border-color:var(--coral);"><b>Assessment failed.</b><br>${escapeXml(e.message || "Couldn't reach the AI examiner right now.")}</div>`;
+  }
+  if(btn){ btn.innerHTML = ""; btn.textContent = original; btn.disabled = false; }
 }
 
 function fmtBand(v){ const n = Number(v); return isFinite(n) ? n.toFixed(1) : "—"; }
@@ -8592,7 +10433,8 @@ function showSpeakingReport(r, geminiOn){
     [geminiOn ? "Pronunciation (from audio)" : "Pronunciation (estimated)", r.pronunciation]
   ].filter(([,c])=>c);
   const S = state.speaking;
-  const m = S.metrics[S.part];
+  const slot = currentSpeakingSlot();
+  const m = S.metrics[slot];
   let paceNote = "";
   if(m && m.pace){
     const w = m.words || 0;
@@ -8648,7 +10490,7 @@ function showSpeakingReport(r, geminiOn){
           <div class="band">${fmtBand(c.band)}</div>
         </div>
       `).join("")}
-      ${annotatedFeedbackHTML(S.transcripts[S.part] || r.heard_transcript || "", r, {
+      ${annotatedFeedbackHTML(S.transcripts[slot] || r.heard_transcript || "", r, {
         sub:"Cada marca es una cita literal de tu intervención. Pasa el cursor por encima de un fragmento resaltado para leer el comentario del examinador."
       })}
       ${note}
@@ -8656,7 +10498,220 @@ function showSpeakingReport(r, geminiOn){
     </div>
   `;
   // After assessment, offer model spoken answers at each band.
-  renderSpeakingBandVersions(state.speaking.part);
+  renderSpeakingBandVersions(slot);
+}
+
+/* =========================================================================
+   SPEAKING FEEDBACK RENDERING
+   One answer's report, the part synthesis built from every answer, and the
+   merged correction list. Called after any marking, and on every re-render.
+   ========================================================================= */
+
+const RELEVANCE_TAGS = {
+  fully:      { cls:"ok",  label:"Contestó la pregunta" },
+  partially:  { cls:"mid", label:"Contestó parcialmente" },
+  "off-topic":{ cls:"bad", label:"Fuera de tema" }
+};
+
+function answerReportHTML(slot){
+  const S = state.speaking;
+  const r = S.answers[slot];
+  if(!r) return "";
+  const part = slot.split(":")[0];
+  const n = speakingIsPerQuestion(part) ? Number(slot.split(":")[1]) + 1 : 0;
+  const rel = RELEVANCE_TAGS[String(r.relevance||"").toLowerCase()] || null;
+  const thin = String(r.evidence||"").toLowerCase() === "thin";
+  const m = S.metrics[slot] || {};
+  const spoken = m.speakingSec || m.duration || 0;
+
+  return `
+    <div class="answer-report">
+      <div class="ar-head">
+        <span class="ar-band">${fmtBand(r.overall_band)}</span>
+        <span class="ar-q">${n ? `<b>Q${n}.</b> ` : ""}${escapeHtml(r.question || speakingSlotPrompt(slot))}</span>
+      </div>
+      <div class="ar-tags">
+        ${rel ? `<span class="ar-tag ${rel.cls}">${rel.label}</span>` : ""}
+        ${thin ? `<span class="ar-tag bad">Muestra insuficiente</span>` : ""}
+        ${spoken ? `<span class="ar-tag ok">${spoken}s hablados</span>` : ""}
+        ${m.words ? `<span class="ar-tag ok">${m.words} palabras</span>` : ""}
+      </div>
+      <div class="ar-crit">
+        ${SPEAKING_CRIT_KEYS.map(k=>`<div><span>${k === "fluency_coherence" ? "Fluidez" : k === "lexical_resource" ? "Léxico" : k === "grammar" ? "Gramática" : "Pronunc."}</span><b>${fmtBand(r[k].band)}</b></div>`).join("")}
+      </div>
+      ${r.summary ? `<p style="margin:0 0 10px;font-size:13.5px;line-height:1.7;color:#2a3145;">${escapeHtml(r.summary)}</p>` : ""}
+      ${r.relevance_comment ? `<p style="margin:0 0 6px;font-size:13px;line-height:1.65;color:var(--slate);"><b>Pertinencia.</b> ${escapeHtml(r.relevance_comment)}</p>` : ""}
+      ${r.development ? `<p style="margin:0 0 10px;font-size:13px;line-height:1.65;color:var(--slate);"><b>Desarrollo.</b> ${escapeHtml(r.development)}</p>` : ""}
+      ${SPEAKING_CRIT_KEYS.map(k=>`
+        <div class="criterion-row">
+          <div><div class="name">${SPEAKING_CRIT_LABELS[k]}</div><div class="comment">${escapeHtml(r[k].comment || "")}</div></div>
+          <div class="band">${fmtBand(r[k].band)}</div>
+        </div>`).join("")}
+      ${annotatedFeedbackHTML(S.transcripts[slot] || r.heard_transcript || "", r, {
+        sub:"Cada marca es una cita literal de esta respuesta. Pasa el cursor por encima para leer el comentario del examinador."
+      })}
+      ${r.next_step ? `<div class="ar-next"><b>Lo siguiente que debes cambiar.</b> ${escapeHtml(r.next_step)}</div>` : ""}
+    </div>`;
+}
+
+function partSynthesisHTML(part){
+  const rep = state.speaking.reports[part];
+  if(!rep || !Array.isArray(rep.perQuestion)) return "";
+  const combined = combinedSpeakingBand();
+  return `
+    <div class="part-synth">
+      <h4>Part ${part.slice(-1)} — banda del apartado</h4>
+      <p class="ps-sub">${escapeHtml(rep.summary || "")}</p>
+      <div class="ps-grid">
+        <div class="ps-cell"><span>Apartado</span><b>${fmtBand(rep.overall_band)}</b></div>
+        ${SPEAKING_CRIT_KEYS.map(k=>`<div class="ps-cell"><span>${k === "fluency_coherence" ? "Fluidez" : k === "lexical_resource" ? "Léxico" : k === "grammar" ? "Gramática" : "Pronunc."}</span><b>${fmtBand(rep[k].band)}</b></div>`).join("")}
+      </div>
+      <div class="feedback-label">Respuesta por respuesta</div>
+      <ul class="ps-qlist">
+        ${rep.perQuestion.map(q=>`
+          <li>
+            <span class="ps-n">Q${q.n}</span>
+            <span class="ps-b">${fmtBand(q.band)}</span>
+            <span>${escapeHtml(q.question)}${q.next_step ? `<br><span style="color:var(--slate);font-size:12.5px;">→ ${escapeHtml(q.next_step)}</span>` : ""}</span>
+          </li>`).join("")}
+      </ul>
+      ${rep.answered < rep.of ? `<p class="qstrip-hint" style="margin:0 0 12px;">${rep.answered} de ${rep.of} preguntas marcadas — graba y evalúa el resto para una banda completa del apartado.</p>` : ""}
+      ${rep.recurring && rep.recurring.length ? `
+        <div class="ps-recurring">
+          <b>Errores recurrentes en varias respuestas</b> — esto es lo que conviene practicar, no un fallo aislado:
+          <ul>
+            ${rep.recurring.map(x=>`<li><b>${escapeHtml(x.type)}</b> — ${x.count === 1 ? "1 vez" : x.count+" veces"} en ${x.answers === 1 ? "1 respuesta" : x.answers+" respuestas"}${x.examples.length ? `: ${x.examples.map(e=>`“${escapeHtml(e)}”`).join(", ")}` : ""}</li>`).join("")}
+          </ul>
+        </div>` : ""}
+      ${combined.band !== null ? `
+        <div class="test-band" style="margin-top:14px;">
+          <span>Speaking band for the test so far</span>
+          <b>${fmtBand(combined.band)}</b>
+          <i>${escapeHtml(combined.detail)}</i>
+        </div>` : ""}
+    </div>`;
+}
+
+/* The correction panel. Local findings appear the moment there is a transcript,
+   with or without an API key; the examiner's are merged in once the answer has
+   been marked, and each row says which of the two found it. */
+function detectorHTML(slot){
+  const S = state.speaking;
+  const text = S.transcripts[slot] || "";
+  if(!text.trim()) return "";
+  const det = S.detector[slot] || (S.detector[slot] = analyseSpokenLanguage(text));
+  const marked = !!S.answers[slot];
+  const rows = mergedCorrections(slot);
+  const ups = [].concat(
+    (marked && Array.isArray(S.answers[slot].upgrades) ? S.answers[slot].upgrades : []).map(u=>({
+      original:u.original||"", suggestion:u.suggestion||"", why:u.why||"", source:"ai" })),
+    det.upgrades.map(u=>({
+      original:u.phrase, suggestion:u.better,
+      why:`Usado ${u.count === 1 ? "1 vez" : u.count+" veces"} en esta respuesta.`, source:"local" }))
+  );
+
+  // The transcript with every located error marked in place. Local issues carry
+  // real offsets; the examiner's quoted phrases are matched back to the text.
+  const highlights = rows.map(c=>({
+    segment: c.original,
+    type: c.severity === "major" ? "red" : "yellow",
+    comment: (c.explanation || "") + (c.correction ? ` → “${c.correction}”` : "")
+  }));
+  const located = locateHighlights(text, normalizeHighlights(highlights));
+  const stat = (label, value, warn) =>
+    `<div class="det-stat${warn ? " warn" : ""}"><span>${label}</span><b>${value}</b></div>`;
+
+  return `
+    <div class="det-box">
+      <div class="det-head">
+        <b>Detección de errores y rango de lenguaje</b>
+        <span class="det-src">${marked ? "detector local + examinador" : "detector local · instantáneo"}</span>
+      </div>
+      <p class="ab-sub" style="margin:0;">${marked
+        ? "Cada hallazgo indica quién lo detectó: el analizador del navegador o el examinador de IA."
+        : "Análisis inmediato del navegador. Evalúa la respuesta para añadir el criterio del examinador."}</p>
+      <div class="det-stats">
+        ${stat("Palabras", det.stats.words)}
+        ${stat("Riqueza léxica", det.stats.diversity + "%", det.stats.diversity < 40)}
+        ${stat("Subordinadas", det.stats.subordinators, det.stats.subordinators === 0)}
+        ${stat("Muletillas /100", det.stats.fillerPer100, det.stats.fillerPer100 > 6)}
+        ${stat("Frase media", det.stats.avgSentence + "w", det.stats.avgSentence < 8)}
+        ${stat("Errores graves", det.stats.majorIssues, det.stats.majorIssues > 0)}
+      </div>
+      ${located.found.length ? `
+        <div class="feedback-label">Tu respuesta, con los errores marcados</div>
+        ${feedbackLegendHTML(null, { only:["yellow","red"], text:{
+            yellow:"Imprecisión o fraseo mejorable — se entiende, pero baja la nota.",
+            red:"Error claro que hay que corregir." } })}
+        <div class="annotated-text">${annotatedTextHTML(text, located.found)}</div>` : ""}
+      ${rows.length ? `
+        <div class="feedback-label" style="margin-top:14px;">Correcciones (${rows.length})</div>
+        <ul class="det-list">
+          ${rows.map(c=>`
+            <li>
+              <div class="det-row">
+                <span class="det-quote${c.severity === "major" ? "" : " minor"}">“${escapeHtml(c.original)}”</span>
+                ${c.correction ? `<span class="arrow">→</span><span class="det-fix">${escapeHtml(c.correction)}</span>` : ""}
+                <span class="det-badge">${escapeHtml(c.type)}</span>
+                <span class="det-badge ${c.source === "local" ? "local" : "ai"}">${c.source === "local" ? "detector" : "examinador"}</span>
+              </div>
+              ${c.explanation ? `<div class="det-why">${escapeHtml(c.explanation)}</div>` : ""}
+            </li>`).join("")}
+        </ul>` : `<div class="g-none" style="margin-top:10px;">✓ El detector no encontró errores gramaticales en esta respuesta.</div>`}
+      ${ups.length ? `
+        <div class="feedback-label" style="margin-top:14px;">Subir de nivel el vocabulario</div>
+        <ul class="det-list">
+          ${ups.slice(0,8).map(u=>`
+            <li>
+              <div class="det-row">
+                <span class="det-quote minor" style="text-decoration:none;">“${escapeHtml(u.original)}”</span>
+                <span class="arrow">→</span><span class="det-fix">${escapeHtml(u.suggestion)}</span>
+                <span class="det-badge ${u.source === "local" ? "local" : "ai"}">${u.source === "local" ? "detector" : "examinador"}</span>
+              </div>
+              ${u.why ? `<div class="det-why">${escapeHtml(u.why)}</div>` : ""}
+            </li>`).join("")}
+        </ul>` : ""}
+    </div>`;
+}
+
+// Every feedback panel for the slot on screen, redrawn together.
+function renderSpeakingFeedback(part){
+  const S = state.speaking;
+  const slot = speakingSlot(part, speakingActiveQ(part));
+  const det = document.getElementById("detectorArea");
+  if(det) det.innerHTML = detectorHTML(slot);
+  const ans = document.getElementById("answerReportArea");
+  if(ans) ans.innerHTML = speakingIsPerQuestion(part) ? answerReportHTML(slot) : "";
+  const synth = document.getElementById("partSynthArea");
+  if(synth) synth.innerHTML = speakingIsPerQuestion(part) ? partSynthesisHTML(part) : "";
+  const partRep = S.reports[part];
+  if(!speakingIsPerQuestion(part) && S.answers[part]){
+    showSpeakingReport(S.answers[part], !!state.settings.geminiKey);
+  } else if(speakingIsPerQuestion(part) && partRep && !Array.isArray(partRep.perQuestion)){
+    // Marked before this part was recorded question by question — show the
+    // report that exists rather than pretending there is none.
+    showSpeakingReport(partRep, !!state.settings.geminiKey);
+  }
+  refreshQuestionStrip(part);
+}
+
+// The Q1…Qn strip reflects what has been recorded and what has been marked.
+function refreshQuestionStrip(part){
+  const strip = document.getElementById("qstrip");
+  if(!strip) return;
+  const S = state.speaking;
+  strip.querySelectorAll("[data-qi]").forEach(btn=>{
+    const qi = Number(btn.dataset.qi);
+    const slot = speakingSlot(part, qi);
+    const rep = S.answers[slot];
+    btn.classList.toggle("recorded", slotHasAnswer(slot) && !rep);
+    btn.classList.toggle("scored", !!rep);
+    const badge = btn.querySelector(".qband");
+    if(badge){
+      badge.textContent = rep ? fmtBand(rep.overall_band) : "";
+      badge.style.display = rep ? "" : "none";
+    }
+  });
 }
 
 /* =========================================================================
@@ -8706,10 +10761,10 @@ function countRepetitions(text){
   return { reps, examples };
 }
 
-function runHesitationAnalysis(part){
+function runHesitationAnalysis(slot){
   const S = state.speaking;
-  const transcript = S.transcripts[part] || "";
-  const m = S.metrics[part] || {};
+  const transcript = S.transcripts[slot] || "";
+  const m = S.metrics[slot] || {};
   if(!transcript.trim()){
     alert("Record (or type) a response first — hesitation analysis reads your transcript.");
     return;
@@ -8741,7 +10796,7 @@ function runHesitationAnalysis(part){
   else { level="High hesitation"; tone="bad";
     advice="Frequent pauses and fillers are breaking up your answer. Try recording shorter answers first and building up length while keeping the flow."; }
 
-  S.hesitation[part] = {
+  S.hesitation[slot] = {
     words, fillers, reps, examples,
     pauses, longPauses: longPauses.length, longestPause,
     fillerRate: Math.round(fillerRate*10)/10,
@@ -8750,11 +10805,11 @@ function runHesitationAnalysis(part){
     hadTiming: pauses.length > 0 || spokenSec > 0,
     shortSample: words < 30
   };
-  showHesitation(part);
+  showHesitation(slot);
 }
 
-function showHesitation(part){
-  const h = state.speaking.hesitation[part];
+function showHesitation(slot){
+  const h = state.speaking.hesitation[slot];
   const area = document.getElementById("hesitationArea");
   if(!area) return;
   if(!h){ area.innerHTML = ""; return; }
@@ -8808,9 +10863,10 @@ Respond with ONLY raw JSON in this exact shape:
 }
 If there are no issues, return empty arrays and set "corrected" to the original text.`;
 
-async function requestSpeakingLanguageCheck(part){
+async function requestSpeakingLanguageCheck(slot){
   const S = state.speaking;
-  const transcript = S.transcripts[part] || "";
+  const part = slot.split(":")[0];
+  const transcript = S.transcripts[slot] || "";
   if(!transcript.trim()){
     alert("Record (or type) a response first — the language check reads your transcript.");
     return;
@@ -8824,17 +10880,25 @@ async function requestSpeakingLanguageCheck(part){
   btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
   btn.disabled = true;
   try{
-    const promptText = part==="part2" ? SPEAKING.part2.cue.title : SPEAKING[part].questions.join(" / ");
-    const user = `IELTS Speaking ${part.replace("part","Part ")}.\nExaminer prompt(s): ${promptText}\n\nCandidate's spoken answer (transcript):\n${transcript}`;
+    // The examiner sees the exact question this answer was given to, and the
+    // findings the local detector already has — so it adds to them instead of
+    // re-reporting them, and can be told plainly not to stop at a few.
+    const promptText = speakingSlotPrompt(slot);
+    const det = S.detector[slot] || (S.detector[slot] = analyseSpokenLanguage(transcript));
+    const alreadyFound = det.issues.length
+      ? `\n\nThe app's own detector has already flagged these, so do not simply repeat them — confirm, correct and go beyond them:\n${
+          det.issues.slice(0,20).map(i=>`- "${i.text}" (${i.type})`).join("\n")}`
+      : "";
+    const user = `IELTS Speaking ${part.replace("part","Part ")}.\nExaminer question: ${promptText}\n\nCandidate's spoken answer (transcript):\n${transcript}${alreadyFound}`;
     const text = await callGemini(SPEAKING_LANGUAGE_SYS, user, null, null);
     const json = parseJSON(text);
-    S.language[part] = {
+    S.language[slot] = {
       summary: json.summary || "",
       corrected: json.corrected || transcript,
       errors: Array.isArray(json.errors) ? json.errors : [],
       upgrades: Array.isArray(json.upgrades) ? json.upgrades : []
     };
-    showSpeakingLanguage(part);
+    showSpeakingLanguage(slot);
   }catch(e){
     console.error(e);
     document.getElementById("speakLangArea").innerHTML =
@@ -8844,8 +10908,8 @@ async function requestSpeakingLanguageCheck(part){
   btn.disabled = false;
 }
 
-function showSpeakingLanguage(part){
-  const g = state.speaking.language[part];
+function showSpeakingLanguage(slot){
+  const g = state.speaking.language[slot];
   const area = document.getElementById("speakLangArea");
   if(!area) return;
   if(!g){ area.innerHTML = ""; return; }
@@ -8885,7 +10949,7 @@ function showSpeakingLanguage(part){
   const copyBtn = document.getElementById("copySpeakLangBtn");
   if(copyBtn){
     copyBtn.addEventListener("click", ()=>{
-      const text = (state.speaking.language[part]||{}).corrected || "";
+      const text = (state.speaking.language[slot]||{}).corrected || "";
       const done = ()=>{ copyBtn.textContent="Copied ✓"; setTimeout(()=>copyBtn.textContent="Copy corrected answer",1500); };
       if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(done);
       else done();
@@ -8916,14 +10980,18 @@ const SPEAKING_BAND_NOTES = {
 // sound like higher up, which only works if the ideas stay theirs. It fell back
 // to writing an unrelated model answer because the transcript was never passed
 // in at all.
-function speakingBandPrompt(part, band, transcript){
+function speakingBandPrompt(part, band, transcript, questionText){
   const data = SPEAKING[part];
   const own = (transcript || "").trim();
   const partLabel = part === "part2" ? "Part 2 (individual long turn)"
                   : part === "part1" ? "Part 1 (interview)" : "Part 3 (two-way discussion)";
+  // Parts 1 and 3 are answered one question at a time, so the model answer is
+  // for that question — not a blend of the whole part.
   const task = part === "part2"
     ? `Cue card: "${data.cue.title}" with points: ${data.cue.points.join("; ")}.`
-    : `Examiner questions: ${data.questions.slice(0, part==="part1" ? 3 : 2).map((q,i)=>`(${i+1}) ${q}`).join(" ")}`;
+    : (questionText
+        ? `Examiner question: "${questionText}". Answer only this question.`
+        : `Examiner questions: ${data.questions.slice(0, part==="part1" ? 3 : 2).map((q,i)=>`(${i+1}) ${q}`).join(" ")}`);
 
   const calibration = `- Calibrate fluency, vocabulary, grammar and coherence so they are genuinely characteristic of band ${band} against the official IELTS Speaking descriptors. For lower bands include realistic hesitation markers (um, er), repetition, simple vocabulary and real grammar errors; for the highest bands use natural, idiomatic, error-free speech.
 - Make it sound like spoken English, not a written essay.
@@ -8959,13 +11027,13 @@ Requirements:
 ${calibration}`;
 }
 
-function renderSpeakingBandVersions(part){
+function renderSpeakingBandVersions(slot){
   const area = document.getElementById("speakBandVersionsArea");
   if(!area) return;
   const all = state.speaking.bandVersions || (state.speaking.bandVersions = {});
-  const store = all[part] || (all[part] = {});
+  const store = all[slot] || (all[slot] = {});
   const active = store.__active || null;
-  const hasOwn = !!(state.speaking.transcripts[part] || "").trim();
+  const hasOwn = !!(state.speaking.transcripts[slot] || "").trim();
   area.innerHTML = `
     <div class="band-versions">
       <h3>${hasOwn ? "Your answer at each band score" : "Model spoken answers by band score"}</h3>
@@ -8981,15 +11049,16 @@ function renderSpeakingBandVersions(part){
       <div id="speakBandVersionBody"></div>
     </div>`;
   area.querySelectorAll(".band-tab").forEach(btn=>{
-    btn.addEventListener("click", ()=>selectSpeakingBandVersion(part, btn.dataset.band));
+    btn.addEventListener("click", ()=>selectSpeakingBandVersion(slot, btn.dataset.band));
   });
-  if(active && store[active]) showSpeakingBandBody(part, active);
+  if(active && store[active]) showSpeakingBandBody(slot, active);
 }
 
-async function selectSpeakingBandVersion(part, band){
+async function selectSpeakingBandVersion(slot, band){
+  const part = slot.split(":")[0];
   const all = state.speaking.bandVersions || (state.speaking.bandVersions = {});
-  const store = all[part] || (all[part] = {});
-  const transcript = state.speaking.transcripts[part] || "";
+  const store = all[slot] || (all[slot] = {});
+  const transcript = state.speaking.transcripts[slot] || "";
   const fp = contentFingerprint(transcript);
   if(store.__fp !== fp){
     // The answer changed — drop versions written against the previous one.
@@ -9000,7 +11069,7 @@ async function selectSpeakingBandVersion(part, band){
   const area = document.getElementById("speakBandVersionsArea");
   if(area) area.querySelectorAll(".band-tab").forEach(b=>b.classList.toggle("active", b.dataset.band===band));
 
-  if(store[band]){ showSpeakingBandBody(part, band); return; }
+  if(store[band]){ showSpeakingBandBody(slot, band); return; }
 
   const body = document.getElementById("speakBandVersionBody");
   if(!state.settings.geminiKey){
@@ -9014,9 +11083,9 @@ async function selectSpeakingBandVersion(part, band){
     const sys = adapting
       ? "You are an expert IELTS Speaking examiner who rewrites a candidate's own spoken answer at a requested band, preserving their ideas and personal details exactly and changing only the language."
       : "You are an expert IELTS Speaking examiner who writes calibrated model spoken answers at a requested band.";
-    const text = await callGemini(sys, speakingBandPrompt(part, band, transcript), null, null);
+    const text = await callGemini(sys, speakingBandPrompt(part, band, transcript, speakingSlotPrompt(slot)), null, null);
     store[band] = stripFences(text);
-    showSpeakingBandBody(part, band);
+    showSpeakingBandBody(slot, band);
     if(area){ const t = area.querySelector(`.band-tab[data-band="${band}"]`); if(t) t.classList.add("ready"); }
   }catch(e){
     console.error(e);
@@ -9237,6 +11306,7 @@ async function sendFeedback(studentId, message){
 
 /* ---- header + tabs ---- */
 function refreshAccountUI(){
+  refreshGreeting();          // name, initial and unread badge in the top rail
   const btn = document.getElementById("accountBtn");
   if(btn && AUTH.enabled){
     if(AUTH.profile){
@@ -9507,9 +11577,9 @@ async function openStudent(sid){
   area.scrollIntoView({ behavior:"smooth", block:"nearest" });
 }
 
-function showSpeakingBandBody(part, band){
+function showSpeakingBandBody(slot, band){
   const body = document.getElementById("speakBandVersionBody");
-  const text = ((state.speaking.bandVersions||{})[part]||{})[band];
+  const text = ((state.speaking.bandVersions||{})[slot]||{})[band];
   if(!body || text == null) return;
   const wc = text.trim() ? text.trim().split(/\s+/).length : 0;
   const approxSec = Math.round((wc/140)*60);
