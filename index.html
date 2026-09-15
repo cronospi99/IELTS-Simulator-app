@@ -9,7 +9,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="IELTS Sim">
 <meta name="format-detection" content="telephone=no">
-<title>IELTS Academic — Full Mock Test (v6.5)</title>
+<title>IELTS Simulator — Academic Mock Test</title>
+<!-- Browser/tab logo: the app's own bar mark, inlined so the single-file
+     build has no external icon to fetch and no 404 in the console. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23131b2e%22%2F%3E%3Crect%20x%3D%2214%22%20y%3D%2234%22%20width%3D%229%22%20height%3D%2218%22%20rx%3D%224.5%22%20fill%3D%22%23c1443c%22%2F%3E%3Crect%20x%3D%2227.5%22%20y%3D%2222%22%20width%3D%229%22%20height%3D%2230%22%20rx%3D%224.5%22%20fill%3D%22%23c9a227%22%2F%3E%3Crect%20x%3D%2241%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%2240%22%20rx%3D%224.5%22%20fill%3D%22%23e0bd4a%22%2F%3E%3C%2Fsvg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23131b2e%22%2F%3E%3Crect%20x%3D%2214%22%20y%3D%2234%22%20width%3D%229%22%20height%3D%2218%22%20rx%3D%224.5%22%20fill%3D%22%23c1443c%22%2F%3E%3Crect%20x%3D%2227.5%22%20y%3D%2222%22%20width%3D%229%22%20height%3D%2230%22%20rx%3D%224.5%22%20fill%3D%22%23c9a227%22%2F%3E%3Crect%20x%3D%2241%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%2240%22%20rx%3D%224.5%22%20fill%3D%22%23e0bd4a%22%2F%3E%3C%2Fsvg%3E">
+<link rel="mask-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23131b2e%22%2F%3E%3Crect%20x%3D%2214%22%20y%3D%2234%22%20width%3D%229%22%20height%3D%2218%22%20rx%3D%224.5%22%20fill%3D%22%23c1443c%22%2F%3E%3Crect%20x%3D%2227.5%22%20y%3D%2222%22%20width%3D%229%22%20height%3D%2230%22%20rx%3D%224.5%22%20fill%3D%22%23c9a227%22%2F%3E%3Crect%20x%3D%2241%22%20y%3D%2212%22%20width%3D%229%22%20height%3D%2240%22%20rx%3D%224.5%22%20fill%3D%22%23e0bd4a%22%2F%3E%3C%2Fsvg%3E" color="#c9a227">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -464,6 +469,160 @@ header.topbar .topbar-btn{border-color:var(--paper-line);color:var(--paper);}
 }
 .mock-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--brass),var(--brass-2));transition:width .5s var(--ease-out);}
 
+/* =========================================================================
+   FREE PRACTICE
+   Deliberately not the exam: accuracy out of 100, a stopwatch you switch on
+   only if you want one, and no band or CEFR anywhere on the page.
+   ========================================================================= */
+.pr-skills{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px;}
+.pr-skill{
+  display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;
+  border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:#fff;
+  font-family:inherit;transition:transform .2s var(--ease-spring), box-shadow .2s, border-color .2s;
+}
+.pr-skill:hover{transform:translateY(-2px);box-shadow:var(--elev-2);}
+.pr-skill.active{border-color:var(--ink);box-shadow:0 0 0 2px rgba(19,27,46,.12), var(--elev-2);}
+.pr-skill .pr-ico{font-size:22px;}
+.pr-skill b{font-size:14.5px;color:var(--ink);}
+.pr-skill span{font-size:12px;color:var(--slate);line-height:1.45;}
+.pr-skill .pr-last{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);font-weight:700;margin-top:2px;
+}
+
+.pr-bar{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:var(--surface-1);border:1px solid var(--line);border-radius:14px;
+  padding:12px 16px;margin-bottom:16px;
+}
+.pr-bar .pr-wc{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--slate);}
+.pr-bar .pr-wc b{color:var(--ink);font-size:14px;}
+.pr-clock{
+  font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--ink);
+  letter-spacing:.02em;min-width:74px;
+}
+.pr-clock.off{color:var(--slate);opacity:.45;}
+.pr-bar .pr-spacer{flex:1;}
+
+/* the accuracy result */
+.acc-card{
+  background:linear-gradient(180deg,#fbf9f2,#f4f1e6);border:1px solid var(--line);
+  border-radius:18px;padding:20px 22px;margin-top:18px;box-shadow:var(--elev-2);
+}
+.acc-top{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:14px;}
+.acc-dial{
+  position:relative;width:96px;height:96px;border-radius:999px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(var(--acc-col,var(--teal)) calc(var(--pct,0)*1%), var(--paper-2) 0);
+}
+.acc-dial::before{content:"";position:absolute;inset:8px;border-radius:999px;background:#fff;}
+.acc-dial b{position:relative;font-family:'Fraunces',serif;font-size:26px;color:var(--ink);}
+.acc-dial i{position:relative;font-style:normal;font-size:13px;color:var(--slate);margin-left:1px;}
+.acc-head{flex:1;min-width:200px;}
+.acc-head h4{font-family:'Fraunces',serif;font-size:19px;margin:0 0 4px;color:var(--ink);font-weight:600;}
+.acc-head p{font-size:13.5px;line-height:1.65;color:#2a3145;margin:0;}
+.acc-dims{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px;}
+.acc-dim{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;}
+.acc-dim .ad-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.acc-dim .ad-name{font-size:12.5px;font-weight:600;color:var(--ink);}
+.acc-dim .ad-pct{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:var(--ink);}
+.acc-dim .ad-meter{height:6px;border-radius:999px;background:var(--paper-2);margin:7px 0 6px;overflow:hidden;}
+.acc-dim .ad-meter i{display:block;height:100%;border-radius:999px;background:var(--teal);transition:width .6s var(--ease-out);}
+.acc-dim p{font-size:12px;line-height:1.55;color:var(--slate);margin:0;}
+.acc-q{list-style:none;margin:0;padding:0;}
+.acc-q li{display:flex;gap:10px;align-items:baseline;border-top:1px solid var(--line);padding:9px 0;font-size:13px;line-height:1.6;}
+.acc-q li:first-child{border-top:none;}
+.acc-q .aq-n{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700;color:var(--slate);}
+.acc-q .aq-pct{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;min-width:44px;}
+.pr-note{font-size:12px;color:var(--slate);line-height:1.6;margin:12px 0 0;font-style:italic;}
+
+/* drills */
+.drill-q{border-top:1px solid var(--line);padding:12px 0;font-size:14px;line-height:1.7;}
+.drill-q:first-child{border-top:none;}
+.drill-q .dq-n{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--slate);margin-right:8px;
+}
+.drill-q input[type=text]{
+  border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13.5px;min-width:150px;
+}
+.drill-q.correct{background:linear-gradient(90deg,rgba(46,125,50,.07),transparent);}
+.drill-q.wrong{background:linear-gradient(90deg,rgba(198,40,40,.07),transparent);}
+.drill-mark{font-family:'IBM Plex Mono',monospace;font-size:11.5px;margin-left:8px;}
+.drill-mark.ok{color:#1b5e20;}
+.drill-mark.no{color:#b71c1c;}
+.pr-passage{
+  background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+  max-height:340px;overflow-y:auto;font-size:14.5px;line-height:1.85;color:#2a3145;margin-bottom:14px;
+}
+
+/* ---------- homework & the student inbox ---------- */
+.inbox-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px;}
+.inbox-head h3{
+  font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);margin:0;
+}
+.inbox-head .btn{margin-left:auto;}
+.hw-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;}
+.hw-item{
+  display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;
+  border:1px solid var(--line);border-left:4px solid var(--brass);border-radius:0 12px 12px 0;
+  padding:13px 16px;background:#fff;
+}
+.hw-item.late{border-left-color:var(--coral);background:#fdf4f3;}
+.hw-item.done{border-left-color:var(--teal);background:#f4f8f6;opacity:.82;}
+.hw-main{flex:1;min-width:200px;}
+.hw-main b{display:block;font-size:14px;color:var(--ink);line-height:1.4;}
+.hw-main p{font-size:13px;color:var(--slate);line-height:1.6;margin:6px 0 0;}
+.hw-tag,.hw-due,.hw-state{
+  display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.05em;
+  text-transform:uppercase;border-radius:999px;padding:2px 8px;margin:6px 6px 0 0;
+}
+.hw-tag{background:#e8eef6;color:#1b3a5c;}
+.hw-due{background:#fbf4de;color:#8a6c11;}
+.hw-item.late .hw-due{background:#fdecea;color:#b71c1c;}
+.hw-state{background:#e8f3ea;color:#1b5e20;}
+.hw-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+/* teacher: assign a task */
+.hw-form{
+  background:var(--surface-1);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin-top:12px;
+}
+.hw-form .hw-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.hw-form input[type=text],.hw-form input[type=date],.hw-form select,.hw-form textarea{
+  border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:13.5px;
+  color:var(--ink);background:#fff;
+}
+.hw-form input[type=text]{flex:1;min-width:200px;}
+.hw-form textarea{width:100%;min-height:70px;resize:vertical;line-height:1.6;}
+.hw-track{list-style:none;margin:10px 0 0;padding:0;}
+.hw-track li{
+  display:flex;gap:10px;align-items:baseline;border-top:1px solid var(--line);
+  padding:9px 0;font-size:13px;line-height:1.5;flex-wrap:wrap;
+}
+.hw-track li:first-child{border-top:none;}
+.hw-track .hwt-state{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:2px 8px;border-radius:999px;}
+.hw-track .hwt-state.done{background:#e8f3ea;color:#1b5e20;}
+.hw-track .hwt-state.open{background:#fbf4de;color:#8a6c11;}
+.hw-track .hwt-del{margin-left:auto;background:none;border:none;color:var(--coral);font-size:12px;font-family:inherit;}
+
+/* ---------- notifications dropdown ---------- */
+.notif-pop{
+  position:absolute;right:0;top:calc(100% + 8px);z-index:50;width:min(340px,calc(100vw - 32px));
+  background:var(--ink-2);border:1px solid var(--paper-line);border-radius:14px;
+  box-shadow:var(--shadow);padding:8px;max-height:min(70vh,420px);overflow-y:auto;
+}
+.notif-pop .np-head{
+  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--paper-2);opacity:.55;padding:6px 10px 2px;
+}
+.notif-pop .np-item{
+  display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--paper);
+  border-radius:10px;padding:9px 11px;font-family:inherit;font-size:13px;line-height:1.5;
+}
+.notif-pop .np-item:hover{background:rgba(201,162,39,.16);}
+.notif-pop .np-item b{display:block;font-size:13px;font-weight:600;}
+.notif-pop .np-item span{display:block;font-size:11.5px;color:var(--paper-2);opacity:.7;margin-top:2px;}
+.notif-pop .np-empty{padding:12px;font-size:12.5px;color:var(--paper-2);opacity:.7;line-height:1.6;}
+
 /* ---------- about / help modal ---------- */
 .info-modal p{font-size:13.5px;line-height:1.7;color:#2a3145;}
 .info-modal h4{font-family:'Fraunces',serif;font-size:16px;margin:16px 0 6px;color:var(--ink);}
@@ -497,6 +656,7 @@ nav.tabs button[data-mod="listening"]::before{content:"🎧";}
 nav.tabs button[data-mod="reading"]::before{content:"📖";}
 nav.tabs button[data-mod="writing"]::before{content:"✍️";}
 nav.tabs button[data-mod="speaking"]::before{content:"🎙";}
+nav.tabs button[data-mod="practice"]::before{content:"🎯";}
 nav.tabs button[data-mod="mock"]::before{content:"📋";}
 nav.tabs button[data-mod="progress"]::before{content:"📊";}
 nav.tabs button[data-mod="descriptors"]::before{content:"📐";}
@@ -1364,6 +1524,15 @@ textarea.essay{
 .auth-role-tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.07em;background:var(--azure);color:#fff;border-radius:999px;padding:2px 8px;margin-left:6px;vertical-align:middle;}
 .auth-role-tag.teacher{background:var(--teal);}
 .auth-foot{font-size:11.5px;color:var(--slate);line-height:1.55;margin:16px 0 0;border-top:1px solid var(--line);padding-top:12px;}
+.auth-links{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;}
+.auth-links button{
+  background:none;border:none;padding:0;font-family:inherit;font-size:12.5px;
+  color:var(--azure);text-decoration:underline;
+}
+.auth-links button:hover{color:var(--ink);}
+.auth-pw{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;}
+.auth-pw summary{font-size:12.5px;color:var(--slate);cursor:pointer;margin-bottom:10px;}
+.auth-pw .auth-input{margin-bottom:8px;}
 .class-code-box{background:#fbf4de;border:1px dashed var(--brass);border-radius:10px;padding:12px 14px;margin-top:14px;}
 .class-code-box .lbl{font-size:11.5px;color:#8a6c11;text-transform:uppercase;letter-spacing:.06em;font-family:'IBM Plex Mono',monospace;}
 .class-code-box .code{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;color:var(--ink);letter-spacing:.16em;margin-top:4px;}
@@ -1872,7 +2041,8 @@ textarea.essay{
   nav.tabs button::before{font-size:19px;width:auto;filter:grayscale(.4);}
   /* Nine rows fit a sidebar but not a phone bar: the two pages that are
      launchers rather than papers are reachable from Home instead. */
-  nav.tabs button[data-mod="mock"],nav.tabs button[data-mod="progress"]{display:none;}
+  nav.tabs button[data-mod="mock"],nav.tabs button[data-mod="progress"],
+  nav.tabs button[data-mod="descriptors"]{display:none;}
   /* "📋 Band descriptors" is far too long for a sixth bar slot: the label is
      zeroed out and replaced with a short one (the ::before/::after keep their
      own explicit sizes, so only the button's own text collapses). */
@@ -1983,6 +2153,9 @@ textarea.essay{
   .annotated-text{font-size:14px;padding:13px 14px;line-height:1.95;}
   .feedback-legend-container{flex-direction:column;gap:8px;}
   .ar-crit{grid-template-columns:repeat(2,1fr);}
+  .pr-skills{grid-template-columns:1fr 1fr;gap:10px;}
+  .acc-dims{grid-template-columns:1fr;}
+  .acc-card{padding:16px 15px;}
   .qstrip button{min-height:44px;}
   .q-focus{padding:14px 16px;}
   .q-focus .qf-text{font-size:15px;}
@@ -2426,6 +2599,10 @@ textarea.essay{
       </div>
 
       <button class="btn brass small" id="authSubmit" style="width:100%;margin-top:4px;">Sign in</button>
+      <div class="auth-links">
+        <button type="button" id="authForgot">Forgotten your password?</button>
+        <button type="button" id="authResend">Resend the confirmation email</button>
+      </div>
       <p id="authStatus" style="font-size:12.5px;margin-top:10px;line-height:1.5;"></p>
     </div>
 
@@ -2439,6 +2616,11 @@ textarea.essay{
         </div>
       </div>
       <div id="authClassInfo"></div>
+      <details class="auth-pw">
+        <summary>Change my password</summary>
+        <input type="password" id="authNewPassword" class="auth-input" placeholder="New password, at least 6 characters" autocomplete="new-password">
+        <button class="btn ghost small" id="authSetPassword">Save new password</button>
+      </details>
       <div class="sheet-actions">
         <button class="btn ghost small" id="authSignOut">Sign out</button>
       </div>
@@ -2494,6 +2676,7 @@ textarea.essay{
       <button data-mod="reading">Reading</button>
       <button data-mod="writing">Writing</button>
       <button data-mod="speaking">Speaking</button>
+      <button data-mod="practice">Free Practice</button>
       <button data-mod="mock">Full Mock Test</button>
       <button data-mod="progress">Progress</button>
       <button data-mod="descriptors" class="tab-ref">Band descriptors</button>
@@ -2935,6 +3118,16 @@ const state = {
   // Exam clocks, keyed "writing:task1" | "writing:task2" | "reading" | "listening".
   // `timeUp` records which of them have run out, so the lock survives a re-render.
   timers: {}, timeUp: {},
+  /* FREE PRACTICE — no exam conditions and no bands. Accuracy only, an optional
+     stopwatch rather than a countdown, and nothing written to the dashboard. */
+  practice: {
+    skill: "writing",
+    stopwatch: { on:false, running:false, startedAt:0, elapsed:0 },
+    writing: { topicId:"own", prompt:"", draft:"", report:null, loading:false },
+    speaking: { setId:"daily", qIndex:0, report:null, loading:false },
+    listening: { sectionIdx:0, answers:{}, result:null },
+    reading: { passageIdx:0, answers:{}, result:null, showPassage:true }
+  },
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
   /* Speaking is keyed by SLOT, not by part. Parts 1 and 3 are interviews, so
@@ -4103,10 +4296,18 @@ function speakingActiveQ(part){
   return qi;
 }
 
+/* Free practice records into slots of its own ("practice:daily:2"), which is
+   what lets the exam recorder — waveform, live transcript, pause, metrics — be
+   the only recorder in the app. */
 function currentSpeakingSlot(){
+  if(state.mod === "practice" && state.practice.skill === "speaking"){
+    return practiceSlot(state.practice.speaking.qIndex);
+  }
   const part = state.speaking.part;
   return speakingSlot(part, speakingActiveQ(part));
 }
+
+function isPracticeSlot(slot){ return String(slot||"").indexOf("practice:") === 0; }
 
 function speakingSlotsFor(part){
   return speakingIsPerQuestion(part)
@@ -5441,6 +5642,7 @@ function searchTargets(){
     { label:"Speaking Part 1", hint:"interview", go:()=>{ state.speaking.part="part1"; setModule("speaking"); }, keys:"speaking part 1 interview questions" },
     { label:"Speaking Part 2", hint:"long turn", go:()=>{ state.speaking.part="part2"; setModule("speaking"); }, keys:"speaking part 2 cue card long turn monologue" },
     { label:"Speaking Part 3", hint:"discussion", go:()=>{ state.speaking.part="part3"; setModule("speaking"); }, keys:"speaking part 3 discussion abstract" },
+    { label:"Free practice", hint:"accuracy %, no bands", go:()=>setModule("practice"), keys:"free practice drill accuracy percentage no band relaxed untimed" },
     { label:"Full mock test", hint:"all four papers", go:()=>setModule("mock"), keys:"full mock test exam simulate complete" },
     { label:"Progress", hint:"bands & history", go:()=>setModule("progress"), keys:"progress statistics history charts scores bands" },
     { label:"Band descriptors", hint:"how marking works", go:()=>setModule("descriptors"), keys:"band descriptors criteria marking rubric tips strategies" },
@@ -5554,8 +5756,7 @@ function refreshGreeting(){
   if(sq) sq.textContent = `“${motivationFor(3)}”`;
   const bell = document.getElementById("bellBtn");
   if(bell){
-    const unread = (typeof unreadFeedbackCount === "function" && typeof isStudent === "function" && isStudent())
-      ? unreadFeedbackCount() : 0;
+    const unread = (typeof notificationCount === "function") ? notificationCount() : 0;
     bell.innerHTML = `🔔${unread ? `<span class="dot count">${unread}</span>` : `<span class="dot" style="display:none;"></span>`}`;
     bell.title = unread ? `${unread} unread message${unread===1?"":"s"} from your teacher` : "Messages from your teacher";
   }
@@ -5582,17 +5783,70 @@ function toggleAcctMenu(force){
   });
   const bell = document.getElementById("bellBtn");
   if(bell){
-    bell.addEventListener("click", ()=>{
-      setModule("dashboard");
-      // The teacher's messages render at the foot of Home.
-      setTimeout(()=>{
-        const inbox = document.querySelector(".fb-inbox");
-        if(inbox) inbox.scrollIntoView({ behavior:"smooth", block:"center" });
-        else alert("No messages from your teacher yet. Sign in as a student to receive feedback here.");
-      }, 220);
-    });
+    bell.addEventListener("click", e=>{ e.stopPropagation(); toggleNotifications(); });
   }
+  document.addEventListener("click", e=>{
+    if(!e.target.closest("#notifPop") && !e.target.closest("#bellBtn")) closeNotifications();
+  });
 })();
+
+/* ---------- notifications ---------- */
+function closeNotifications(){
+  const pop = document.getElementById("notifPop");
+  if(pop) pop.remove();
+}
+
+function toggleNotifications(){
+  if(document.getElementById("notifPop")){ closeNotifications(); return; }
+  const cluster = document.querySelector(".topbar-actions");
+  const bell = document.getElementById("bellBtn");
+  if(!cluster || !bell) return;
+
+  const pop = document.createElement("div");
+  pop.id = "notifPop";
+  pop.className = "notif-pop";
+
+  const signedIn = typeof isStudent === "function" && isStudent();
+  if(!signedIn){
+    pop.innerHTML = `<div class="np-empty">${
+      (typeof AUTH === "object" && AUTH.enabled)
+        ? "Sign in as a student to receive homework and feedback from your teacher here."
+        : "Accounts are not configured for this copy, so there is nothing to notify you about yet."
+    }</div>`;
+  }else{
+    const tasks = pendingHomework();
+    const unread = (AUTH.feedback || []).filter(f=>!f.read_at);
+    if(!tasks.length && !unread.length){
+      pop.innerHTML = `<div class="np-empty">Nothing waiting. Homework your teacher sets and any feedback they write will appear here.</div>`;
+    }else{
+      pop.innerHTML =
+        (tasks.length ? `<span class="np-head">Homework to do</span>` + tasks.map(t=>`
+          <button class="np-item" data-notif-go="${t.module || "dashboard"}">
+            <b>${escapeHtml(t.title)}</b>
+            <span>${escapeHtml([HOMEWORK_MODULE_LABEL[t.module] || "", dueLabel(t.due_at)].filter(Boolean).join(" · ") || "no due date")}</span>
+          </button>`).join("") : "") +
+        (unread.length ? `<span class="np-head">New feedback</span>` + unread.map(f=>`
+          <button class="np-item" data-notif-go="dashboard">
+            <b>${escapeHtml(f.message.slice(0,70))}${f.message.length>70?"…":""}</b>
+            <span>${new Date(f.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+          </button>`).join("") : "");
+    }
+  }
+  // The bell sits inside .topbar-actions, which is the positioned ancestor.
+  cluster.style.position = "relative";
+  cluster.appendChild(pop);
+  pop.querySelectorAll("[data-notif-go]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const mod = btn.dataset.notifGo;
+      closeNotifications();
+      setModule(mod === "practice" ? "practice" : mod);
+      setTimeout(()=>{
+        const inbox = document.getElementById("studentInbox");
+        if(mod === "dashboard" && inbox) inbox.scrollIntoView({ behavior:"smooth", block:"center" });
+      }, 260);
+    });
+  });
+}
 
 /* ---------- About / Help / Contact ---------- */
 const INFO_CONTENT = {
@@ -5681,7 +5935,7 @@ function setModule(mod){
   state.mod = mod;
   document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.mod===mod));
   const labels = {dashboard:"Home", listening:"Listening", reading:"Reading", writing:"Writing",
-                  speaking:"Speaking", mock:"Full mock test", progress:"Progress",
+                  speaking:"Speaking", practice:"Free practice", mock:"Full mock test", progress:"Progress",
                   class:"My class", descriptors:"Band descriptors"};
   document.getElementById("modLabel").textContent = labels[mod] || mod;
   render();
@@ -5991,6 +6245,7 @@ function render(){
   pauseTimersOutside(state.mod, state.mod === "writing" ? activeTimerKey("writing") : null);
   if(state.mod==="class") return renderClassDashboard();
   if(state.mod==="dashboard") return renderHome();
+  if(state.mod==="practice") return renderPractice();
   if(state.mod==="mock") return renderMockTest();
   if(state.mod==="progress") return renderProgress();
   if(state.mod==="listening") return renderListening();
@@ -6537,9 +6792,9 @@ function renderHome(){
         <div class="hp-head"><span class="hp-ico">⚡</span><b>Quick Links</b></div>
         <div class="ql-grid">
           <button class="ql-tile" data-mod="mock"><span class="ql-ico">📋</span><b>Full Mock Test</b><span>Simulate the real exam</span></button>
-          <button class="ql-tile" data-mod="progress"><span class="ql-ico">📈</span><b>View Statistics</b><span>See your progress</span></button>
+          <button class="ql-tile" data-mod="practice"><span class="ql-ico">🎯</span><b>Free Practice</b><span>Accuracy %, no bands</span></button>
           <button class="ql-tile" data-mod="descriptors"><span class="ql-ico">💡</span><b>Tips &amp; Strategies</b><span>How the marking works</span></button>
-          <button class="ql-tile" data-info="help"><span class="ql-ico">⭐</span><b>Useful Resources</b><span>Templates, vocabulary and more</span></button>
+          <button class="ql-tile" data-mod="progress"><span class="ql-ico">📈</span><b>View Statistics</b><span>See your progress</span></button>
         </div>
       </div>
     </div>
@@ -6618,6 +6873,892 @@ function drawHomeTrend(){
       animation:{ duration:700, easing:"easeOutQuart" }
     }
   });
+}
+
+/* =========================================================================
+   FREE PRACTICE
+   -------------------------------------------------------------------------
+   The same four skills, without the exam around them. Nothing here produces a
+   band or a CEFR level — Writing and Speaking are marked by the AI as an
+   ACCURACY percentage, and Listening and Reading are simply right-or-wrong out
+   of the questions attempted. Nothing is written to the dashboard either: this
+   is practice, so a bad run costs nothing.
+   ========================================================================= */
+
+const PRACTICE_SKILLS = [
+  { id:"writing",   icon:"✍️", name:"Writing",   blurb:"Write on any topic and get your accuracy, sentence by sentence." },
+  { id:"speaking",  icon:"🎙",  name:"Speaking",  blurb:"Answer a set of questions one at a time, then get one accuracy report." },
+  { id:"listening", icon:"🎧", name:"Listening", blurb:"Answer a short set from the current test and see how many you got right." },
+  { id:"reading",   icon:"📖", name:"Reading",   blurb:"One passage, one set of questions, marked instantly." }
+];
+
+// Free-writing prompts: broad enough to write about without exam framing.
+const PRACTICE_WRITING_TOPICS = [
+  { id:"own",       label:"My own topic",        prompt:"" },
+  { id:"routine",   label:"A day in my life",    prompt:"Describe a typical day in your life. What do you do, who do you see, and what part of the day do you enjoy most — and why?" },
+  { id:"place",     label:"A place I love",      prompt:"Describe a place you love going back to. Where is it, what happens there, and why does it matter to you?" },
+  { id:"technology",label:"Technology & habits", prompt:"Some people say technology has made us worse at concentrating. Do you agree? Give reasons and examples from your own experience." },
+  { id:"study",     label:"Learning English",    prompt:"What has been the hardest part of learning English for you, and what has actually helped? Explain with examples." },
+  { id:"work",      label:"Work & ambition",     prompt:"Is it more important to enjoy your job or to earn a good salary? Explain your view and consider the other side." },
+  { id:"city",      label:"Where I live",        prompt:"What would you change about the city or town where you live, and what would stay exactly as it is?" },
+  { id:"opinion",   label:"A strong opinion",    prompt:"Write about something most people around you believe that you disagree with. Explain your reasoning fairly." }
+];
+
+// Speaking sets: everyday questions, not cue cards. Each set is answered one
+// question at a time and marked as a whole at the end.
+const PRACTICE_SPEAKING_SETS = [
+  { id:"daily", label:"Everyday life", questions:[
+    "Tell me about the place where you live. What do you like about it?",
+    "How do you usually spend your weekends?",
+    "What is something you do every day that you would find hard to give up?",
+    "Describe a meal you really enjoy. Who do you usually eat it with?",
+    "Has your daily routine changed much in the last few years? How?"
+  ]},
+  { id:"work", label:"Work & study", questions:[
+    "What do you study or do for work, and how did you choose it?",
+    "What part of your work or studies do you find most difficult?",
+    "Do you prefer working alone or with other people? Why?",
+    "What skill would you most like to improve this year?",
+    "Where would you like to be, professionally, in five years?"
+  ]},
+  { id:"tech", label:"Technology & media", questions:[
+    "How much time do you spend on your phone each day? Is that too much?",
+    "What is the most useful app you have, and why?",
+    "Do you prefer reading news online or watching it? Why?",
+    "Has technology changed the way you talk to your friends and family?",
+    "What is one thing technology has made worse rather than better?"
+  ]},
+  { id:"travel", label:"Travel & culture", questions:[
+    "Describe a trip you have taken that you still remember clearly.",
+    "Do you prefer travelling alone or with other people? Why?",
+    "What do visitors to your country usually get wrong about it?",
+    "Is it better to visit many places quickly or one place slowly?",
+    "Where would you go tomorrow if money were not a problem?"
+  ]},
+  { id:"society", label:"Opinions & society", questions:[
+    "Should university education be free for everyone? Why or why not?",
+    "What is the biggest problem facing young people in your country?",
+    "Do you think people are more or less polite than they used to be?",
+    "Is it the government's job to make people live more healthily?",
+    "What one change would improve life in your city the most?"
+  ]}
+];
+
+/* ---------- the optional stopwatch ---------- */
+let practiceTickInterval = null;
+
+function practiceStopwatchMs(){
+  const w = state.practice.stopwatch;
+  return w.elapsed + (w.running ? (Date.now() - w.startedAt) : 0);
+}
+
+function fmtStopwatch(ms){
+  const s = Math.floor(Math.max(0, ms) / 1000);
+  return `${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+}
+
+function paintPracticeClock(){
+  const el = document.getElementById("prClock");
+  if(!el) return;
+  const w = state.practice.stopwatch;
+  el.textContent = fmtStopwatch(practiceStopwatchMs());
+  el.classList.toggle("off", !w.on);
+  const btn = document.getElementById("prClockToggle");
+  if(btn) btn.textContent = w.running ? "Pause" : (w.elapsed ? "Resume" : "Start");
+}
+
+function ensurePracticeTick(){
+  if(practiceTickInterval) return;
+  practiceTickInterval = setInterval(()=>{
+    if(!state.practice.stopwatch.running){
+      clearInterval(practiceTickInterval);
+      practiceTickInterval = null;
+    }
+    paintPracticeClock();
+  }, 500);
+}
+
+function togglePracticeClock(){
+  const w = state.practice.stopwatch;
+  if(w.running){
+    w.elapsed += Date.now() - w.startedAt;
+    w.running = false;
+  }else{
+    w.startedAt = Date.now();
+    w.running = true;
+    ensurePracticeTick();
+  }
+  paintPracticeClock();
+}
+
+function resetPracticeClock(){
+  const w = state.practice.stopwatch;
+  w.running = false; w.elapsed = 0; w.startedAt = 0;
+  paintPracticeClock();
+}
+
+/* ---------- accuracy helpers ---------- */
+function clampPct(v){
+  const n = Math.round(Number(v));
+  return isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+}
+
+function accuracyColour(pct){
+  if(pct >= 85) return "#2e7d32";
+  if(pct >= 70) return "#7cb342";
+  if(pct >= 55) return "#f57f17";
+  return "#c62828";
+}
+
+function accuracyVerdict(pct){
+  if(pct >= 90) return "Casi todo correcto — errores mínimos y aislados.";
+  if(pct >= 75) return "Buen control: se entiende con fluidez, con fallos ocasionales.";
+  if(pct >= 60) return "Mensaje claro, pero con errores frecuentes que conviene corregir.";
+  if(pct >= 40) return "Se entiende a medias: los errores interrumpen la lectura o la escucha.";
+  return "Empieza por frases más cortas y seguras; hay demasiados errores para seguir el hilo.";
+}
+
+function accuracyDialHTML(pct, label){
+  const col = accuracyColour(pct);
+  return `<div class="acc-dial" style="--pct:${pct};--acc-col:${col};">
+    <b>${pct}</b><i>%</i>
+  </div>${label ? `<span class="sr-only">${escapeHtml(label)}</span>` : ""}`;
+}
+
+function accuracyCardHTML(rep, opts){
+  const o = opts || {};
+  const pct = clampPct(rep.accuracy);
+  const dims = Array.isArray(rep.dimensions) ? rep.dimensions : [];
+  const perQ = Array.isArray(rep.per_question) ? rep.per_question : [];
+  return `
+    <div class="acc-card">
+      <div class="acc-top">
+        ${accuracyDialHTML(pct, "accuracy")}
+        <div class="acc-head">
+          <h4>${escapeHtml(o.title || "Precisión")} — ${pct}%</h4>
+          <p>${escapeHtml(rep.summary || accuracyVerdict(pct))}</p>
+        </div>
+      </div>
+      ${dims.length ? `<div class="acc-dims">${dims.map(d=>{
+        const dp = clampPct(d.score);
+        return `<div class="acc-dim">
+          <div class="ad-top"><span class="ad-name">${escapeHtml(d.name||"")}</span><span class="ad-pct">${dp}%</span></div>
+          <div class="ad-meter"><i style="width:${dp}%;background:${accuracyColour(dp)};"></i></div>
+          ${d.comment ? `<p>${escapeHtml(d.comment)}</p>` : ""}
+        </div>`;
+      }).join("")}</div>` : ""}
+      ${perQ.length ? `
+        <div class="feedback-label">Pregunta por pregunta</div>
+        <ul class="acc-q">
+          ${perQ.map(q=>{
+            const qp = clampPct(q.accuracy);
+            return `<li>
+              <span class="aq-n">Q${escapeHtml(String(q.n||""))}</span>
+              <span class="aq-pct" style="color:${accuracyColour(qp)};">${qp}%</span>
+              <span>${escapeHtml(q.comment || "")}</span>
+            </li>`;
+          }).join("")}
+        </ul>` : ""}
+      ${(rep.strengths||[]).length || (rep.improvements||[]).length ? `
+        <div class="gf-cols">
+          ${(rep.strengths||[]).length ? `<div class="gf-card"><h5>Lo que ya haces bien</h5><ul>${rep.strengths.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></div>` : ""}
+          ${(rep.improvements||[]).length ? `<div class="gf-card"><h5>Lo próximo a corregir</h5><ul>${rep.improvements.map(x=>`<li>${escapeHtml(x)}</li>`).join("")}</ul></div>` : ""}
+        </div>` : ""}
+      ${o.extra || ""}
+      <p class="pr-note">Práctica libre: esto mide precisión, no es una banda IELTS ni un nivel MCER.</p>
+    </div>`;
+}
+
+/* The corrections list, shared by both marked skills. */
+function practiceCorrectionsHTML(text, rep){
+  const rows = (Array.isArray(rep.corrections) ? rep.corrections : []).map(c=>({
+    original: c.original || "", correction: c.correction || "",
+    type: c.type || "other", explanation: c.explanation || "",
+    severity: /minor/i.test(c.severity||"") ? "minor" : "major", source: "ai"
+  }));
+  const det = analyseSpokenLanguage(text || "");
+  const key = t => String(t||"").toLowerCase().replace(/[^a-z0-9']+/g," ").trim();
+  const keys = rows.map(r=>key(r.original));
+  det.issues.forEach(i=>{
+    const k = key(i.text);
+    if(!k || keys.some(prev => prev === k || prev.includes(k) || k.includes(prev))) return;
+    keys.push(k);
+    rows.push({ original:i.text, correction:"", type:i.type, explanation:i.message, severity:i.severity, source:"local" });
+  });
+  if(!rows.length) return `<div class="g-none" style="margin-top:14px;">✓ No se detectaron errores en esta respuesta.</div>`;
+
+  const located = locateHighlights(text || "", normalizeHighlights(rows.map(c=>({
+    segment:c.original, type: c.severity === "major" ? "red" : "yellow",
+    comment:(c.explanation||"") + (c.correction ? ` → “${c.correction}”` : "")
+  }))));
+  return `
+    <div class="feedback-label" style="margin-top:16px;">Tu texto, con los errores marcados</div>
+    ${feedbackLegendHTML(null, { only:["yellow","red"], text:{
+        yellow:"Impreciso o mejorable.", red:"Error claro que hay que corregir." } })}
+    ${located.found.length ? `<div class="annotated-text">${annotatedTextHTML(text || "", located.found)}</div>` : ""}
+    <ul class="det-list">
+      ${rows.map(c=>`
+        <li>
+          <div class="det-row">
+            <span class="det-quote${c.severity === "major" ? "" : " minor"}">“${escapeHtml(c.original)}”</span>
+            ${c.correction ? `<span class="arrow">→</span><span class="det-fix">${escapeHtml(c.correction)}</span>` : ""}
+            <span class="det-badge">${escapeHtml(c.type)}</span>
+            <span class="det-badge ${c.source === "local" ? "local" : "ai"}">${c.source === "local" ? "detector" : "profesor IA"}</span>
+          </div>
+          ${c.explanation ? `<div class="det-why">${escapeHtml(c.explanation)}</div>` : ""}
+        </li>`).join("")}
+    </ul>`;
+}
+
+/* ---------- the prompts ---------- */
+const PRACTICE_ACCURACY_RULES = `You are an experienced English teacher giving FREE-PRACTICE feedback. This is NOT an exam.
+
+ABSOLUTE RULES:
+- NEVER mention IELTS band scores, bands, CEFR levels (A1-C2), or any exam grade. Not in a number, not in a word, not in passing. The learner must never see one here.
+- Report ACCURACY as a whole number from 0 to 100. Accuracy is the proportion of the response that is correct and natural English: sentences free of grammatical error, word choices that a competent speaker would actually use, and answers that address what was asked.
+- Use the whole scale honestly. A text with one slip in ten sentences is around 90; frequent errors that still leave the meaning clear is around 60; errors in most sentences is 30-45. Do not cluster everything at 70.
+- Every dimension score is also 0-100, and they must be consistent with the overall figure — the overall is roughly how those dimensions average out, not a separate guess.
+- Report EVERY correction worth making, working from the first word to the last. If the same mistake appears four times, that is four entries.
+- "original" must be copied character-for-character from the learner's own words so the app can find it in their text. Never paraphrase or tidy a quote.
+- Write "summary", "comment", "explanation", "strengths" and "improvements" in SPANISH. Keep the quoted English exactly as it is.`;
+
+function practiceWritingRubric(){
+  return `${PRACTICE_ACCURACY_RULES}
+
+You are marking a piece of FREE WRITING.
+Dimensions to score, in this order: "Gramática" (grammatical accuracy), "Vocabulario" (word choice and range), "Cohesión" (how the ideas connect and flow), "Contenido" (whether the writing actually answers the topic and develops it).
+
+Respond ONLY with raw JSON, no markdown, in this exact shape:
+{"accuracy":0,"summary":"","dimensions":[{"name":"Gramática","score":0,"comment":""},{"name":"Vocabulario","score":0,"comment":""},{"name":"Cohesión","score":0,"comment":""},{"name":"Contenido","score":0,"comment":""}],"corrections":[{"original":"exact words the learner wrote","correction":"the corrected words","type":"verb tense | subject-verb agreement | article | preposition | plural | word form | pronoun | word order | word choice | collocation | spelling | punctuation | other","explanation":"one short reason in Spanish","severity":"major|minor"}],"strengths":["..."],"improvements":["..."]}`;
+}
+
+function practiceSpeakingRubric(){
+  return `${PRACTICE_ACCURACY_RULES}
+
+You are marking a whole set of spoken answers at once. The learner recorded each question separately; you are given every question with the transcript of the answer that followed it.
+Dimensions to score, in this order: "Gramática" (accuracy of the spoken grammar), "Vocabulario" (range and precision), "Fluidez" (flow, hesitation, repetition as visible in the transcript), "Respuesta" (whether each question was actually answered and developed).
+Also give a per-question accuracy figure so the learner can see which answers were strongest.
+
+Respond ONLY with raw JSON, no markdown, in this exact shape:
+{"accuracy":0,"summary":"","dimensions":[{"name":"Gramática","score":0,"comment":""},{"name":"Vocabulario","score":0,"comment":""},{"name":"Fluidez","score":0,"comment":""},{"name":"Respuesta","score":0,"comment":""}],"per_question":[{"n":1,"accuracy":0,"comment":""}],"corrections":[{"original":"exact words the learner said","correction":"the corrected words","type":"verb tense | subject-verb agreement | article | preposition | plural | word form | pronoun | word order | word choice | collocation | other","explanation":"one short reason in Spanish","severity":"major|minor"}],"strengths":["..."],"improvements":["..."]}`;
+}
+
+function normalizePracticeReport(json){
+  const rep = json && typeof json === "object" ? json : {};
+  rep.accuracy = clampPct(rep.accuracy != null ? rep.accuracy : rep.score);
+  rep.dimensions = (Array.isArray(rep.dimensions) ? rep.dimensions : [])
+    .filter(d => d && d.name).map(d => ({ name:String(d.name), score:clampPct(d.score), comment:String(d.comment||"") }));
+  rep.per_question = (Array.isArray(rep.per_question) ? rep.per_question : [])
+    .map((q,i) => ({ n: q.n || i+1, accuracy: clampPct(q.accuracy), comment: String(q.comment||"") }));
+  rep.corrections = Array.isArray(rep.corrections) ? rep.corrections : [];
+  rep.strengths = (Array.isArray(rep.strengths) ? rep.strengths : []).map(x=>String(x)).filter(Boolean).slice(0,5);
+  rep.improvements = (Array.isArray(rep.improvements) ? rep.improvements : []).map(x=>String(x)).filter(Boolean).slice(0,5);
+  rep.summary = String(rep.summary || "");
+  /* A model that slips a band or a CEFR level into the prose would undo the
+     whole point of this section. Rewording it inside the sentence produced
+     nonsense ("este nivel de precisión aproximadamente y nivel ."), so the
+     sentence carrying the grade is dropped whole — and if that empties the
+     text, the accuracy verdict stands in for it. */
+  const GRADE = /\b(?:banda|band)\s*(?:ielts)?\s*\d(?:[.,]\d)?\b|\b(?:MCER|CEFR)\b|\bnivel\s+[ABC][12]\b|\b[ABC][12]\s+level\b/i;
+  const scrub = t => {
+    const txt = String(t||"");
+    if(!GRADE.test(txt)) return txt;
+    const kept = txt.split(/(?<=[.!?])\s+/).filter(sen => !GRADE.test(sen)).join(" ").trim();
+    return kept;
+  };
+  rep.summary = scrub(rep.summary) || accuracyVerdict(rep.accuracy);
+  rep.dimensions.forEach(d => { d.comment = scrub(d.comment); });
+  rep.per_question.forEach(q => { q.comment = scrub(q.comment); });
+  rep.strengths = rep.strengths.map(scrub);
+  rep.improvements = rep.improvements.map(scrub);
+  return rep;
+}
+
+/* ---------- the page ---------- */
+function renderPractice(){
+  const P = state.practice;
+  const lastPct = sk => {
+    const r = P[sk] && P[sk].report;
+    if(r) return clampPct(r.accuracy);
+    const res = P[sk] && P[sk].result;
+    if(res && res.total) return Math.round((res.correct / res.total) * 100);
+    return null;
+  };
+
+  panel.innerHTML = `
+    <p class="section-title">Free practice</p>
+    <p class="section-sub">The same four skills without the exam around them. Nothing here is a band score or a level — Writing and Speaking come back as an accuracy percentage with every correction, and Listening and Reading are simply marked right or wrong. None of it touches your dashboard, so practise as often as you like.</p>
+
+    <div class="pr-skills">
+      ${PRACTICE_SKILLS.map(sk=>{
+        const pct = lastPct(sk.id);
+        return `<button class="pr-skill ${P.skill===sk.id?"active":""}" data-pr-skill="${sk.id}">
+          <span class="pr-ico">${sk.icon}</span>
+          <b>${sk.name}</b>
+          <span>${sk.blurb}</span>
+          ${pct !== null ? `<span class="pr-last">último intento · ${pct}%</span>` : ""}
+        </button>`;
+      }).join("")}
+    </div>
+
+    <div class="pr-bar">
+      <button class="btn ${P.stopwatch.on ? "secondary" : "ghost"} small" id="prClockOn">${P.stopwatch.on ? "Hide the timer" : "⏱ Use a timer"}</button>
+      ${P.stopwatch.on ? `
+        <span class="pr-clock" id="prClock">${fmtStopwatch(practiceStopwatchMs())}</span>
+        <button class="btn ghost small" id="prClockToggle">${P.stopwatch.running ? "Pause" : (P.stopwatch.elapsed ? "Resume" : "Start")}</button>
+        <button class="btn ghost small" id="prClockReset">Reset</button>` : ""}
+      <span class="pr-spacer"></span>
+      <span class="pr-wc" id="prWordCount">0 words</span>
+    </div>
+
+    <div id="practiceBody"></div>
+  `;
+
+  panel.querySelectorAll("[data-pr-skill]").forEach(b=>b.addEventListener("click", ()=>{
+    if(mediaRecorder && mediaRecorder.state !== "inactive"){
+      alert("Stop the recording before switching skill.");
+      return;
+    }
+    P.skill = b.dataset.prSkill;
+    renderPractice();
+  }));
+  document.getElementById("prClockOn").addEventListener("click", ()=>{
+    P.stopwatch.on = !P.stopwatch.on;
+    if(!P.stopwatch.on) resetPracticeClock();
+    renderPractice();
+  });
+  const tg = document.getElementById("prClockToggle");
+  if(tg) tg.addEventListener("click", togglePracticeClock);
+  const rs = document.getElementById("prClockReset");
+  if(rs) rs.addEventListener("click", resetPracticeClock);
+  if(P.stopwatch.running) ensurePracticeTick();
+
+  if(P.skill === "writing")        renderPracticeWriting();
+  else if(P.skill === "speaking")  renderPracticeSpeaking();
+  else if(P.skill === "listening") renderPracticeListening();
+  else                             renderPracticeReading();
+
+  addMobileGeneratorShortcut("practice");
+}
+
+function setPracticeWordCount(n, note){
+  const el = document.getElementById("prWordCount");
+  if(el) el.innerHTML = `<b>${n}</b> word${n===1?"":"s"}${note ? ` · ${escapeHtml(note)}` : ""}`;
+}
+
+/* ---------- writing ---------- */
+function renderPracticeWriting(){
+  const W = state.practice.writing;
+  const body = document.getElementById("practiceBody");
+  const topic = PRACTICE_WRITING_TOPICS.find(t=>t.id===W.topicId) || PRACTICE_WRITING_TOPICS[0];
+  const geminiOn = !!state.settings.geminiKey;
+
+  body.innerHTML = `
+    <div class="gen-card">
+      <div class="gen-head">
+        <div>
+          <b>What do you want to write about?</b>
+          <p style="margin:4px 0 0;font-size:12.5px;color:var(--slate);">Pick a prompt or choose “My own topic” and write about anything at all.</p>
+        </div>
+        <div class="gen-actions">
+          <select id="prTopic" class="gen-select">
+            ${PRACTICE_WRITING_TOPICS.map(t=>`<option value="${t.id}" ${t.id===W.topicId?"selected":""}>${escapeHtml(t.label)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      ${topic.prompt ? `<p style="margin:12px 0 0;font-size:14.5px;line-height:1.65;color:var(--ink);">${escapeHtml(topic.prompt)}</p>` : `
+        <input type="text" id="prOwnTopic" class="auth-input" style="margin:12px 0 0;" placeholder="Optional: what are you writing about?" value="${escapeXml(W.prompt||"")}">`}
+    </div>
+
+    <textarea class="essay" id="prEssay" placeholder="Write as much or as little as you like — there is no minimum here."></textarea>
+    <div class="essay-footer">
+      <div class="wordcount" id="prEssayCount">0 words</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn ghost small" id="prClearBtn">Clear</button>
+        <button class="btn small" id="prCheckBtn" ${geminiOn?"":"disabled title='Add a Gemini API key in the account menu → AI engine'"}>Check my accuracy</button>
+      </div>
+    </div>
+    ${geminiOn ? "" : `<p class="pr-note">Add a Gemini API key under the account menu → <b>AI engine</b> to have your writing checked. The word counter and the timer work without one.</p>`}
+    <div id="prWritingReport"></div>
+  `;
+
+  const area = document.getElementById("prEssay");
+  area.value = W.draft || "";
+  const recount = ()=>{
+    const n = countWords(area.value);
+    document.getElementById("prEssayCount").textContent = `${n} word${n===1?"":"s"}`;
+    setPracticeWordCount(n);
+  };
+  recount();
+  area.addEventListener("input", ()=>{ W.draft = area.value; recount(); });
+
+  document.getElementById("prTopic").addEventListener("change", e=>{
+    W.topicId = e.target.value;
+    renderPractice();
+  });
+  const own = document.getElementById("prOwnTopic");
+  if(own) own.addEventListener("input", ()=>{ W.prompt = own.value; });
+  document.getElementById("prClearBtn").addEventListener("click", ()=>{
+    if(W.draft && !confirm("Clear what you have written?")) return;
+    W.draft = ""; W.report = null;
+    renderPractice();
+  });
+  document.getElementById("prCheckBtn").addEventListener("click", checkPracticeWriting);
+  if(W.report) showPracticeWritingReport();
+}
+
+async function checkPracticeWriting(){
+  const W = state.practice.writing;
+  const text = (W.draft||"").trim();
+  if(countWords(text) < 15){ alert("Write a little more first — at least a couple of sentences."); return; }
+  if(!state.settings.geminiKey){ alert("Add a Gemini API key under the account menu → AI engine first."); return; }
+  const btn = document.getElementById("prCheckBtn");
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
+  try{
+    const topic = PRACTICE_WRITING_TOPICS.find(t=>t.id===W.topicId) || PRACTICE_WRITING_TOPICS[0];
+    const prompt = topic.prompt || W.prompt || "(the learner chose their own subject)";
+    const user = `Topic the learner was writing about: ${prompt}\n\nWord count: ${countWords(text)}\n\nWhat they wrote:\n${text}`;
+    const raw = await callGemini(practiceWritingRubric(), user, null, null);
+    W.report = normalizePracticeReport(parseJSON(raw));
+    showPracticeWritingReport();
+    renderPractice();
+  }catch(e){
+    console.error(e);
+    const host = document.getElementById("prWritingReport");
+    if(host) host.innerHTML = `<div class="hint-box" style="border-color:var(--coral);">Could not check that: ${escapeXml(e.message||"")}</div>`;
+  }
+  btn.disabled = false;
+  btn.textContent = label;
+}
+
+function showPracticeWritingReport(){
+  const W = state.practice.writing;
+  const host = document.getElementById("prWritingReport");
+  if(!host || !W.report) return;
+  host.innerHTML = accuracyCardHTML(W.report, {
+    title: "Precisión de tu escritura",
+    extra: practiceCorrectionsHTML(W.draft || "", W.report)
+  });
+}
+
+/* ---------- speaking ----------
+   One recording per question, then a single report over the whole set. The
+   recorder, the waveform and the live transcript are the ones the exam module
+   uses; only the slot key differs, so there is one recorder in the app. */
+function practiceSpeakingSet(){
+  return PRACTICE_SPEAKING_SETS.find(x=>x.id===state.practice.speaking.setId) || PRACTICE_SPEAKING_SETS[0];
+}
+function practiceSlot(i){ return `practice:${state.practice.speaking.setId}:${i}`; }
+
+function renderPracticeSpeaking(){
+  const S = state.speaking;
+  const P = state.practice.speaking;
+  const set = practiceSpeakingSet();
+  const qi = Math.min(P.qIndex, set.questions.length - 1);
+  P.qIndex = qi;
+  const slot = practiceSlot(qi);
+  const body = document.getElementById("practiceBody");
+  const answered = set.questions.filter((_,i)=>slotHasAnswer(practiceSlot(i))).length;
+
+  body.innerHTML = `
+    <div class="gen-card">
+      <div class="gen-head">
+        <div>
+          <b>Answer each question on its own</b>
+          <p style="margin:4px 0 0;font-size:12.5px;color:var(--slate);">Record one answer per question. When you have done as many as you want, mark the whole set at once.</p>
+        </div>
+        <div class="gen-actions">
+          <select id="prSet" class="gen-select">
+            ${PRACTICE_SPEAKING_SETS.map(x=>`<option value="${x.id}" ${x.id===P.setId?"selected":""}>${escapeHtml(x.label)}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="qstrip" id="prStrip">
+      ${set.questions.map((q,i)=>`
+        <button data-pq="${i}" class="${i===qi?"active":""} ${slotHasAnswer(practiceSlot(i))?"recorded":""}" title="${escapeXml(q)}">
+          <span class="qdot"></span>Q${i+1}
+        </button>`).join("")}
+    </div>
+
+    <div class="q-focus">
+      <span class="qf-lbl">Question ${qi+1} of ${set.questions.length}</span>
+      <p class="qf-text">${escapeHtml(set.questions[qi])}</p>
+      <p class="qf-meta">${slotHasAnswer(slot) ? "Recorded — record again to replace it." : "Not recorded yet."} · ${answered} of ${set.questions.length} answered</p>
+    </div>
+
+    <div class="rec-controls">
+      <button class="btn coral small" id="recBtn"><span class="rec-dot" id="recDot"></span> Record live</button>
+      <button class="btn ghost small" id="pauseBtn" disabled>Pause</button>
+      <button class="btn ghost small" id="stopBtn" disabled>Stop</button>
+      <span class="rec-wave" id="recWave" aria-hidden="true">${Array.from({length:12},()=>"<span></span>").join("")}</span>
+      <span class="mono" id="recTimer" style="font-size:13px;color:var(--slate);">00:00</span>
+      <span class="rec-paused-tag" id="recPausedTag" style="display:none;">Paused</span>
+      <div style="flex:1;"></div>
+      <button class="btn small" id="prSpeakCheck" ${answered ? "" : "disabled"}>Assess all ${answered || ""} answer${answered===1?"":"s"}</button>
+    </div>
+
+    <div class="upload-row">
+      <span style="font-size:12px;color:var(--slate);">Or upload audio for question ${qi+1}:</span>
+      <input type="file" id="audioUpload" accept="audio/*" style="font-size:12px;color:var(--slate);">
+    </div>
+    <div id="audioPlayback"></div>
+
+    <div style="margin-top:14px;">
+      <label style="font-size:12px;font-weight:600;color:var(--slate);display:block;margin-bottom:4px;">What you said <span style="font-weight:400;">— fills in as you speak, or type it here</span></label>
+      <div class="transcript-box" id="transcriptDisplay" contenteditable="true" spellcheck="false" data-placeholder="(Your answer appears here while you speak — or type it.)">${escapeXml(S.transcripts[slot]||"")}</div>
+    </div>
+
+    <div class="metrics-row">
+      <div class="metric">Duration<b><span id="mDuration">${S.metrics[slot]?.duration||"0"}</span>s</b></div>
+      <div class="metric">Words<b><span id="mWords">${S.metrics[slot]?.words||"0"}</span></b></div>
+      <div class="metric">Pace<b><span id="mPace">${S.metrics[slot]?.pace||"0"}</span> wpm</b></div>
+      <div class="metric">Fillers<b><span id="mFillers">${S.metrics[slot]?.fillers ?? "0"}</span></b></div>
+      <div class="metric">Long pauses<b><span id="mPauses">${S.metrics[slot]?.longPauses ?? "0"}</span></b></div>
+    </div>
+
+    <div id="prSpeakReport"></div>
+  `;
+
+  document.getElementById("prSet").addEventListener("change", e=>{
+    P.setId = e.target.value; P.qIndex = 0; P.report = null;
+    renderPractice();
+  });
+  body.querySelectorAll("[data-pq]").forEach(b=>b.addEventListener("click", ()=>{
+    if(mediaRecorder && mediaRecorder.state !== "inactive"){
+      alert("Stop the current recording before moving to another question.");
+      return;
+    }
+    P.qIndex = Number(b.dataset.pq);
+    renderPractice();
+  }));
+  document.getElementById("recBtn").addEventListener("click", startRecording);
+  document.getElementById("pauseBtn").addEventListener("click", togglePauseRecording);
+  document.getElementById("stopBtn").addEventListener("click", stopRecording);
+  document.getElementById("prSpeakCheck").addEventListener("click", checkPracticeSpeaking);
+
+  const tBox = document.getElementById("transcriptDisplay");
+  tBox.addEventListener("input", ()=>{
+    const txt = tBox.textContent || "";
+    S.transcripts[slot] = txt;
+    const words = countWords(txt);
+    const m = S.metrics[slot] || (S.metrics[slot] = {});
+    m.words = words; m.fillers = countFillers(txt).total;
+    const wEl = document.getElementById("mWords"); if(wEl) wEl.textContent = words;
+    const fEl = document.getElementById("mFillers"); if(fEl) fEl.textContent = m.fillers;
+    updatePracticeSpeakingCount();
+  });
+
+  document.getElementById("audioUpload").addEventListener("change", async e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    document.getElementById("audioPlayback").innerHTML =
+      `<audio controls src="${URL.createObjectURL(file)}" style="width:100%;margin-bottom:10px;"></audio>`;
+    try{
+      S.audioB64[slot] = await blobToBase64(file);
+      S.audioMime[slot] = file.type || "audio/mpeg";
+      renderPractice();
+    }catch(err){ console.error(err); }
+  });
+
+  updatePracticeSpeakingCount();
+  if(P.report) showPracticeSpeakingReport();
+}
+
+// The word counter in the practice bar counts the whole set, not one answer.
+function updatePracticeSpeakingCount(){
+  const set = practiceSpeakingSet();
+  let total = 0, answered = 0;
+  set.questions.forEach((_,i)=>{
+    const t = state.speaking.transcripts[practiceSlot(i)] || "";
+    if(t.trim()){ answered++; total += countWords(t); }
+  });
+  setPracticeWordCount(total, `${answered} of ${set.questions.length} answered`);
+}
+
+async function checkPracticeSpeaking(){
+  const P = state.practice.speaking;
+  const set = practiceSpeakingSet();
+  const answers = set.questions.map((q,i)=>({
+    n:i+1, q, slot:practiceSlot(i),
+    text:(state.speaking.transcripts[practiceSlot(i)]||"").trim()
+  })).filter(a=>a.text);
+  if(!answers.length){ alert("Record or type at least one answer first."); return; }
+  if(!state.settings.geminiKey){ alert("Add a Gemini API key under the account menu → AI engine first."); return; }
+
+  const btn = document.getElementById("prSpeakCheck");
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
+  try{
+    const user = `Topic set: ${set.label}\n\n` + answers.map(a=>
+      `QUESTION ${a.n}: ${a.q}\nANSWER ${a.n}: ${a.text}`).join("\n\n") +
+      `\n\nGive one accuracy figure for the whole set, and one per question (use the question numbers above).`;
+    const raw = await callGemini(practiceSpeakingRubric(), user, null, null);
+    P.report = normalizePracticeReport(parseJSON(raw));
+    P.report.__text = answers.map(a=>a.text).join("\n\n");
+    showPracticeSpeakingReport();
+    renderPractice();
+  }catch(e){
+    console.error(e);
+    const host = document.getElementById("prSpeakReport");
+    if(host) host.innerHTML = `<div class="hint-box" style="border-color:var(--coral);">Could not assess that: ${escapeXml(e.message||"")}</div>`;
+  }
+  btn.disabled = false;
+  btn.textContent = label;
+}
+
+function showPracticeSpeakingReport(){
+  const P = state.practice.speaking;
+  const host = document.getElementById("prSpeakReport");
+  if(!host || !P.report) return;
+  host.innerHTML = accuracyCardHTML(P.report, {
+    title: "Precisión de tus respuestas",
+    extra: practiceCorrectionsHTML(P.report.__text || "", P.report)
+  });
+}
+
+/* ---------- listening drill ---------- */
+function renderPracticeListening(){
+  const P = state.practice.listening;
+  const body = document.getElementById("practiceBody");
+  const parts = (LISTENING && LISTENING.parts) || [];
+  if(!parts.length){ body.innerHTML = `<p class="dash-empty">No listening material loaded.</p>`; return; }
+  const idx = Math.min(P.sectionIdx, parts.length-1);
+  P.sectionIdx = idx;
+  const part = parts[idx];
+  const audio = (state.listening.customAudio || {})[part.id];
+  const res = P.result;
+
+  body.innerHTML = `
+    <div class="gen-card">
+      <div class="gen-head">
+        <div>
+          <b>${escapeHtml(part.title || ("Section " + (idx+1)))}</b>
+          <p style="margin:4px 0 0;font-size:12.5px;color:var(--slate);">${escapeHtml(part.context || "Answer as you listen. No clock, no band — just how many you get right.")}</p>
+        </div>
+        <div class="gen-actions">
+          <select id="prSection" class="gen-select">
+            ${parts.map((x,i)=>`<option value="${i}" ${i===idx?"selected":""}>${escapeHtml(x.title||("Section "+(i+1)))}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+      ${audio ? `<div style="margin-top:12px;"><audio controls src="data:${audio.mime};base64,${audio.b64}" style="width:100%;"></audio></div>`
+              : `<p class="pr-note" style="margin-top:10px;">No audio attached to this section yet — attach it in the <b>Listening</b> paper and it plays here too. You can still answer from the transcript below.</p>`}
+      ${part.script ? `<details style="margin-top:10px;"><summary style="font-size:12.5px;color:var(--slate);cursor:pointer;">Show the transcript</summary>
+        <div class="pr-passage" style="margin-top:10px;">${escapeHtml(part.script).replace(/\n/g,"<br>")}</div></details>` : ""}
+    </div>
+
+    <div id="prDrill">
+      ${part.questions.map(q=>practiceDrillQuestionHTML(q, res)).join("")}
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+      <button class="btn small" id="prMarkBtn">${res ? "Mark again" : "Mark these answers"}</button>
+      <button class="btn ghost small" id="prResetBtn">Clear answers</button>
+    </div>
+    <div id="prDrillResult">${res ? practiceDrillResultHTML(res) : ""}</div>
+  `;
+
+  document.getElementById("prSection").addEventListener("change", e=>{
+    P.sectionIdx = Number(e.target.value); P.answers = {}; P.result = null;
+    renderPractice();
+  });
+  wirePracticeDrill(P, ()=>markPracticeListening());
+}
+
+function markPracticeListening(){
+  const P = state.practice.listening;
+  const part = LISTENING.parts[P.sectionIdx];
+  let correct = 0, total = 0;
+  const lines = {};
+  part.questions.forEach(q=>{
+    total++;
+    const user = P.answers[q.n];
+    let ok;
+    if(q.type === "mc" && Array.isArray(q.options)) ok = user !== undefined && parseInt(user) === q.answer;
+    else ok = checkGap(user, Array.isArray(q.answer) ? q.answer : []);
+    if(ok) correct++;
+    lines[q.n] = { ok, correct: listeningAnswerText(q) };
+  });
+  P.result = { correct, total, lines };
+  renderPractice();
+}
+
+/* ---------- reading drill ---------- */
+function renderPracticeReading(){
+  const P = state.practice.reading;
+  const body = document.getElementById("practiceBody");
+  const passages = READING_PASSAGES || [];
+  if(!passages.length){ body.innerHTML = `<p class="dash-empty">No reading material loaded.</p>`; return; }
+  const idx = Math.min(P.passageIdx, passages.length-1);
+  P.passageIdx = idx;
+  const pg = passages[idx];
+  const res = P.result;
+  // One group at a time keeps a drill short; the first group is enough practice.
+  const group = (pg.groups || [])[0];
+
+  body.innerHTML = `
+    <div class="gen-card">
+      <div class="gen-head">
+        <div>
+          <b>${escapeHtml(pg.title || ("Passage " + (idx+1)))}</b>
+          <p style="margin:4px 0 0;font-size:12.5px;color:var(--slate);">Read at your own pace and answer the set below. Marked right or wrong — no band, no clock unless you want one.</p>
+        </div>
+        <div class="gen-actions">
+          <select id="prPassage" class="gen-select">
+            ${passages.map((x,i)=>`<option value="${i}" ${i===idx?"selected":""}>${escapeHtml(x.title||("Passage "+(i+1)))}</option>`).join("")}
+          </select>
+          <button class="btn ghost small" id="prTogglePassage">${P.showPassage ? "Hide the text" : "Show the text"}</button>
+        </div>
+      </div>
+    </div>
+    ${P.showPassage ? `<div class="pr-passage">${(pg.body||pg.text||"").split(/\n\n+/).map(par=>`<p>${escapeHtml(par)}</p>`).join("")}</div>` : ""}
+    ${group ? `
+      <p class="instructions" style="font-size:13px;color:var(--slate);line-height:1.6;">${escapeHtml(group.instructions||"")}</p>
+      <div id="prDrill">${practiceReadingQuestionsHTML(pg, group, res)}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+        <button class="btn small" id="prMarkBtn">${res ? "Mark again" : "Mark these answers"}</button>
+        <button class="btn ghost small" id="prResetBtn">Clear answers</button>
+      </div>
+      <div id="prDrillResult">${res ? practiceDrillResultHTML(res) : ""}</div>`
+    : `<p class="dash-empty">This passage has no question set attached.</p>`}
+  `;
+
+  document.getElementById("prPassage").addEventListener("change", e=>{
+    P.passageIdx = Number(e.target.value); P.answers = {}; P.result = null;
+    renderPractice();
+  });
+  document.getElementById("prTogglePassage").addEventListener("click", ()=>{
+    P.showPassage = !P.showPassage;
+    renderPractice();
+  });
+  if(group) wirePracticeDrill(P, ()=>markPracticeReading());
+}
+
+function markPracticeReading(){
+  const P = state.practice.reading;
+  const pg = READING_PASSAGES[P.passageIdx];
+  const g = (pg.groups||[])[0];
+  let correct = 0, total = 0;
+  const lines = {};
+  const mark = (key, ok, shown) => { total++; if(ok) correct++; lines[key] = { ok, correct: shown }; };
+
+  if(g.type === "heading"){
+    Object.entries(g.key||{}).forEach(([pname, targetIdx])=>{
+      const v = P.answers[`heading-${pname}`];
+      mark(`heading-${pname}`, v !== undefined && parseInt(v) === targetIdx, String(targetIdx));
+    });
+  } else if(g.type === "tfng"){
+    (g.items||[]).forEach((item,i)=>{
+      const v = P.answers[`tfng-${i}`];
+      mark(`tfng-${i}`, !!v && v.trim().toUpperCase() === String(item.a).trim().toUpperCase(), item.a);
+    });
+  } else if(g.type === "completion"){
+    (g.items||[]).forEach((item,i)=>{
+      mark(`comp-${i}`, checkGap(P.answers[`comp-${i}`], item.a||[]), (item.a||[])[0] || "—");
+    });
+  } else if(g.type === "matchinfo"){
+    (g.items||[]).forEach((item,i)=>{
+      const v = P.answers[`match-${i}`];
+      mark(`match-${i}`, v !== undefined && String(v).trim().toUpperCase() === String(item.a).trim().toUpperCase(), item.a);
+    });
+  } else if(g.type === "mc"){
+    (g.items||[]).forEach((item,i)=>{
+      const v = P.answers[`mc-${i}`];
+      mark(`mc-${i}`, v !== undefined && parseInt(v) === item.a, (item.options||[])[item.a] || "—");
+    });
+  }
+  P.result = { correct, total, lines };
+  renderPractice();
+}
+
+/* ---------- shared drill rendering ---------- */
+function practiceDrillQuestionHTML(q, res){
+  const line = res && res.lines[q.n];
+  const cls = line ? (line.ok ? "correct" : "wrong") : "";
+  const mark = line ? `<span class="drill-mark ${line.ok?"ok":"no"}">${line.ok ? "✓" : "✗ " + escapeHtml(String(line.correct))}</span>` : "";
+  if(q.type === "mc" && Array.isArray(q.options)){
+    return `<div class="drill-q ${cls}">
+      <span class="dq-n">${q.n}</span>${escapeHtml(q.label)}${mark}
+      <div class="opt-row" style="margin-top:6px;">
+        ${q.options.map((o,i)=>`<label><input type="radio" name="prq${q.n}" data-pra="${q.n}" value="${i}"> ${escapeHtml(o)}</label>`).join("")}
+      </div>
+    </div>`;
+  }
+  return `<div class="drill-q ${cls}"><span class="dq-n">${q.n}</span>${escapeHtml(q.label)} <input type="text" data-pra="${q.n}">${mark}</div>`;
+}
+
+function practiceReadingQuestionsHTML(pg, g, res){
+  const cell = (key, inner) => {
+    const line = res && res.lines[key];
+    const cls = line ? (line.ok ? "correct" : "wrong") : "";
+    const mark = line ? `<span class="drill-mark ${line.ok?"ok":"no"}">${line.ok ? "✓" : "✗ " + escapeHtml(String(line.correct))}</span>` : "";
+    return `<div class="drill-q ${cls}">${inner}${mark}</div>`;
+  };
+  if(g.type === "heading"){
+    const opts = (g.options||[]).map((o,i)=>`<option value="${i}">${i} · ${escapeHtml(o)}</option>`).join("");
+    return (g.paragraphs||[]).map(pn => cell(`heading-${pn}`,
+      `<span class="dq-n">Para ${escapeHtml(pn)}</span>
+       <select data-pra="heading-${pn}"><option value="">—</option>${opts}</select>`)).join("");
+  }
+  if(g.type === "tfng"){
+    return (g.items||[]).map((item,i)=> cell(`tfng-${i}`,
+      `<span class="dq-n">${g.qStart+i}</span>${escapeHtml(item.q)}
+       <div class="opt-row opt-row-inline" style="margin-top:6px;">
+         ${["TRUE","FALSE","NOT GIVEN"].map(v=>`<label><input type="radio" name="prt${i}" data-pra="tfng-${i}" value="${v}"> ${v}</label>`).join("")}
+       </div>`)).join("");
+  }
+  if(g.type === "completion"){
+    return (g.items||[]).map((item,i)=> cell(`comp-${i}`,
+      `<span class="dq-n">${g.qStart+i}</span>${escapeHtml(item.q)} <input type="text" data-pra="comp-${i}">`)).join("");
+  }
+  if(g.type === "matchinfo"){
+    return (g.items||[]).map((item,i)=> cell(`match-${i}`,
+      `<span class="dq-n">${g.qStart+i}</span>${escapeHtml(item.q)} <input type="text" data-pra="match-${i}" style="max-width:70px;text-align:center;">`)).join("");
+  }
+  if(g.type === "mc"){
+    return (g.items||[]).map((item,i)=> cell(`mc-${i}`,
+      `<span class="dq-n">${g.qStart+i}</span>${escapeHtml(item.q)}
+       <div class="opt-row" style="margin-top:6px;">
+         ${(item.options||[]).map((o,j)=>`<label><input type="radio" name="prm${i}" data-pra="mc-${i}" value="${j}"> ${escapeHtml(o)}</label>`).join("")}
+       </div>`)).join("");
+  }
+  return "";
+}
+
+function wirePracticeDrill(store, markFn){
+  const body = document.getElementById("practiceBody");
+  body.querySelectorAll("[data-pra]").forEach(el=>{
+    const key = el.dataset.pra;
+    const saved = store.answers[key];
+    if(el.type === "radio"){ if(saved !== undefined && String(saved) === el.value) el.checked = true; }
+    else if(saved !== undefined) el.value = saved;
+    const ev = (el.tagName === "SELECT" || el.type === "radio") ? "change" : "input";
+    el.addEventListener(ev, ()=>{ store.answers[key] = el.value; });
+  });
+  const mb = document.getElementById("prMarkBtn");
+  if(mb) mb.addEventListener("click", markFn);
+  const rb = document.getElementById("prResetBtn");
+  if(rb) rb.addEventListener("click", ()=>{ store.answers = {}; store.result = null; renderPractice(); });
+}
+
+function practiceDrillResultHTML(res){
+  const pct = res.total ? Math.round((res.correct / res.total) * 100) : 0;
+  return `
+    <div class="acc-card">
+      <div class="acc-top">
+        ${accuracyDialHTML(pct, "accuracy")}
+        <div class="acc-head">
+          <h4>${res.correct} de ${res.total} correctas — ${pct}%</h4>
+          <p>${escapeHtml(accuracyVerdict(pct))}</p>
+        </div>
+      </div>
+      <p class="pr-note">Las respuestas correctas aparecen junto a cada pregunta. Práctica libre: no es una banda ni un nivel, y no cuenta para tu panel.</p>
+    </div>`;
 }
 
 /* =========================================================================
@@ -6769,8 +7910,13 @@ function renderDashboard(){
   renderFeedbackInbox();
 }
 
-/* Messages the teacher has sent, shown at the top of a student's dashboard. */
+/* Kept as the name Home calls; the student panel now covers homework too. */
 function renderFeedbackInbox(){
+  if(typeof isStudent !== "function" || !isStudent()) return;
+  return renderStudentInbox();
+}
+
+function renderFeedbackInboxLegacy(){
   if(typeof isStudent !== "function" || !isStudent() || !AUTH.feedback.length) return;
   const host = document.createElement("div");
   host.className = "fb-inbox";
@@ -9986,7 +11132,11 @@ function startRecording(){
       delete state.speaking.language[slot];
       if(state.speaking.bandVersions) delete state.speaking.bandVersions[slot];
       state.speaking.detector[slot] = analyseSpokenLanguage(state.speaking.transcripts[slot] || "");
-      if(state.speaking.part === part){
+      if(isPracticeSlot(slot)){
+        // Free practice has no bands to recompute; just redraw the page so the
+        // question strip and the counters catch up.
+        if(state.mod === "practice") renderPractice();
+      }else if(state.speaking.part === part){
         if(speakingIsPerQuestion(part)) finishSpeakingPart(part);
         renderSpeakingFeedback(part);
       }
@@ -10072,6 +11222,7 @@ function startRecording(){
 
         S.metrics[slot] = { words:wCount, duration:dSec, pace, speakingSec: Math.round(spanSec),
                               fillers: fillerCount, longPauses, pauses: speechPauses.slice() };
+        if(isPracticeSlot(slot) && typeof updatePracticeSpeakingCount === "function") updatePracticeSpeakingCount();
       };
       // Restarting a stopped recogniser on resume fires onend first; the flag
       // keeps start()/stop() calls balanced so we never start a live one.
@@ -11100,7 +12251,25 @@ async function selectSpeakingBandVersion(slot, band){
    offline version, with the account button hidden.
    ========================================================================= */
 
-const AUTH = { client:null, enabled:false, user:null, profile:null, feedback:[], students:[], authMode:"signin", signupRole:"student" };
+const AUTH = { client:null, enabled:false, user:null, profile:null, feedback:[], homework:[],
+               students:[], authMode:"signin", signupRole:"student", ready:false, lastError:"" };
+
+/* A class code typed at sign-up cannot be used until the account exists, and
+   with "Confirm email" switched on the account does not exist until the student
+   clicks the link — by which time the code was gone and they were left
+   unlinked, looking signed in but invisible to their teacher. It is parked here
+   and applied on the first sign-in that has a session. */
+const PENDING_CODE_KEY = "ielts-pending-class-code";
+function parkClassCode(code){
+  try{ if(code) localStorage.setItem(PENDING_CODE_KEY, String(code).trim().toUpperCase()); }catch(e){}
+}
+function takeParkedClassCode(){
+  try{
+    const v = localStorage.getItem(PENDING_CODE_KEY);
+    if(v) localStorage.removeItem(PENDING_CODE_KEY);
+    return v || "";
+  }catch(e){ return ""; }
+}
 
 function supabaseConfigured(){
   const c = window.SUPABASE_CONFIG || {};
@@ -11123,9 +12292,29 @@ async function initAuth(){
     if(btn) btn.style.display = "";
     const { data } = await AUTH.client.auth.getSession();
     if(data && data.session){ await adoptSession(data.session); }
-    AUTH.client.auth.onAuthStateChange((_e, session)=>{
-      if(!session){ AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.students=[]; refreshAccountUI(); }
+    // Previously only sign-out was handled, so a session that arrived any other
+    // way — the email-confirmation link, a recovery link, a sign-in in another
+    // tab — left the app looking signed out until a manual reload.
+    AUTH.client.auth.onAuthStateChange(async (event, session)=>{
+      if(!session){
+        AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.homework=[]; AUTH.students=[];
+        refreshAccountUI();
+        return;
+      }
+      if(event === "SIGNED_IN" || event === "USER_UPDATED" || event === "INITIAL_SESSION"){
+        if(!AUTH.profile || AUTH.user?.id !== session.user.id){
+          await adoptSession(session);
+          render();
+        }
+      }
+      if(event === "PASSWORD_RECOVERY"){
+        AUTH.user = session.user;
+        openAuthModal();
+        const st = document.getElementById("authStatus2");
+        if(st){ st.style.color = "var(--teal)"; st.textContent = "Signed in from the reset link — set a new password below."; }
+      }
     });
+    AUTH.ready = true;
   }catch(e){
     console.error("Supabase init failed", e);
     AUTH.enabled = false;
@@ -11139,21 +12328,65 @@ async function adoptSession(session){
   await loadProfile();
   if(AUTH.profile){
     if(AUTH.profile.role === "student"){
+      // A code parked at sign-up is spent here, on the first session that
+      // actually exists.
+      const parked = takeParkedClassCode();
+      if(parked && !AUTH.profile.teacher_id){
+        try{ await joinClass(parked); }
+        catch(e){ console.error("class join failed", e); AUTH.lastError = e.message || "Could not join that class."; }
+      }
       await pullProgress();
       await loadFeedback();
+      await loadHomework();
     }else{
       await loadStudents();
+      await loadTeacherHomework();
     }
   }
   refreshAccountUI();
 }
 
+/* The profile row is normally created by the on_auth_user_created trigger. If
+   that trigger is missing (a project set up from an older copy of the schema)
+   or it failed, the old code called .single(), threw, and left the app signed
+   in with no profile — which looks exactly like a broken login: the account
+   button says "Sign in" even though there is a valid session. It now asks for
+   the row without demanding one, and writes it itself when it is absent, which
+   the profiles_insert_own policy allows. */
 async function loadProfile(){
+  AUTH.profile = null;
   try{
-    const { data, error } = await AUTH.client.from("profiles").select("*").eq("id", AUTH.user.id).single();
+    const { data, error } = await AUTH.client.from("profiles").select("*").eq("id", AUTH.user.id).maybeSingle();
     if(error) throw error;
-    AUTH.profile = data;
-  }catch(e){ console.error("profile load failed", e); AUTH.profile = null; }
+    if(data){ AUTH.profile = data; return; }
+
+    const meta = AUTH.user.user_metadata || {};
+    const role = (meta.role === "teacher") ? "teacher" : "student";
+    const row = {
+      id: AUTH.user.id,
+      email: AUTH.user.email || "",
+      full_name: meta.full_name || (AUTH.user.email || "").split("@")[0],
+      role
+    };
+    // Teachers need a class code; the trigger normally mints it, so mint one
+    // here too rather than leaving a teacher with nothing to give their class.
+    if(role === "teacher") row.class_code = randomClassCode();
+    const ins = await AUTH.client.from("profiles").insert(row).select().maybeSingle();
+    if(ins.error) throw ins.error;
+    AUTH.profile = ins.data || row;
+    console.warn("profile row was missing and has been created client-side");
+  }catch(e){
+    console.error("profile load failed", e);
+    AUTH.lastError = e.message || "Could not load your profile.";
+    AUTH.profile = null;
+  }
+}
+
+function randomClassCode(){
+  const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";   // no I/O/0/1 — they get misread
+  let out = "";
+  for(let i=0;i<6;i++) out += A[Math.floor(Math.random()*A.length)];
+  return out;
 }
 
 /* ---- sign in / up / out ---- */
@@ -11176,15 +12409,36 @@ async function doSignUp(email, password, fullName, role, classCode){
     }
   });
   if(error) throw error;
+  if(role === "student" && classCode) parkClassCode(classCode);
   // Projects with "Confirm email" enabled return no session until the link is clicked.
   if(!data.session){
     return { needsConfirm:true };
   }
   await adoptSession(data.session);
-  if(role === "student" && classCode){
-    await joinClass(classCode);
-  }
   return { needsConfirm:false };
+}
+
+/* Two things every real class needs and neither of which existed: a way back in
+   after a forgotten password, and a way to ask for the confirmation email
+   again when the first one never arrived. */
+async function doPasswordReset(email){
+  const { error } = await AUTH.client.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+  if(error) throw error;
+}
+
+async function doResendConfirmation(email){
+  const { error } = await AUTH.client.auth.resend({
+    type: "signup", email,
+    options:{ emailRedirectTo: window.location.origin + window.location.pathname }
+  });
+  if(error) throw error;
+}
+
+async function doUpdatePassword(newPassword){
+  const { error } = await AUTH.client.auth.updateUser({ password: newPassword });
+  if(error) throw error;
 }
 
 async function joinClass(code){
@@ -11197,7 +12451,7 @@ async function joinClass(code){
 
 async function doSignOut(){
   try{ await AUTH.client.auth.signOut(); }catch(e){}
-  AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.students=[];
+  AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.homework=[]; AUTH.students=[];
   if(state.mod === "class") state.mod = "dashboard";
   refreshAccountUI();
   render();
@@ -11273,6 +12527,173 @@ async function markFeedbackRead(){
   }catch(e){ console.error("mark read failed", e); }
 }
 
+/* =========================================================================
+   HOMEWORK
+   A teacher sets a task against a student (or the whole class in one go); the
+   student sees it on their home page, opens the paper it points at, and ticks
+   it off. The teacher sees who has done what.
+   ========================================================================= */
+
+async function loadHomework(){
+  if(!isStudent()) return;
+  try{
+    const { data, error } = await AUTH.client.from("homework")
+      .select("*").eq("student_id", AUTH.profile.id).order("created_at", { ascending:false }).limit(50);
+    if(error) throw error;
+    AUTH.homework = data || [];
+  }catch(e){ console.error("homework load failed", e); AUTH.homework = []; }
+}
+
+async function loadTeacherHomework(){
+  if(!isTeacher()) return;
+  try{
+    const { data, error } = await AUTH.client.from("homework")
+      .select("*").eq("teacher_id", AUTH.profile.id).order("created_at", { ascending:false }).limit(200);
+    if(error) throw error;
+    AUTH.homework = data || [];
+  }catch(e){ console.error("homework load failed", e); AUTH.homework = []; }
+}
+
+function pendingHomework(){
+  return (AUTH.homework || []).filter(h => !h.done_at);
+}
+
+// Anything the bell should count: unread notes plus work still to do.
+function notificationCount(){
+  if(!isStudent()) return 0;
+  return unreadFeedbackCount() + pendingHomework().length;
+}
+
+async function assignHomework(studentIds, task){
+  if(!isTeacher()) throw new Error("Only a teacher can set homework.");
+  const rows = studentIds.map(sid => ({
+    teacher_id: AUTH.profile.id,
+    student_id: sid,
+    title: task.title,
+    module: task.module || null,
+    instructions: task.instructions || null,
+    due_at: task.due_at || null
+  }));
+  const { error } = await AUTH.client.from("homework").insert(rows);
+  if(error) throw error;
+  await loadTeacherHomework();
+}
+
+async function markHomeworkDone(id, note){
+  if(!isStudent()) return;
+  const patch = { done_at: new Date().toISOString() };
+  if(note != null) patch.student_note = note;
+  const { error } = await AUTH.client.from("homework").update(patch).eq("id", id);
+  if(error) throw error;
+  const row = (AUTH.homework || []).find(h=>h.id === id);
+  if(row){ row.done_at = patch.done_at; if(note != null) row.student_note = note; }
+  refreshAccountUI();
+}
+
+async function reopenHomework(id){
+  if(!isStudent()) return;
+  const { error } = await AUTH.client.from("homework").update({ done_at: null }).eq("id", id);
+  if(error) throw error;
+  const row = (AUTH.homework || []).find(h=>h.id === id);
+  if(row) row.done_at = null;
+  refreshAccountUI();
+}
+
+async function deleteHomework(id){
+  if(!isTeacher()) return;
+  const { error } = await AUTH.client.from("homework").delete().eq("id", id);
+  if(error) throw error;
+  AUTH.homework = (AUTH.homework || []).filter(h=>h.id !== id);
+}
+
+function dueLabel(iso){
+  if(!iso) return "";
+  const due = new Date(iso);
+  const days = Math.ceil((due - Date.now()) / 86400000);
+  const when = due.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+  if(days < 0)  return `overdue — was due ${when}`;
+  if(days === 0) return `due today`;
+  if(days === 1) return `due tomorrow`;
+  return `due ${when}`;
+}
+
+const HOMEWORK_MODULE_LABEL = {
+  listening:"Listening", reading:"Reading", writing:"Writing",
+  speaking:"Speaking", practice:"Free practice", mock:"Full mock test"
+};
+
+/* The student's own panel: the teacher's notes and the work still to do. It is
+   rendered under Home, and the bell scrolls to it. */
+function renderStudentInbox(){
+  if(!isStudent()) return;
+  const notes = AUTH.feedback || [];
+  const tasks = AUTH.homework || [];
+  if(!notes.length && !tasks.length) return;
+  const host = document.createElement("div");
+  host.className = "fb-inbox";
+  host.id = "studentInbox";
+  const pending = tasks.filter(t=>!t.done_at);
+  const done = tasks.filter(t=>t.done_at);
+
+  host.innerHTML = `
+    <hr class="rule">
+    <div class="inbox-head">
+      <h3>From your teacher${notificationCount() ? `<span class="tab-badge">${notificationCount()}</span>` : ""}</h3>
+      <button class="btn ghost small" id="inboxRefresh">Refresh</button>
+    </div>
+
+    ${tasks.length ? `
+      <div class="feedback-label" style="margin-top:6px;">Homework</div>
+      <ul class="hw-list">
+        ${pending.concat(done).map(t=>`
+          <li class="hw-item ${t.done_at ? "done" : ""} ${(!t.done_at && t.due_at && new Date(t.due_at) < Date.now()) ? "late" : ""}">
+            <div class="hw-main">
+              <b>${escapeHtml(t.title)}</b>
+              ${t.module ? `<span class="hw-tag">${escapeHtml(HOMEWORK_MODULE_LABEL[t.module] || t.module)}</span>` : ""}
+              ${t.due_at ? `<span class="hw-due">${escapeHtml(dueLabel(t.due_at))}</span>` : ""}
+              ${t.instructions ? `<p>${escapeHtml(t.instructions)}</p>` : ""}
+              ${t.done_at ? `<span class="hw-state">✓ marked done ${new Date(t.done_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>` : ""}
+            </div>
+            <div class="hw-actions">
+              ${t.module && HOMEWORK_MODULE_LABEL[t.module] ? `<button class="btn ghost small" data-hw-go="${t.module}">Open</button>` : ""}
+              ${t.done_at
+                ? `<button class="btn ghost small" data-hw-reopen="${t.id}">Undo</button>`
+                : `<button class="btn brass small" data-hw-done="${t.id}">Mark done</button>`}
+            </div>
+          </li>`).join("")}
+      </ul>` : ""}
+
+    ${notes.length ? `
+      <div class="feedback-label" style="margin-top:16px;">Feedback</div>
+      ${notes.slice(0,10).map(f=>`
+        <div class="fb-msg ${f.read_at?"":"unread"}">
+          <div class="fb-meta">${new Date(f.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}${f.read_at?"":" · new"}</div>
+          <div class="fb-body">${escapeHtml(f.message)}</div>
+        </div>`).join("")}` : ""}
+  `;
+  panel.appendChild(host);
+
+  host.querySelectorAll("[data-hw-done]").forEach(b=>b.addEventListener("click", async ()=>{
+    b.disabled = true;
+    try{ await markHomeworkDone(b.dataset.hwDone, null); render(); }
+    catch(e){ alert("Could not save that: " + (e.message||e)); b.disabled = false; }
+  }));
+  host.querySelectorAll("[data-hw-reopen]").forEach(b=>b.addEventListener("click", async ()=>{
+    b.disabled = true;
+    try{ await reopenHomework(b.dataset.hwReopen); render(); }
+    catch(e){ alert("Could not save that: " + (e.message||e)); b.disabled = false; }
+  }));
+  host.querySelectorAll("[data-hw-go]").forEach(b=>b.addEventListener("click", ()=>setModule(b.dataset.hwGo)));
+  const rb = host.querySelector("#inboxRefresh");
+  if(rb) rb.addEventListener("click", async ()=>{
+    rb.disabled = true;
+    await loadFeedback(); await loadHomework();
+    render();
+  });
+
+  if(unreadFeedbackCount()) markFeedbackRead();
+}
+
 /* ---- teacher data ---- */
 async function loadStudents(){
   if(!isTeacher()) return;
@@ -11330,11 +12751,11 @@ function refreshAccountUI(){
   }else if(classTab){
     classTab.remove();
   }
-  // student feedback badge on the dashboard tab
+  // Home carries the badge for anything waiting: unread notes and open tasks.
   const dashTab = tabs.querySelector('button[data-mod="dashboard"]');
   if(dashTab){
-    const unread = isStudent() ? unreadFeedbackCount() : 0;
-    dashTab.innerHTML = "Dashboard" + (unread ? `<span class="tab-badge">${unread}</span>` : "");
+    const n = notificationCount();
+    dashTab.innerHTML = "Home" + (n ? `<span class="tab-badge">${n}</span>` : "");
   }
 }
 
@@ -11397,6 +12818,79 @@ function openAuthModal(){
   authOverlay.style.display = "flex";
 }
 
+/* Recovering an account is part of signing in, not an extra feature: without
+   these two a student who mistypes a password or never receives the first
+   confirmation email has no way back in at all. */
+function authEmailOrWarn(st){
+  const email = document.getElementById("authEmail").value.trim();
+  if(!email){
+    st.style.color = "var(--coral)";
+    st.textContent = "Type your email address above first.";
+    return "";
+  }
+  if(!AUTH.enabled){
+    st.style.color = "var(--coral)";
+    st.textContent = "Accounts are not configured for this copy.";
+    return "";
+  }
+  return email;
+}
+
+document.getElementById("authForgot").addEventListener("click", async ()=>{
+  const st = document.getElementById("authStatus");
+  const email = authEmailOrWarn(st);
+  if(!email) return;
+  st.style.color = "var(--slate)";
+  st.textContent = "Sending…";
+  try{
+    await doPasswordReset(email);
+    st.style.color = "var(--teal)";
+    st.textContent = "Reset link sent. Open it on this device, then set a new password from your account panel.";
+  }catch(e){
+    st.style.color = "var(--coral)";
+    st.textContent = e.message || "Could not send the reset email.";
+  }
+});
+
+document.getElementById("authResend").addEventListener("click", async ()=>{
+  const st = document.getElementById("authStatus");
+  const email = authEmailOrWarn(st);
+  if(!email) return;
+  st.style.color = "var(--slate)";
+  st.textContent = "Sending…";
+  try{
+    await doResendConfirmation(email);
+    st.style.color = "var(--teal)";
+    st.textContent = "Confirmation email sent again. Check your inbox and spam folder.";
+  }catch(e){
+    st.style.color = "var(--coral)";
+    st.textContent = e.message || "Could not resend it (the address may already be confirmed — try signing in).";
+  }
+});
+
+document.getElementById("authSetPassword").addEventListener("click", async ()=>{
+  const st = document.getElementById("authStatus2");
+  const box = document.getElementById("authNewPassword");
+  const pw = box.value;
+  if(!pw || pw.length < 6){
+    st.style.color = "var(--coral)";
+    st.textContent = "Use at least 6 characters.";
+    return;
+  }
+  const btn = document.getElementById("authSetPassword");
+  btn.disabled = true;
+  try{
+    await doUpdatePassword(pw);
+    box.value = "";
+    st.style.color = "var(--teal)";
+    st.textContent = "Password updated ✓";
+  }catch(e){
+    st.style.color = "var(--coral)";
+    st.textContent = e.message || "Could not update the password.";
+  }
+  btn.disabled = false;
+});
+
 document.querySelectorAll("[data-authtab]").forEach(b=>b.addEventListener("click", ()=>{
   AUTH.authMode = b.dataset.authtab;
   document.querySelectorAll("[data-authtab]").forEach(x=>x.classList.toggle("active", x===b));
@@ -11432,7 +12926,9 @@ document.getElementById("authSubmit").addEventListener("click", async ()=>{
       const res = await doSignUp(email, pass, name, AUTH.signupRole, code);
       if(res.needsConfirm){
         st.style.color = "var(--teal)";
-        st.textContent = "Account created. Check your email to confirm it, then sign in.";
+        st.textContent = AUTH.signupRole === "student" && code
+          ? "Account created. Confirm it from the email we sent, then sign in — your class code is saved and applied automatically."
+          : "Account created. Check your email to confirm it, then sign in.";
       }else{
         authOverlay.style.display = "none";
         render();
@@ -11477,9 +12973,11 @@ async function renderClassDashboard(){
   `;
   document.getElementById("refreshClassBtn").addEventListener("click", async ()=>{
     await loadStudents();
+    await loadTeacherHomework();
     drawRoster();
   });
   await loadStudents();
+  await loadTeacherHomework();
   drawRoster();
 }
 
@@ -11494,15 +12992,19 @@ function drawRoster(){
     <table class="roster">
       <tr>
         <th>Student</th><th class="band">Listening</th><th class="band">Reading</th>
-        <th class="band">Writing</th><th class="band">Speaking</th><th>Last activity</th>
+        <th class="band">Writing</th><th class="band">Speaking</th><th class="band">Homework</th><th>Last activity</th>
       </tr>
       ${AUTH.students.map(s=>{
         const sc = (s.progress && s.progress.scores) || {};
         const cell = v => v==null ? `<td class="band" style="color:var(--slate);">—</td>` : `<td class="band">${fmtBand(v)}</td>`;
         const when = s.progress && s.progress.updated_at ? new Date(s.progress.updated_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : "—";
+        const hw = (AUTH.homework || []).filter(h=>h.student_id === s.id);
+        const open = hw.filter(h=>!h.done_at).length;
         return `<tr class="clickable" data-sid="${s.id}">
           <td><span class="stu-name">${escapeXml(s.full_name||"(no name)")}</span><br><span class="stu-mail">${escapeXml(s.email||"")}</span></td>
           ${cell(sc.listening)}${cell(sc.reading)}${cell(sc.writing)}${cell(sc.speaking)}
+          <td class="band" style="font-family:'IBM Plex Mono',monospace;font-size:12px;${open?"color:var(--coral);font-weight:700;":"color:var(--slate);"}">${
+            hw.length ? `${hw.length-open}/${hw.length}` : "—"}</td>
           <td style="font-size:12px;color:var(--slate);">${when}</td>
         </tr>`;
       }).join("")}
@@ -11515,6 +13017,7 @@ function drawRoster(){
 async function openStudent(sid){
   const s = AUTH.students.find(x=>x.id===sid);
   if(!s) return;
+  const hwForStudent = (AUTH.homework || []).filter(h=>h.student_id === sid);
   classSelectedStudent = sid;
   const area = document.getElementById("studentDetailArea");
   area.innerHTML = `<div class="stu-detail"><p class="dash-empty">Loading ${escapeXml(s.full_name||"student")}…</p></div>`;
@@ -11549,10 +13052,42 @@ async function openStudent(sid){
         </div>`).join("") : `<p class="dash-empty" style="padding:14px;">No submissions yet.</p>`}
 
       <div class="feedback-label" style="margin-top:18px;">Send feedback &amp; tips</div>
-      <textarea class="fb-send" id="fbMessage" placeholder="Write a note for ${escapeXml((s.full_name||'this student').split(' ')[0])} — it appears on their dashboard next time they open the app."></textarea>
+      <textarea class="fb-send" id="fbMessage" placeholder="Write a note for ${escapeXml((s.full_name||'this student').split(' ')[0])} — it appears on their home page and under their bell."></textarea>
       <div style="display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap;">
         <button class="btn small" id="sendFbBtn">Send feedback</button>
         <span id="fbStatus" style="font-size:12.5px;"></span>
+      </div>
+
+      <div class="feedback-label" style="margin-top:20px;">Set homework</div>
+      <div class="hw-form">
+        <div class="hw-row">
+          <input type="text" id="hwTitle" placeholder="Task — e.g. Write Task 2 on urban transport">
+          <select id="hwModule">
+            <option value="">Any part of the app</option>
+            <option value="listening">Listening</option>
+            <option value="reading">Reading</option>
+            <option value="writing">Writing</option>
+            <option value="speaking">Speaking</option>
+            <option value="practice">Free practice</option>
+            <option value="mock">Full mock test</option>
+          </select>
+          <input type="date" id="hwDue" title="Due date (optional)">
+        </div>
+        <textarea id="hwInstructions" placeholder="What exactly should they do? (optional)"></textarea>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;">
+          <button class="btn brass small" id="hwAssignBtn">Assign to ${escapeXml((s.full_name||'this student').split(' ')[0])}</button>
+          <button class="btn ghost small" id="hwAssignAllBtn">Assign to the whole class (${AUTH.students.length})</button>
+          <span id="hwStatus" style="font-size:12.5px;"></span>
+        </div>
+        ${hwForStudent.length ? `
+          <ul class="hw-track">
+            ${hwForStudent.map(h=>`
+              <li>
+                <span class="hwt-state ${h.done_at ? "done" : "open"}">${h.done_at ? "done" : "open"}</span>
+                <span><b>${escapeHtml(h.title)}</b>${h.due_at ? ` · ${escapeHtml(dueLabel(h.due_at))}` : ""}${h.done_at ? ` · ticked off ${new Date(h.done_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}` : ""}</span>
+                <button class="hwt-del" data-hw-del="${h.id}">remove</button>
+              </li>`).join("")}
+          </ul>` : `<p style="font-size:12.5px;color:var(--slate);margin:10px 0 0;">No homework set for this student yet.</p>`}
       </div>
     </div>`;
   document.getElementById("sendFbBtn").addEventListener("click", async ()=>{
@@ -11574,6 +13109,48 @@ async function openStudent(sid){
     }
     b.disabled = false;
   });
+
+  const assign = async (all)=>{
+    const st = document.getElementById("hwStatus");
+    const title = document.getElementById("hwTitle").value.trim();
+    if(!title){ st.style.color="var(--coral)"; st.textContent="Give the task a title."; return; }
+    const due = document.getElementById("hwDue").value;
+    const task = {
+      title,
+      module: document.getElementById("hwModule").value || null,
+      instructions: document.getElementById("hwInstructions").value.trim() || null,
+      // A date input has no time; make it end-of-day so "due Friday" lasts Friday.
+      due_at: due ? new Date(due + "T23:59:59").toISOString() : null
+    };
+    const ids = all ? AUTH.students.map(x=>x.id) : [sid];
+    if(!ids.length){ st.style.color="var(--coral)"; st.textContent="No students to assign to yet."; return; }
+    const btns = [document.getElementById("hwAssignBtn"), document.getElementById("hwAssignAllBtn")];
+    btns.forEach(b=>b && (b.disabled = true));
+    try{
+      await assignHomework(ids, task);
+      // openStudent rebuilds the panel, so the confirmation has to be written
+      // after the rebuild or it is wiped by it.
+      await openStudent(sid);
+      const st2 = document.getElementById("hwStatus");
+      if(st2){
+        st2.style.color = "var(--teal)";
+        st2.textContent = all ? `Assigned to ${ids.length} student${ids.length===1?"":"s"} ✓` : "Assigned ✓";
+      }
+      drawRoster();
+    }catch(e){
+      st.style.color = "var(--coral)";
+      st.textContent = e.message || "Could not assign that.";
+      btns.forEach(b=>b && (b.disabled = false));
+    }
+  };
+  document.getElementById("hwAssignBtn").addEventListener("click", ()=>assign(false));
+  document.getElementById("hwAssignAllBtn").addEventListener("click", ()=>assign(true));
+  area.querySelectorAll("[data-hw-del]").forEach(b=>b.addEventListener("click", async ()=>{
+    if(!confirm("Remove this homework task?")) return;
+    b.disabled = true;
+    try{ await deleteHomework(b.dataset.hwDel); await openStudent(sid); }
+    catch(e){ alert(e.message || "Could not remove that."); b.disabled = false; }
+  }));
   area.scrollIntoView({ behavior:"smooth", block:"nearest" });
 }
 

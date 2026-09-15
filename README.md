@@ -16,6 +16,13 @@ Open `index.html` in any modern browser. No build step, no server required.
 - **Full mock test** — the four papers in exam order on their official clocks,
   tracked to the band each earned, with a "continue" that opens the next paper
   you have not finished.
+- **Free practice** — the same four skills with the exam taken off them. No
+  band and no CEFR level anywhere: Writing and Speaking come back as an
+  **accuracy percentage** with every correction marked in your own text, and
+  Listening and Reading are simply marked right or wrong. The timer is a button
+  you press only if you want one, there is a live word counter throughout, and
+  Speaking is recorded one question at a time and assessed as a whole set at the
+  end. Nothing here touches your dashboard.
 - **Progress** — the overall seal, per-skill cards, skill-profile and
   band-history charts, and the full attempt history.
 - **Listening / Reading** — full question sets with answer keys and auto-marking.
@@ -39,6 +46,13 @@ Open `index.html` in any modern browser. No build step, no server required.
   the bands awarded.
 - **Language desk** — a translator on every skill tab, with verb conjugation
   tables, register-ranked alternative words and collocations (see below).
+- **Accounts, homework and feedback** — students sign in with their teacher's
+  class code and their progress follows them to any device; teachers see the
+  class roster, read every submission, write feedback, and set homework for one
+  student or the whole class at once. Students get it on their home page and
+  under the 🔔 bell, and tick it off when it is done. Password reset and
+  "resend the confirmation email" are built in, and a class code typed at
+  sign-up survives the email-confirmation step.
 - **Sessions** — export/import progress to a file, or quick-save snapshots in
   the browser.
 - **Liquid Glass controls** — every button is a translucent pill with a
@@ -147,6 +161,11 @@ see everything from a **My class** dashboard and send them feedback.
 fully offline, with the account button hidden.
 
 ### Setup (about 5 minutes)
+
+> Already set the database up before homework existed? Paste
+> `supabase-schema.sql` into the SQL editor once more — every statement is
+> create-if-not-exists, so it adds the new table and leaves your data alone.
+
 
 1. Create a free project at <https://supabase.com>.
 2. Open **SQL Editor → New query**, paste all of [`supabase-schema.sql`](supabase-schema.sql), and click **Run**.
