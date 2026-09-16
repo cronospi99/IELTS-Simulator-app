@@ -14,6 +14,8 @@
 --   progress     latest band scores + history snapshot per student.
 --   submissions  each scored Writing/Speaking attempt, kept for the teacher.
 --   feedback     messages a teacher sends to one of their students.
+--   homework     tasks a teacher sets for a student, which the student sees on
+--                their home page and marks as done.
 --
 -- SECURITY (row-level security is ON for every table)
 --   A student can only ever read/write their OWN rows.
@@ -62,6 +64,21 @@ create table if not exists public.feedback (
   read_at     timestamptz
 );
 
+create table if not exists public.homework (
+  id            uuid primary key default gen_random_uuid(),
+  teacher_id    uuid not null references public.profiles(id) on delete cascade,
+  student_id    uuid not null references public.profiles(id) on delete cascade,
+  title         text not null,
+  module        text,                    -- listening | reading | writing | speaking | practice
+  instructions  text,
+  due_at        timestamptz,
+  created_at    timestamptz not null default now(),
+  done_at       timestamptz,
+  student_note  text
+);
+
+create index if not exists homework_student_idx on public.homework(student_id, created_at desc);
+create index if not exists homework_teacher_idx on public.homework(teacher_id, created_at desc);
 create index if not exists submissions_student_idx on public.submissions(student_id, created_at desc);
 create index if not exists feedback_student_idx    on public.feedback(student_id, created_at desc);
 create index if not exists profiles_teacher_idx    on public.profiles(teacher_id);
@@ -210,3 +227,40 @@ create policy feedback_select_teacher on public.feedback
 
 create policy feedback_insert_teacher on public.feedback
   for insert with check (teacher_id = auth.uid() and public.is_my_student(student_id));
+
+-- homework -------------------------------------------------------------------
+alter table public.homework enable row level security;
+
+drop policy if exists homework_select_student on public.homework;
+drop policy if exists homework_update_student on public.homework;
+drop policy if exists homework_select_teacher on public.homework;
+drop policy if exists homework_insert_teacher on public.homework;
+drop policy if exists homework_update_teacher on public.homework;
+drop policy if exists homework_delete_teacher on public.homework;
+
+create policy homework_select_student on public.homework
+  for select using (student_id = auth.uid());
+
+-- a student may tick their own task off (and leave a note with it), nothing else
+create policy homework_update_student on public.homework
+  for update using (student_id = auth.uid()) with check (student_id = auth.uid());
+
+create policy homework_select_teacher on public.homework
+  for select using (teacher_id = auth.uid());
+
+create policy homework_insert_teacher on public.homework
+  for insert with check (teacher_id = auth.uid() and public.is_my_student(student_id));
+
+create policy homework_update_teacher on public.homework
+  for update using (teacher_id = auth.uid()) with check (teacher_id = auth.uid());
+
+create policy homework_delete_teacher on public.homework
+  for delete using (teacher_id = auth.uid());
+
+-- -----------------------------------------------------------------------------
+-- RE-RUNNING THIS FILE IS SAFE
+-- Every statement is create-if-not-exists or drop-then-create, so pasting the
+-- whole file again after an update adds what is new and leaves your data alone.
+-- If you set the project up before the homework table existed, running it once
+-- more is all that is needed.
+-- -----------------------------------------------------------------------------
