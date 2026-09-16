@@ -2370,6 +2370,26 @@ textarea.essay{
 }
 @keyframes sheetUp{from{transform:translateY(16px);opacity:.6;}to{transform:translateY(0);opacity:1;}}
 @media (prefers-reduced-motion: reduce){.settings-modal{animation:none;}}
+
+/* Anything the account modal needs to say that is not a form: a rejected class
+   code, a profile that would not load. Empty most of the time, so :empty keeps
+   it out of the layout instead of leaving a gap. */
+.auth-notice{ font-size:12.5px; line-height:1.6; border-radius:10px; margin:0 0 14px;
+  background:#fdecec; border:1px solid #f3c2c2; color:#8a2b2b; padding:10px 12px; }
+.auth-notice:empty{ display:none; }
+.auth-notice.info{ background:#e9f6f1; border-color:#b5e0d2; color:#17564a; }
+.acct-chip.warn{ color:#8a2b2b; }
+/* The "signed in but we don't know who you are" panel. */
+.auth-broken p{ font-size:13px; line-height:1.6; margin:0 0 10px; }
+.auth-broken .why{ font-size:12px; color:var(--slate); }
+.auth-broken .why code{ font-size:11.5px; }
+
+/* Homework notes — the student's line back to their teacher, and how the
+   teacher sees it on the tracking list. */
+.hw-note-input{ width:100%; margin:8px 0 0; padding:7px 10px; font-size:12.5px;
+  border:1px solid var(--line); border-radius:8px; font-family:'Inter',sans-serif; }
+.hw-note-shown{ font-size:12px; color:var(--slate); font-style:italic; margin:6px 0 0; }
+.hwt-note{ font-size:11.5px; color:var(--slate); font-style:italic; }
 </style>
 </head>
 <body>
@@ -2568,6 +2588,17 @@ textarea.essay{
       <button id="closeAuth" class="btn ghost small">Close</button>
     </div>
 
+    <div id="authNotice" class="auth-notice"></div>
+
+    <div id="authBroken" class="auth-broken" style="display:none;">
+      <p>You <b>are</b> signed in as <b id="authBrokenEmail">—</b>, but your profile row could not be read, so the app cannot tell whether you are a student or a teacher.</p>
+      <p class="why">Almost always this means the database setup has not been run on the Supabase project yet. Open the project&rsquo;s <b>SQL Editor</b> and run <code>supabase/01_schema.sql</code> and then <code>supabase/02_roles_and_tasks.sql</code>, then press Retry.</p>
+      <div class="sheet-actions">
+        <button class="btn brass small" id="authRetryProfile">Retry</button>
+        <button class="btn ghost small" id="authBrokenSignOut">Sign out</button>
+      </div>
+    </div>
+
     <div id="authSignedOut">
       <div class="write-tabs" style="margin:10px 0 16px;">
         <button data-authtab="signin" class="active">Sign in</button>
@@ -2616,6 +2647,7 @@ textarea.essay{
         </div>
       </div>
       <div id="authClassInfo"></div>
+      <details class="auth-pw" id="authRoleSwitch"></details>
       <details class="auth-pw">
         <summary>Change my password</summary>
         <input type="password" id="authNewPassword" class="auth-input" placeholder="New password, at least 6 characters" autocomplete="new-password">
@@ -3113,6 +3145,10 @@ const state = {
   candNo: Math.floor(100000 + Math.random()*899999),
   scores: { listening:null, reading:null, writing:null, speaking:null },
   history: [],
+  // Whose bands are currently in this browser: a user id, or null for work
+  // done signed out. A school laptop is used by a whole class one after
+  // another, and without this the next student inherits the last one's scores.
+  progressOwner: null,
   bdOpen: false,   // official band descriptor chart expanded?
   listening: { answers:{}, submitted:false, playedParts:{}, customAudio:{}, audioDur:{} },
   // Exam clocks, keyed "writing:task1" | "writing:task2" | "reading" | "listening".
@@ -3164,6 +3200,7 @@ async function loadHistory(){
       const parsed = JSON.parse(r.value);
       state.history = parsed.history || [];
       state.scores = parsed.scores || state.scores;
+      state.progressOwner = parsed.owner || null;
     }
   }catch(e){ /* no history yet */ }
   // The dashboard draws with Chart.js, which comes from a CDN. If that script
@@ -3236,10 +3273,23 @@ document.addEventListener("click", e=>{
 
 async function saveHistory(){
   try{
-    await window.storage.set('ielts-history', JSON.stringify({history:state.history, scores:state.scores}), false);
+    await window.storage.set('ielts-history', JSON.stringify({
+      history: state.history, scores: state.scores, owner: state.progressOwner || null
+    }), false);
   }catch(e){
     console.error("storage save failed", e);
   }
+}
+
+/* Wipes the bands and history held in this browser. Called when the person at
+   the keyboard changes: the scores belong to whoever earned them, and leaving
+   them behind does not just mislead the next student — pushProgress would
+   upload them into that student's row, and their teacher would mark them. */
+function resetLocalProgress(owner){
+  state.scores = { listening:null, reading:null, writing:null, speaking:null };
+  state.history = [];
+  state.progressOwner = owner || null;
+  saveHistory();
 }
 
 function recordScore(module, band, detail){
@@ -12298,7 +12348,11 @@ async function initAuth(){
     AUTH.client.auth.onAuthStateChange(async (event, session)=>{
       if(!session){
         AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.homework=[]; AUTH.students=[];
+        AUTH.lastError = "";
+        resetLocalProgress(null);
+        if(state.mod === "class") state.mod = "dashboard";
         refreshAccountUI();
+        render();
         return;
       }
       if(event === "SIGNED_IN" || event === "USER_UPDATED" || event === "INITIAL_SESSION"){
@@ -12333,7 +12387,12 @@ async function adoptSession(session){
       const parked = takeParkedClassCode();
       if(parked && !AUTH.profile.teacher_id){
         try{ await joinClass(parked); }
-        catch(e){ console.error("class join failed", e); AUTH.lastError = e.message || "Could not join that class."; }
+        catch(e){
+          console.error("class join failed", e);
+          // Said plainly, because the student is now signed in and invisible to
+          // their teacher, and nothing else on screen would ever tell them.
+          AUTH.lastError = `You are signed in, but the class code "${parked}" was not accepted: ${e.message || "it did not match any teacher."} Open your account and enter the right code.`;
+        }
       }
       await pullProgress();
       await loadFeedback();
@@ -12449,9 +12508,50 @@ async function joinClass(code){
   return data;
 }
 
+/* Membership and role are no longer columns the browser may write — see
+   supabase/02_roles_and_tasks.sql. Everything a user legitimately needs to
+   change about them goes through one of these, which run as the database owner
+   and check the caller first. */
+
+async function leaveClass(){
+  const { error } = await AUTH.client.rpc("leave_class");
+  if(error) throw error;
+  await loadProfile();
+  refreshAccountUI();
+}
+
+async function regenerateClassCode(){
+  const { data, error } = await AUTH.client.rpc("regenerate_class_code");
+  if(error) throw error;
+  await loadProfile();
+  refreshAccountUI();
+  return data;
+}
+
+async function removeStudent(studentId){
+  const { error } = await AUTH.client.rpc("remove_student", { p_student: studentId });
+  if(error) throw error;
+  await loadStudents();
+  await loadTeacherHomework();
+}
+
+async function switchRole(role){
+  const { data, error } = await AUTH.client.rpc("switch_role", { p_role: role });
+  if(error) throw error;
+  await loadProfile();
+  // The two roles load completely different data, so re-adopt rather than
+  // patch: a fresh teacher needs a roster, a fresh student needs an inbox.
+  const { data:sess } = await AUTH.client.auth.getSession();
+  if(sess && sess.session) await adoptSession(sess.session);
+  return data;
+}
+
 async function doSignOut(){
   try{ await AUTH.client.auth.signOut(); }catch(e){}
   AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.homework=[]; AUTH.students=[];
+  AUTH.lastError = "";
+  // The bands on screen belong to the person who just left.
+  resetLocalProgress(null);
   if(state.mod === "class") state.mod = "dashboard";
   refreshAccountUI();
   render();
@@ -12473,8 +12573,27 @@ async function pushProgress(){
   }catch(e){ console.error("progress sync failed", e); }
 }
 
+/* Decides what the local bands are worth before the cloud is consulted.
+
+   Three cases, and the old code only handled the first:
+     • same student as last time  — local is theirs, the cloud fills in gaps
+     • nobody signed in before    — work done signed out, so adopt it
+     • a different student        — not theirs. Wipe before anything is read,
+                                    or their predecessor's bands get pushed up
+                                    into this student's row on the next score. */
+function reconcileProgressOwner(){
+  const me = AUTH.profile && AUTH.profile.id;
+  if(!me) return;
+  if(state.progressOwner && state.progressOwner !== me){
+    resetLocalProgress(me);
+    return;
+  }
+  state.progressOwner = me;
+}
+
 async function pullProgress(){
   if(!isStudent()) return;
+  reconcileProgressOwner();
   try{
     const { data, error } = await AUTH.client.from("progress").select("*").eq("student_id", AUTH.profile.id).maybeSingle();
     if(error) throw error;
@@ -12483,9 +12602,12 @@ async function pullProgress(){
       // they left off on any device.
       if(data.scores) state.scores = Object.assign({}, state.scores, data.scores);
       if(Array.isArray(data.history) && data.history.length) state.history = data.history;
-      saveHistory();
     }
-  }catch(e){ console.error("progress pull failed", e); }
+    saveHistory();
+  }catch(e){
+    console.error("progress pull failed", e);
+    AUTH.lastError = "Signed in, but your saved progress could not be loaded. It is safe — reload to try again.";
+  }
 }
 
 async function saveSubmission(moduleName, task, prompt, content, band, report){
@@ -12579,6 +12701,20 @@ async function assignHomework(studentIds, task){
   await loadTeacherHomework();
 }
 
+/* Without this a typo in a task could only be fixed by deleting it and setting
+   it again — which loses the fact that the student had already done it. */
+async function updateHomework(id, task){
+  if(!isTeacher()) throw new Error("Only a teacher can change a task.");
+  const { error } = await AUTH.client.from("homework").update({
+    title: task.title,
+    module: task.module || null,
+    instructions: task.instructions || null,
+    due_at: task.due_at || null
+  }).eq("id", id);
+  if(error) throw error;
+  await loadTeacherHomework();
+}
+
 async function markHomeworkDone(id, note){
   if(!isStudent()) return;
   const patch = { done_at: new Date().toISOString() };
@@ -12654,6 +12790,8 @@ function renderStudentInbox(){
               ${t.instructions ? `<p>${escapeHtml(t.instructions)}</p>` : ""}
               ${t.done_at ? `<span class="hw-state">✓ marked done ${new Date(t.done_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>` : ""}
             </div>
+            ${t.student_note ? `<p class="hw-note-shown">Your note: ${escapeHtml(t.student_note)}</p>` : ""}
+            ${t.done_at ? "" : `<input type="text" class="hw-note-input" data-hw-note="${t.id}" maxlength="300" placeholder="Note back to your teacher (optional) — e.g. found Part 3 hard">`}
             <div class="hw-actions">
               ${t.module && HOMEWORK_MODULE_LABEL[t.module] ? `<button class="btn ghost small" data-hw-go="${t.module}">Open</button>` : ""}
               ${t.done_at
@@ -12675,7 +12813,9 @@ function renderStudentInbox(){
 
   host.querySelectorAll("[data-hw-done]").forEach(b=>b.addEventListener("click", async ()=>{
     b.disabled = true;
-    try{ await markHomeworkDone(b.dataset.hwDone, null); render(); }
+    const field = host.querySelector(`[data-hw-note="${b.dataset.hwDone}"]`);
+    const note = field ? field.value.trim() : "";
+    try{ await markHomeworkDone(b.dataset.hwDone, note || null); render(); }
     catch(e){ alert("Could not save that: " + (e.message||e)); b.disabled = false; }
   }));
   host.querySelectorAll("[data-hw-reopen]").forEach(b=>b.addEventListener("click", async ()=>{
@@ -12734,6 +12874,12 @@ function refreshAccountUI(){
       const n = (AUTH.profile.full_name || AUTH.profile.email || "?").trim();
       const unread = isStudent() ? unreadFeedbackCount() : 0;
       btn.innerHTML = `<span class="acct-chip"><span class="acct-dot"></span>${escapeXml(n.split(" ")[0])}${unread?`<span class="tab-badge">${unread}</span>`:""}</span>`;
+    }else if(AUTH.user){
+      // Signed in as far as Supabase is concerned, but the profile row did not
+      // load. Saying "Sign in" here is what made a broken profile look like a
+      // broken login: the student signs in again, it works, and nothing
+      // changes.
+      btn.innerHTML = `<span class="acct-chip warn">⚠ <span class="btn-label">Account</span></span>`;
     }else{
       btn.innerHTML = `👤 <span class="btn-label">Sign in</span>`;
     }
@@ -12768,10 +12914,29 @@ document.getElementById("closeAuth").addEventListener("click", ()=>authOverlay.s
 
 function openAuthModal(){
   const signedIn = !!(AUTH.enabled && AUTH.profile);
-  document.getElementById("authSignedOut").style.display = signedIn ? "none" : "";
+  // A valid session with no profile row is its own state. Treated as "signed
+  // out" it sends the student round the sign-in form again, which succeeds and
+  // changes nothing — the single most confusing thing this app could do.
+  const broken = !!(AUTH.enabled && AUTH.user && !AUTH.profile);
+
+  const notice = document.getElementById("authNotice");
+  if(notice){
+    notice.className = "auth-notice";
+    notice.textContent = AUTH.lastError || "";
+  }
+
+  document.getElementById("authBroken").style.display = broken ? "" : "none";
+  document.getElementById("authSignedOut").style.display = (signedIn || broken) ? "none" : "";
   document.getElementById("authSignedIn").style.display  = signedIn ? "" : "none";
   document.getElementById("authOfflineNote").style.display = AUTH.enabled ? "none" : "";
-  document.getElementById("authTitle").textContent = signedIn ? "Your account" : "Sign in";
+  document.getElementById("authTitle").textContent =
+    signedIn ? "Your account" : (broken ? "Account problem" : "Sign in");
+
+  if(broken){
+    document.getElementById("authBrokenEmail").textContent = AUTH.user.email || AUTH.user.id;
+    authOverlay.style.display = "flex";
+    return;
+  }
   if(signedIn){
     const p = AUTH.profile;
     const name = p.full_name || p.email || "";
@@ -12787,7 +12952,29 @@ function openAuthModal(){
           <span class="lbl">Your class code — give this to your students</span>
           <div class="code">${escapeXml(p.class_code||"—")}</div>
         </div>
-        <p style="font-size:12px;color:var(--slate);margin:10px 0 0;line-height:1.55;">Students enter this code when they create their account. They then appear in your <b>My class</b> tab.</p>`;
+        <p style="font-size:12px;color:var(--slate);margin:10px 0 0;line-height:1.55;">Students enter this code when they create their account, or from this panel afterwards. They then appear in your <b>My class</b> tab.</p>
+        <div class="sheet-actions" style="margin-top:8px;">
+          <button class="btn ghost small" id="newCodeBtn">Issue a new code</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--slate);margin:6px 0 0;line-height:1.5;">Use this if the old code has spread beyond your class. Students who have already joined stay in it.</p>`;
+      const nb = document.getElementById("newCodeBtn");
+      nb.addEventListener("click", async ()=>{
+        if(!confirm("Issue a new class code?\n\nThe old one stops working. Students already in your class are not affected.")) return;
+        nb.disabled = true;
+        const st = document.getElementById("authStatus2");
+        try{
+          const code = await regenerateClassCode();
+          st.style.color = "var(--teal)";
+          st.textContent = `New class code: ${code}`;
+          openAuthModal();
+          document.getElementById("authStatus2").style.color = "var(--teal)";
+          document.getElementById("authStatus2").textContent = `New class code: ${code}`;
+        }catch(e){
+          st.style.color = "var(--coral)";
+          st.textContent = e.message || "Could not issue a new code.";
+          nb.disabled = false;
+        }
+      });
     }else if(!p.teacher_id){
       info.innerHTML = `<p style="font-size:12.5px;color:var(--slate);margin:14px 0 6px;line-height:1.55;">You are not linked to a teacher yet. Enter the class code they gave you:</p>
         <div style="display:flex;gap:8px;">
@@ -12812,11 +12999,92 @@ function openAuthModal(){
         jb.disabled = false;
       });
     }else{
-      info.innerHTML = `<p style="font-size:12.5px;color:var(--teal);margin:14px 0 0;">✓ Linked to your teacher — your progress is shared with them.</p>`;
+      info.innerHTML = `<p style="font-size:12.5px;color:var(--teal);margin:14px 0 6px;">✓ Linked to your teacher — your progress is shared with them.</p>
+        <div class="sheet-actions"><button class="btn ghost small" id="leaveClassBtn">Leave this class</button></div>`;
+      const lb = document.getElementById("leaveClassBtn");
+      lb.addEventListener("click", async ()=>{
+        if(!confirm("Leave this class?\n\nYour teacher stops seeing your work. Your scores and past papers stay with you, and you can rejoin with the code.")) return;
+        lb.disabled = true;
+        const st = document.getElementById("authStatus2");
+        try{
+          await leaveClass();
+          openAuthModal();
+          const st2 = document.getElementById("authStatus2");
+          st2.style.color = "var(--slate)";
+          st2.textContent = "You have left the class.";
+          render();
+        }catch(e){
+          st.style.color = "var(--coral)";
+          st.textContent = e.message || "Could not leave the class.";
+          lb.disabled = false;
+        }
+      });
     }
+
+    /* Picking the wrong button on the sign-up form used to be permanent, and it
+       is the kind of mistake that happens on the first day of term. The server
+       allows the change only while the account is still empty, so the honest
+       thing is to offer it and let it explain itself when it refuses. */
+    renderRoleSwitch(p);
   }
   authOverlay.style.display = "flex";
 }
+
+function renderRoleSwitch(p){
+  const host = document.getElementById("authRoleSwitch");
+  if(!host) return;
+  const other = p.role === "teacher" ? "student" : "teacher";
+  host.innerHTML = `
+    <summary>I signed up as the wrong one</summary>
+    <p style="font-size:12.5px;color:var(--slate);line-height:1.6;margin:8px 0 10px;">
+      This account is a <b>${escapeXml(p.role)}</b> account. It can be turned into
+      a <b>${escapeXml(other)}</b> account only while it is still empty — no class,
+      no homework, no submitted work. After that, create a separate account.
+    </p>
+    <button class="btn ghost small" id="roleSwitchBtn">Make this a ${escapeXml(other)} account</button>
+    <p id="roleSwitchStatus" style="font-size:12.5px;margin:8px 0 0;line-height:1.5;"></p>`;
+  document.getElementById("roleSwitchBtn").addEventListener("click", async ()=>{
+    const st = document.getElementById("roleSwitchStatus");
+    const b = document.getElementById("roleSwitchBtn");
+    b.disabled = true;
+    try{
+      await switchRole(other);
+      openAuthModal();
+      render();
+      const st2 = document.getElementById("roleSwitchStatus");
+      if(st2){ st2.style.color = "var(--teal)"; st2.textContent = `This is now a ${other} account.`; }
+    }catch(e){
+      st.style.color = "var(--coral)";
+      st.textContent = e.message || "Could not change the role of this account.";
+      b.disabled = false;
+    }
+  });
+}
+
+/* The profile read is the one step of signing in that can fail on its own, and
+   it is also the one that is worth simply trying again — a cold Supabase
+   project, a dropped request, a schema that has just been run. */
+async function retryProfile(){
+  if(!AUTH.user) return;
+  const btn = document.getElementById("authRetryProfile");
+  if(btn){ btn.disabled = true; btn.textContent = "Retrying…"; }
+  AUTH.lastError = "";
+  try{
+    const { data } = await AUTH.client.auth.getSession();
+    if(data && data.session) await adoptSession(data.session);
+  }catch(e){
+    AUTH.lastError = e.message || "Could not load your profile.";
+  }
+  if(btn){ btn.disabled = false; btn.textContent = "Retry"; }
+  openAuthModal();
+  render();
+}
+
+document.getElementById("authRetryProfile").addEventListener("click", retryProfile);
+document.getElementById("authBrokenSignOut").addEventListener("click", async ()=>{
+  await doSignOut();
+  authOverlay.style.display = "none";
+});
 
 /* Recovering an account is part of signing in, not an extra feature: without
    these two a student who mistypes a password or never receives the first
@@ -12955,6 +13223,9 @@ document.getElementById("authSignOut").addEventListener("click", async ()=>{
    ========================================================================= */
 
 let classSelectedStudent = null;
+// The id of the task the assign form is currently editing, or null when it is
+// setting a new one. The form is the same in both cases.
+let hwEditingId = null;
 
 async function renderClassDashboard(){
   if(!isTeacher()){ state.mod = "dashboard"; return renderDashboard(); }
@@ -13017,6 +13288,7 @@ function drawRoster(){
 async function openStudent(sid){
   const s = AUTH.students.find(x=>x.id===sid);
   if(!s) return;
+  if(sid !== classSelectedStudent) hwEditingId = null;
   const hwForStudent = (AUTH.homework || []).filter(h=>h.student_id === sid);
   classSelectedStudent = sid;
   const area = document.getElementById("studentDetailArea");
@@ -13031,6 +13303,7 @@ async function openStudent(sid){
         <div>
           <h4>${escapeXml(s.full_name||"(no name)")}</h4>
           <span class="stu-mail">${escapeXml(s.email||"")}</span>
+          <div style="margin-top:6px;"><button class="btn ghost small" id="removeStudentBtn">Remove from class</button></div>
         </div>
         <div style="display:flex;gap:14px;flex-wrap:wrap;">
           ${["listening","reading","writing","speaking"].map(m=>`
@@ -13077,6 +13350,7 @@ async function openStudent(sid){
         <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap;">
           <button class="btn brass small" id="hwAssignBtn">Assign to ${escapeXml((s.full_name||'this student').split(' ')[0])}</button>
           <button class="btn ghost small" id="hwAssignAllBtn">Assign to the whole class (${AUTH.students.length})</button>
+          <button class="btn ghost small" id="hwCancelEdit" style="display:none;">Cancel</button>
           <span id="hwStatus" style="font-size:12.5px;"></span>
         </div>
         ${hwForStudent.length ? `
@@ -13084,12 +13358,29 @@ async function openStudent(sid){
             ${hwForStudent.map(h=>`
               <li>
                 <span class="hwt-state ${h.done_at ? "done" : "open"}">${h.done_at ? "done" : "open"}</span>
-                <span><b>${escapeHtml(h.title)}</b>${h.due_at ? ` · ${escapeHtml(dueLabel(h.due_at))}` : ""}${h.done_at ? ` · ticked off ${new Date(h.done_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}` : ""}</span>
+                <span><b>${escapeHtml(h.title)}</b>${h.due_at ? ` · ${escapeHtml(dueLabel(h.due_at))}` : ""}${h.done_at ? ` · ticked off ${new Date(h.done_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}` : ""}${
+                  h.student_note ? `<br><span class="hwt-note">“${escapeHtml(h.student_note)}”</span>` : ""}</span>
+                <button class="hwt-del" data-hw-edit="${h.id}">edit</button>
                 <button class="hwt-del" data-hw-del="${h.id}">remove</button>
               </li>`).join("")}
           </ul>` : `<p style="font-size:12.5px;color:var(--slate);margin:10px 0 0;">No homework set for this student yet.</p>`}
       </div>
     </div>`;
+  const rmBtn = document.getElementById("removeStudentBtn");
+  if(rmBtn) rmBtn.addEventListener("click", async ()=>{
+    if(!confirm(`Remove ${s.full_name||"this student"} from your class?\n\nThey keep their account and their scores; you stop seeing them, and any homework you set stops applying. They can rejoin with your class code.`)) return;
+    rmBtn.disabled = true;
+    try{
+      await removeStudent(sid);
+      classSelectedStudent = null;
+      document.getElementById("studentDetailArea").innerHTML = "";
+      drawRoster();
+    }catch(e){
+      alert(e.message || "Could not remove that student.");
+      rmBtn.disabled = false;
+    }
+  });
+
   document.getElementById("sendFbBtn").addEventListener("click", async ()=>{
     const box = document.getElementById("fbMessage");
     const msg = box.value.trim();
@@ -13110,18 +13401,42 @@ async function openStudent(sid){
     b.disabled = false;
   });
 
-  const assign = async (all)=>{
-    const st = document.getElementById("hwStatus");
+  const readTask = ()=>{
     const title = document.getElementById("hwTitle").value.trim();
-    if(!title){ st.style.color="var(--coral)"; st.textContent="Give the task a title."; return; }
+    if(!title) return null;
     const due = document.getElementById("hwDue").value;
-    const task = {
+    return {
       title,
       module: document.getElementById("hwModule").value || null,
       instructions: document.getElementById("hwInstructions").value.trim() || null,
       // A date input has no time; make it end-of-day so "due Friday" lasts Friday.
       due_at: due ? new Date(due + "T23:59:59").toISOString() : null
     };
+  };
+
+  const assign = async (all)=>{
+    const st = document.getElementById("hwStatus");
+    const task = readTask();
+    if(!task){ st.style.color="var(--coral)"; st.textContent="Give the task a title."; return; }
+    // Editing is the same form with a different verb, so it branches here
+    // rather than duplicating the read-and-validate above.
+    if(hwEditingId){
+      const btns = [document.getElementById("hwAssignBtn"), document.getElementById("hwAssignAllBtn")];
+      btns.forEach(b=>b && (b.disabled = true));
+      try{
+        await updateHomework(hwEditingId, task);
+        hwEditingId = null;
+        await openStudent(sid);
+        const st2 = document.getElementById("hwStatus");
+        if(st2){ st2.style.color = "var(--teal)"; st2.textContent = "Task updated ✓"; }
+        drawRoster();
+      }catch(e){
+        st.style.color = "var(--coral)";
+        st.textContent = e.message || "Could not save that change.";
+        btns.forEach(b=>b && (b.disabled = false));
+      }
+      return;
+    }
     const ids = all ? AUTH.students.map(x=>x.id) : [sid];
     if(!ids.length){ st.style.color="var(--coral)"; st.textContent="No students to assign to yet."; return; }
     const btns = [document.getElementById("hwAssignBtn"), document.getElementById("hwAssignAllBtn")];
@@ -13145,6 +13460,30 @@ async function openStudent(sid){
   };
   document.getElementById("hwAssignBtn").addEventListener("click", ()=>assign(false));
   document.getElementById("hwAssignAllBtn").addEventListener("click", ()=>assign(true));
+  area.querySelectorAll("[data-hw-edit]").forEach(b=>b.addEventListener("click", ()=>{
+    const h = (AUTH.homework||[]).find(x=>x.id === b.dataset.hwEdit);
+    if(!h) return;
+    hwEditingId = h.id;
+    document.getElementById("hwTitle").value = h.title || "";
+    document.getElementById("hwModule").value = h.module || "";
+    document.getElementById("hwInstructions").value = h.instructions || "";
+    document.getElementById("hwDue").value = h.due_at ? new Date(h.due_at).toISOString().slice(0,10) : "";
+    const one = document.getElementById("hwAssignBtn");
+    const all = document.getElementById("hwAssignAllBtn");
+    if(one) one.textContent = "Save changes";
+    // "Assign to the whole class" makes no sense while editing one task.
+    if(all) all.style.display = "none";
+    const cancel = document.getElementById("hwCancelEdit");
+    if(cancel) cancel.style.display = "";
+    const st = document.getElementById("hwStatus");
+    if(st){ st.style.color = "var(--slate)"; st.textContent = "Editing this task."; }
+    document.getElementById("hwTitle").focus();
+  }));
+  const cancelEdit = document.getElementById("hwCancelEdit");
+  if(cancelEdit) cancelEdit.addEventListener("click", async ()=>{
+    hwEditingId = null;
+    await openStudent(sid);
+  });
   area.querySelectorAll("[data-hw-del]").forEach(b=>b.addEventListener("click", async ()=>{
     if(!confirm("Remove this homework task?")) return;
     b.disabled = true;
