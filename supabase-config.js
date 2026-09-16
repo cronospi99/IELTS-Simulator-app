@@ -2,7 +2,8 @@
    SUPABASE CONNECTION  —  fill these in to switch on teacher/student accounts
    -----------------------------------------------------------------------------
    1. Create a free project at https://supabase.com
-   2. Run supabase-schema.sql in the project's SQL Editor (one click)
+   2. Run supabase/01_schema.sql, then supabase/02_roles_and_tasks.sql,
+      in the project's SQL Editor
    3. In Supabase go to  Settings → API  and copy:
         • Project URL      →  url    below
         • anon / public key →  anonKey below
@@ -10,7 +11,7 @@
 
    IS IT SAFE TO COMMIT THE anon KEY?  Yes — that is exactly what it is for.
    The anon key only ever acts as the currently logged-in user, and the
-   row-level security rules in supabase-schema.sql mean a student can only read
+   row-level security rules in supabase/01_schema.sql mean a student can only read
    their own rows and a teacher only their own students'. Never commit the
    "service_role" key, which does bypass those rules.
 

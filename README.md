@@ -162,27 +162,81 @@ fully offline, with the account button hidden.
 
 ### Setup (about 5 minutes)
 
-> Already set the database up before homework existed? Paste
-> `supabase-schema.sql` into the SQL editor once more — every statement is
-> create-if-not-exists, so it adds the new table and leaves your data alone.
-
+> **Already have a project?** Run both files again. Every statement is
+> create-if-not-exists or drop-then-create, so they add what is new and leave
+> your data alone. `02_roles_and_tasks.sql` in particular is worth running on
+> any project set up before it existed — see [what it fixes](#what-02_roles_and_taskssql-fixes).
 
 1. Create a free project at <https://supabase.com>.
-2. Open **SQL Editor → New query**, paste all of [`supabase-schema.sql`](supabase-schema.sql), and click **Run**.
-   This creates the tables *and* the security rules.
+2. Open **SQL Editor → New query** and run the two files in [`supabase/`](supabase/),
+   in order:
+   - [`supabase/01_schema.sql`](supabase/01_schema.sql) — the tables, the row-level
+     security rules, and the sign-up trigger.
+   - [`supabase/02_roles_and_tasks.sql`](supabase/02_roles_and_tasks.sql) — the write
+     boundaries between the two roles, and the functions for joining, leaving and
+     managing a class.
 3. Go to **Settings → API** and copy your **Project URL** and **anon / public key**
    into [`supabase-config.js`](supabase-config.js), then commit. The live site picks it up on the next deploy.
 4. *(Recommended for classrooms)* **Authentication → Providers → Email** and turn
    **Confirm email** off, so students can sign in immediately without checking their inbox.
 
+### What `02_roles_and_tasks.sql` fixes
+
+`01_schema.sql` gets the *reads* right: no student can see another student, no
+teacher can see outside their class. What it does not do is limit **which
+columns of their own rows** a user may write — and "your own row" turns out to
+include things that are not yours to decide. Against the schema on its own, each
+of these is one line in the browser console of any signed-in student, and each
+one works:
+
+| One line a student could run | What it did |
+|---|---|
+| `update profiles set role='teacher'` | Promoted themselves, class code and all |
+| `update profiles set teacher_id=…` | Joined a class without ever having the code |
+| `update homework set title=…` | Rewrote the task they had been set |
+| `delete from submissions` | Removed the essay before it was marked |
+
+The second file closes all four, and hands back as explicit functions the few
+things they legitimately covered:
+
+| Function | Who may call it |
+|---|---|
+| `join_class(code)` | a student, with a code that matches a teacher |
+| `leave_class()` | a student, on their own membership |
+| `remove_student(id)` | a teacher, for someone in their own class |
+| `regenerate_class_code()` | a teacher, when a code has spread too far |
+| `switch_role(role)` | anyone, but only while their account is still empty |
+
+Homework and feedback are guarded by triggers rather than policies, because a
+policy judges whole rows and the rule here is about columns: a student's update
+keeps their tick and their note, and silently restores the title, instructions
+and due date. They get their edit; the teacher's wording survives it.
+
 ### Using it
 
 - **You:** click **👤 Sign in → Create account**, choose **Teacher**. You get a
-  **class code** (shown in the account panel and on the My class tab).
+  **class code** (shown in the account panel and on the My class tab). Issue a new
+  one from the account panel if it spreads beyond your class — students already in
+  it stay in it.
 - **Students:** click **Create account**, choose **Student**, and enter your class code.
+  A student who joined without one, or with the wrong one, can enter it later from
+  the same panel, and can leave a class from there too.
 - Their band scores and their Writing/Speaking submissions then appear in **My class**.
   Click a student to read their actual responses and send feedback — it shows up on
   their dashboard the next time they open the app.
+- **Homework:** set a task against one student or the whole class at once, with a
+  module, instructions and a due date. Students tick it off and can leave a note
+  back ("found Part 3 hard"), which you see on the tracking list. Edit a task in
+  place rather than deleting it — the student's tick and note survive the edit.
+- **Picked the wrong role at sign-up?** The account panel offers to switch, and
+  allows it while the account is still empty. After that it says so and asks you
+  to make a separate account, rather than moving an account that a class already
+  depends on.
+
+> **On a shared computer,** signing out clears the bands and history held in the
+> browser, and signing in as someone else starts clean. Without that, the next
+> student inherits the last one's scores — and the sync would then upload them
+> into that student's row for you to mark.
 
 ### Is committing the anon key safe?
 

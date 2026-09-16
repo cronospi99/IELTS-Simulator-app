@@ -263,4 +263,9 @@ create policy homework_delete_teacher on public.homework
 -- whole file again after an update adds what is new and leaves your data alone.
 -- If you set the project up before the homework table existed, running it once
 -- more is all that is needed.
+--
+-- THIS FILE IS ONLY HALF THE SETUP
+-- It gets the reads right, but it does not limit which columns of their own
+-- rows a user may write -- and a student's own profile row includes `role` and
+-- `teacher_id`. Run 02_roles_and_tasks.sql next; see supabase/README.md.
 -- -----------------------------------------------------------------------------
