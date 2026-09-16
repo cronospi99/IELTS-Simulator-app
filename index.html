@@ -1525,6 +1525,11 @@ textarea.essay{
 .auth-role-tag.teacher{background:var(--teal);}
 .auth-foot{font-size:11.5px;color:var(--slate);line-height:1.55;margin:16px 0 0;border-top:1px solid var(--line);padding-top:12px;}
 .auth-links{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;}
+.auth-inline-link{
+  background:none;border:none;padding:0;font-family:inherit;font-size:inherit;
+  color:var(--azure);text-decoration:underline;cursor:pointer;
+}
+.auth-inline-link:hover{color:var(--ink);}
 .auth-links button{
   background:none;border:none;padding:0;font-family:inherit;font-size:12.5px;
   color:var(--azure);text-decoration:underline;
@@ -2602,6 +2607,7 @@ textarea.essay{
       <div class="auth-links">
         <button type="button" id="authForgot">Forgotten your password?</button>
         <button type="button" id="authResend">Resend the confirmation email</button>
+        <button type="button" data-info="email">No email arriving?</button>
       </div>
       <p id="authStatus" style="font-size:12.5px;margin-top:10px;line-height:1.5;"></p>
     </div>
@@ -5865,8 +5871,36 @@ const INFO_CONTENT = {
       <p>Writing and Speaking need a Gemini API key — add it under the account menu → <b>AI engine</b>. Listening and Reading mark themselves against the answer key, with no key needed.</p>
       <h4>The clocks</h4>
       <p>Writing runs 60:00 (20 for Task 1, 40 for Task 2), Reading 60:00, and Listening for the length of the audio you attach. At 00:00 your answers lock for marking — press <b>Reset</b> on the clock to keep practising.</p>
+      <h4>Signing in</h4>
+      <p>Students join with the class code their teacher gives them. If a confirmation email never arrives, that is the project's mail
+      configuration rather than your address — <button type="button" class="auth-inline-link" data-info="email">here is what to check</button>.</p>
       <h4>Templates, vocabulary and strategy</h4>
       <p><b>Band descriptors</b> holds the full official criteria the marking applies. Every Writing and Speaking report offers your own answer rewritten at each band from 5.0 to 9.0 — the fastest way to see what the next half-band actually sounds like. The 🌐 <b>Language desk</b> on each paper gives translations, verb tables and register-ranked alternatives.</p>`
+  },
+  email: {
+    title:"No confirmation email arrived",
+    body:`<p>Nine times out of ten this is the Supabase project's mail setup rather than your address, and there are two known reasons for it.</p>
+      <h4>1. The built-in mail service barely sends anything</h4>
+      <p>A project with no custom SMTP configured uses Supabase's own sender, and that sender is for development only: it is capped at
+      <b>two messages per hour</b>, and it <b>refuses to deliver to any address that is not a member of the Supabase project team</b>.
+      So if you signed up with an address other than the one on your Supabase account — or you created a couple of test accounts in the
+      last hour — no message is sent and nothing lands in spam, because nothing was ever delivered.</p>
+      <h4>2. The address already has an account</h4>
+      <p>Signing up an address that already exists does not fail. Supabase returns a normal-looking success and sends nothing, on purpose,
+      so that the form cannot be used to discover who has an account. The app now spots this and says so instead of telling you to check
+      your inbox — if you see that message, use <b>Sign in</b> or <b>Forgotten your password?</b>.</p>
+      <h4>What to do — for a class, turn confirmation off</h4>
+      <p>In the Supabase dashboard: <b>Authentication → Sign In / Providers → Email</b>, and switch <b>Confirm email</b> off.
+      Accounts then work the moment they are created, with no email involved. For a teacher handing out a class code to students this is
+      usually the right setting: the class code is what controls who joins your class, not the mailbox.</p>
+      <h4>If you want real emails (and working password resets)</h4>
+      <p>Add your own SMTP under <b>Authentication → Emails → SMTP Settings</b> — Resend, Brevo, Postmark, SendGrid and Amazon SES all
+      work, and their free tiers are far beyond what a class needs. Password reset <i>always</i> needs working email, so if you want that
+      feature, this is the step that switches it on.</p>
+      <h4>Locked out right now?</h4>
+      <p>You can create the account directly: <b>Authentication → Users → Add user</b>, and tick <b>Auto Confirm User</b>. That account can
+      sign in immediately. A user made that way has no role attached, so it starts as a student — the last section of
+      <code>supabase-schema.sql</code> has a one-line SQL snippet that promotes it to teacher and gives it a class code.</p>`
   },
   contact: {
     title:"Contact",
@@ -12409,6 +12443,19 @@ async function doSignUp(email, password, fullName, role, classCode){
     }
   });
   if(error) throw error;
+
+  /* Signing up an address that ALREADY has an account does not fail. With email
+     confirmation switched on, Supabase deliberately returns a normal-looking
+     success with an obfuscated user and sends no email at all — it refuses to
+     confirm or deny that the address is registered. Telling the person to "check
+     their email" here sends them to wait for a message that is never coming,
+     which is the single most confusing thing this form can do. An obfuscated
+     user is recognisable: its `identities` array is empty. */
+  const u = data && data.user;
+  if(u && Array.isArray(u.identities) && u.identities.length === 0){
+    return { alreadyRegistered:true };
+  }
+
   if(role === "student" && classCode) parkClassCode(classCode);
   // Projects with "Confirm email" enabled return no session until the link is clicked.
   if(!data.session){
@@ -12924,11 +12971,16 @@ document.getElementById("authSubmit").addEventListener("click", async ()=>{
       if(!name){ throw new Error("Please enter your name."); }
       if(AUTH.signupRole === "student" && !code){ throw new Error("Enter the class code your teacher gave you."); }
       const res = await doSignUp(email, pass, name, AUTH.signupRole, code);
-      if(res.needsConfirm){
+      if(res.alreadyRegistered){
+        st.style.color = "var(--coral)";
+        st.innerHTML = `An account already exists for <b>${escapeXml(email)}</b>, so no email was sent. `
+          + `Use <b>Sign in</b> instead — or <b>Forgotten your password?</b> if you cannot remember it.`;
+      }else if(res.needsConfirm){
         st.style.color = "var(--teal)";
-        st.textContent = AUTH.signupRole === "student" && code
-          ? "Account created. Confirm it from the email we sent, then sign in — your class code is saved and applied automatically."
-          : "Account created. Check your email to confirm it, then sign in.";
+        st.innerHTML = `<b>Account created.</b> This project asks for the email to be confirmed before you can sign in`
+          + `${AUTH.signupRole === "student" && code ? ", and your class code is saved and applied automatically once you are in" : ""}.`
+          + `<br><br>No email after a minute or two? That is almost always the project's mail setup, not your address — `
+          + `<button type="button" class="auth-inline-link" data-info="email">see what to check</button>.`;
       }else{
         authOverlay.style.display = "none";
         render();
@@ -12940,7 +12992,19 @@ document.getElementById("authSubmit").addEventListener("click", async ()=>{
     }
   }catch(e){
     st.style.color = "var(--coral)";
-    st.textContent = e.message || "Something went wrong.";
+    const msg = e.message || "Something went wrong.";
+    // Supabase's own wording for these two is accurate but tells the person
+    // nothing about what to do next, which is the whole job of this line.
+    if(/email\s*not\s*confirmed/i.test(msg)){
+      st.innerHTML = `This account exists but its email was never confirmed. `
+        + `Use <b>Resend the confirmation email</b> below — and if none arrives, `
+        + `<button type="button" class="auth-inline-link" data-info="email">check the project's mail setup</button>.`;
+    }else if(/rate\s*limit/i.test(msg)){
+      st.innerHTML = `${escapeXml(msg)}<br>The project's built-in mail service only sends a couple of messages an hour — `
+        + `<button type="button" class="auth-inline-link" data-info="email">see the options</button>.`;
+    }else{
+      st.textContent = msg;
+    }
   }
   btn.disabled = false; btn.textContent = label;
 });

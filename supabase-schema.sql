@@ -257,6 +257,55 @@ create policy homework_update_teacher on public.homework
 create policy homework_delete_teacher on public.homework
   for delete using (teacher_id = auth.uid());
 
+-- ---------------------------------------------------------------------------
+-- ROLE AND CLASS CODE ARE NOT THE USER'S TO CHANGE
+-- profiles_update_own has to allow a student to update their own row, which
+-- also let that row's `role` be flipped to 'teacher' and its `class_code`
+-- overwritten straight from the browser. Neither is ever set by the app: the
+-- signup trigger assigns them and join_class() sets teacher_id, so both are
+-- pinned back to their previous values whenever the change comes from the
+-- account's own session. teacher_id is deliberately left alone — join_class()
+-- runs as the student and needs to write it.
+-- ---------------------------------------------------------------------------
+create or replace function public.protect_profile_role()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is not null and auth.uid() = old.id then
+    new.role       := old.role;
+    new.class_code := old.class_code;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_protect_role on public.profiles;
+create trigger profiles_protect_role
+  before update on public.profiles
+  for each row execute function public.protect_profile_role();
+
+-- ---------------------------------------------------------------------------
+-- MAKING A TEACHER BY HAND
+-- Needed when an account was created from Authentication -> Users -> Add user
+-- (the reliable way in when confirmation emails are not being delivered), as
+-- a user made that way carries no role and therefore starts as a student.
+-- Put your own address in and run these two lines once:
+--
+--   update public.profiles
+--      set role = 'teacher',
+--          class_code = upper(substr(replace(gen_random_uuid()::text,'-',''), 1, 6))
+--    where email = 'you@example.com';
+--
+--   select email, role, class_code from public.profiles where email = 'you@example.com';
+--
+-- The second line prints the class code to hand to your students. Running this
+-- from the SQL editor bypasses the trigger above, which is the point: the code
+-- is yours to issue, not something an account can grant itself.
+-- ---------------------------------------------------------------------------
+
 -- -----------------------------------------------------------------------------
 -- RE-RUNNING THIS FILE IS SAFE
 -- Every statement is create-if-not-exists or drop-then-create, so pasting the
