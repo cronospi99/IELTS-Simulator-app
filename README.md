@@ -238,6 +238,35 @@ and due date. They get their edit; the teacher's wording survives it.
 > student inherits the last one's scores — and the sync would then upload them
 > into that student's row for you to mark.
 
+### No confirmation email arrives
+
+This is the first thing that goes wrong for almost everyone, and it is a
+setting, not a bug.
+
+A Supabase project that has not been given its own SMTP provider uses
+Supabase's built-in sender, and that sender **only delivers to email addresses
+that belong to the project's own team** — everything else is refused, silently
+as far as the app can see. It is also capped at **two messages an hour for the
+whole project**. So the first student who signs up with a Hotmail, Gmail or
+school address waits for an email that was never going to arrive.
+
+**The fix, for a classroom: don't use confirmation emails at all.**
+
+1. Supabase dashboard → **Authentication → Sign In / Providers → Email**.
+2. Turn **Confirm email** OFF, and save.
+3. **Authentication → Users**, delete any account that is stuck unconfirmed —
+   turning the setting off does not retro-confirm accounts created while it was
+   on.
+4. Create the account again in the app. It signs in immediately, no email.
+
+Your students never see a confirmation step, which is what you want for a class
+anyway: a code on the board, a name, a password, and they are in.
+
+**If you do want real confirmation emails** — worth it if strangers can reach
+your URL — add a custom SMTP provider under **Project Settings → Authentication
+→ SMTP Settings**. Resend, Postmark, SendGrid and Brevo all have free tiers that
+cover a class. Then turn **Confirm email** back on.
+
 ### Is committing the anon key safe?
 
 Yes — that's what it's for. The anon key only ever acts as the **logged-in user**,
