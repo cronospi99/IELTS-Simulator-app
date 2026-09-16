@@ -12448,10 +12448,42 @@ function randomClassCode(){
   return out;
 }
 
+/* Supabase's auth errors are accurate and useless: "Email not confirmed" tells
+   you nothing about WHY no email arrived, and the reason is almost never the
+   app. A project on the built-in email sender will only deliver to addresses
+   that belong to the project's own team, and only twice an hour — so the first
+   student who signs up with a Hotmail or Gmail address gets nothing, for ever,
+   with no error anywhere. That is a setting, and it is worth saying so here
+   rather than letting a teacher conclude the login is broken. */
+function explainAuthError(err){
+  const raw = (err && err.message) || String(err || "");
+  const m = raw.toLowerCase();
+
+  if(m.includes("email not confirmed") || m.includes("email_not_confirmed")){
+    return "This account exists but has never been confirmed, and the confirmation email almost certainly never arrived. "
+         + "Supabase's built-in email sender only delivers to addresses belonging to the project's own team. "
+         + "The fix is one switch: in the Supabase dashboard, Authentication → Sign In / Providers → Email, turn OFF \u201cConfirm email\u201d. "
+         + "Then delete this user under Authentication → Users and create the account again — it will work straight away.";
+  }
+  if(m.includes("not authorized") || m.includes("email address not authorized")){
+    return "Supabase refused to send to that address. Its built-in email sender only writes to addresses on the project's team. "
+         + "Turn OFF \u201cConfirm email\u201d under Authentication → Sign In / Providers → Email, or add a custom SMTP provider.";
+  }
+  if(m.includes("invalid login credentials")){
+    return "That email and password do not match an account. Check for a typo, or use \u201cForgotten your password?\u201d below. "
+         + "If you have only just created the account, it may be waiting on a confirmation email that will never come \u2014 see the README, \u201cNo confirmation email arrives\u201d.";
+  }
+  if(m.includes("rate limit") || m.includes("too many requests")){
+    return "Supabase is rate-limiting these emails \u2014 the built-in sender allows two an hour for the whole project. "
+         + "Wait an hour, or turn OFF \u201cConfirm email\u201d so no email is needed at all.";
+  }
+  return raw || "Something went wrong.";
+}
+
 /* ---- sign in / up / out ---- */
 async function doSignIn(email, password){
   const { error } = await AUTH.client.auth.signInWithPassword({ email, password });
-  if(error) throw error;
+  if(error) throw new Error(explainAuthError(error));
   const { data } = await AUTH.client.auth.getSession();
   if(data && data.session) await adoptSession(data.session);
 }
@@ -13194,9 +13226,13 @@ document.getElementById("authSubmit").addEventListener("click", async ()=>{
       const res = await doSignUp(email, pass, name, AUTH.signupRole, code);
       if(res.needsConfirm){
         st.style.color = "var(--teal)";
-        st.textContent = AUTH.signupRole === "student" && code
-          ? "Account created. Confirm it from the email we sent, then sign in — your class code is saved and applied automatically."
-          : "Account created. Check your email to confirm it, then sign in.";
+        st.innerHTML = (AUTH.signupRole === "student" && code
+          ? "Account created. Confirm it from the email, then sign in — your class code is saved and applied automatically."
+          : "Account created. Confirm it from the email, then sign in.")
+          + "<br><br><b>No email after a minute or two?</b> It is not coming, and it is not this app: "
+          + "Supabase's built-in sender only delivers to addresses on the project's own team. "
+          + "Turn OFF “Confirm email” in the Supabase dashboard under <b>Authentication → Sign In / Providers → Email</b>, "
+          + "delete this user under <b>Authentication → Users</b>, and create the account again.";
       }else{
         authOverlay.style.display = "none";
         render();
@@ -13208,7 +13244,7 @@ document.getElementById("authSubmit").addEventListener("click", async ()=>{
     }
   }catch(e){
     st.style.color = "var(--coral)";
-    st.textContent = e.message || "Something went wrong.";
+    st.textContent = explainAuthError(e);
   }
   btn.disabled = false; btn.textContent = label;
 });
