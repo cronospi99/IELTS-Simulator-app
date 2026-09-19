@@ -1,7 +1,7 @@
 # Database
 
-Two files, run in order, in the Supabase project's **SQL Editor → New query**.
-Both are safe to re-run: every statement is create-if-not-exists or
+Three files, run in order, in the Supabase project's **SQL Editor → New query**.
+All three are safe to re-run: every statement is create-if-not-exists or
 drop-then-create, so running them again on a live project adds what is new and
 leaves the data alone.
 
@@ -9,6 +9,7 @@ leaves the data alone.
 |---|---|
 | `01_schema.sql` | Tables, row-level security, and the trigger that creates a profile on sign-up. |
 | `02_roles_and_tasks.sql` | The write boundaries between student and teacher, and the functions for joining, leaving and managing a class. |
+| `03_history_visibility.sql` | Whether a student may read their own submitted work back, and the teacher's switch that decides it. |
 
 ## Why there are two
 
@@ -26,6 +27,36 @@ delete from submissions;                  -- hides the essay before marking
 ```
 
 `02_roles_and_tasks.sql` closes all four. It is not optional for a real class.
+
+## Why there is a third
+
+`submissions` has always kept every scored attempt — the essay as it was
+written, the Speaking transcripts, and (since this file) the Reading and
+Listening answer sheets. Until now only the teacher ever read them back, and a
+student's own work vanished the moment they left the page.
+
+Handing it back to them is what `03_history_visibility.sql` does, and the reason
+it comes with a switch is that *"show every student their own history"* is not a
+decision an app should make on a classroom's behalf. A teacher may want a paper
+held back until it has been marked in class, or one student held out while the
+rest of the group has it. So the teacher owns it, in two columns:
+
+| Column | On whose row | Means |
+|---|---|---|
+| `history_default` | the **teacher** | the class-wide setting — on by default |
+| `history_override` | a **student** | `null` follows the class; `true` / `false` decides for that student alone |
+
+`history_visible_to(student)` folds the two together (a student with no teacher
+is self-studying, so their work is their own), and the `submissions` select
+policy calls it. That is the whole point: a student who is not allowed to read
+their history cannot read it from the browser console either. The two switches
+are `set_class_history(bool)` and `set_student_history(id, bool|null)`, both
+teacher-only.
+
+`INSERT` is deliberately untouched. A student whose history is switched off
+still records every attempt for their teacher; they simply cannot read it back,
+and switching it on later reveals the whole history rather than only what came
+after.
 
 ## How each rule is enforced, and why
 
@@ -54,8 +85,13 @@ or leave one.
 
 A **teacher** can write: their own name; their class code, via
 `regenerate_class_code()`; anything on tasks they set for their own students; new
-feedback to their own students. Plus, through a function: remove a student from
-their class.
+feedback to their own students. Plus, through functions: remove a student from
+their class, and open or close the history for the class
+(`set_class_history`) or for one student (`set_student_history`).
+
+A student **reads** their own submissions only while that switch allows it. A
+teacher reads their whole class either way — the switch decides what the student
+sees, never what the teacher sees.
 
 ## Testing a change to these files
 
@@ -64,3 +100,10 @@ GUC and the `anon` / `authenticated` roles created by hand, which is enough to
 run the statements above as a real signed-in student and watch them fail. If you
 change a policy, re-run that check rather than reasoning about it — the four
 holes above all looked fine on the page.
+
+The visibility rules in `03_history_visibility.sql` were checked the same way,
+as a teacher and three students (two in the class, one self-studying): class
+switch on and off, a student forced on while the class is off and forced off
+while the class is on, a student put back on the class default, a blocked
+student still able to submit, no student able to read another's work, and both
+switches refused to a student who calls them directly.
