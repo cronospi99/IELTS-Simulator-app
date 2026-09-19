@@ -1636,6 +1636,44 @@ textarea.essay{
 .sub-body{font-size:13px;line-height:1.65;color:#2a3145;white-space:pre-wrap;max-height:180px;overflow-y:auto;}
 .fb-send{width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:13.5px;line-height:1.6;resize:vertical;margin-top:8px;color:var(--ink);background:#fff;}
 
+/* ---------- my history (student) ---------- */
+.hist-filters{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 2px;}
+.hist-chip{font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--line);background:#fff;color:var(--slate);border-radius:999px;padding:7px 14px;cursor:pointer;}
+.hist-chip:hover{border-color:var(--brass);color:var(--ink);}
+.hist-chip.on{background:var(--ink);border-color:var(--ink);color:#fff;}
+.hist-item{border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:10px;overflow:hidden;}
+.hist-sum{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;flex-wrap:wrap;}
+.hist-sum:hover{background:#faf8f1;}
+.hist-sum .mod{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--brass);font-weight:700;min-width:84px;}
+.hist-sum .ttl{flex:1;min-width:140px;font-size:13.5px;color:var(--ink);line-height:1.5;}
+.hist-sum .when{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);white-space:nowrap;}
+.hist-sum .bnd{font-family:'Fraunces',serif;font-size:19px;font-weight:600;min-width:42px;text-align:right;color:var(--ink);}
+.hist-sum .caret{color:var(--slate);font-size:11px;width:12px;text-align:center;}
+.hist-open{padding:4px 16px 18px;border-top:1px solid var(--line);background:var(--paper);}
+.hist-prompt{font-size:12.5px;color:var(--slate);font-style:italic;line-height:1.65;margin:13px 0 4px;}
+.hist-said{font-size:13.5px;line-height:1.75;color:#2a3145;white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px;margin-top:10px;max-height:330px;overflow-y:auto;}
+.hist-note{font-size:11.5px;color:var(--slate);line-height:1.6;margin:12px 0 0;}
+.hist-locked{background:#fff;border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:0 12px 12px 0;padding:18px 20px;margin-top:18px;font-size:13.5px;line-height:1.75;color:var(--slate);}
+.hist-locked b{color:var(--ink);}
+@media(max-width:640px){
+  .hist-sum .mod{min-width:0;}
+  .hist-sum .when{width:100%;order:9;}
+  .hist-said{font-size:13px;max-height:260px;}
+}
+
+/* ---------- history switch (teacher) ---------- */
+.hist-switch{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-bottom:14px;}
+.hist-switch .txt{flex:1;min-width:210px;font-size:12.5px;line-height:1.6;color:var(--slate);}
+.hist-switch .txt b{color:var(--ink);font-size:13.5px;display:block;margin-bottom:2px;}
+.hist-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--paper);flex-shrink:0;}
+.hist-seg button{border:0;background:transparent;font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);padding:8px 14px;cursor:pointer;}
+.hist-seg button:hover:not(.on):not(:disabled){color:var(--ink);}
+.hist-seg button.on{background:var(--ink);color:#fff;}
+.hist-seg button:disabled{opacity:.5;cursor:default;}
+.hist-state{font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;border-radius:999px;padding:3px 9px;border:1px solid;white-space:nowrap;}
+.hist-state.yes{color:var(--teal);border-color:#c3ded4;background:#eef6f2;}
+.hist-state.no{color:var(--coral);border-color:#f2cfc6;background:#fdf1ed;}
+
 /* ---------- hesitation analysis ---------- */
 .hes-box{background:#fff;border:1px solid var(--line);border-left:3px solid var(--azure);border-radius:0 10px 10px 0;padding:16px 18px;margin-top:14px;}
 .hes-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
@@ -6061,7 +6099,7 @@ function setModule(mod){
   document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.mod===mod));
   const labels = {dashboard:"Home", listening:"Listening", reading:"Reading", writing:"Writing",
                   speaking:"Speaking", practice:"Free practice", mock:"Full mock test", progress:"Progress",
-                  class:"My class", descriptors:"Band descriptors"};
+                  class:"My class", history:"My history", descriptors:"Band descriptors"};
   document.getElementById("modLabel").textContent = labels[mod] || mod;
   render();
   window.scrollTo({top:0, behavior:"smooth"});
@@ -6373,6 +6411,7 @@ function render(){
   if(state.mod==="practice") return renderPractice();
   if(state.mod==="mock") return renderMockTest();
   if(state.mod==="progress") return renderProgress();
+  if(state.mod==="history") return renderMyHistory();
   if(state.mod==="listening") return renderListening();
   if(state.mod==="reading") return renderReading();
   if(state.mod==="writing") return renderWriting();
@@ -8000,6 +8039,9 @@ function renderDashboard(){
 
         <hr class="rule">
         <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);margin-bottom:12px;">Recent history</h3>
+        ${(typeof isStudent === "function" && isStudent() && AUTH.historyAllowed)
+          ? `<p style="font-size:12.5px;color:var(--slate);margin:-4px 0 12px;line-height:1.6;">These are the bands. To read the work behind them — your essays, recordings and answer sheets with the examiner's marks — open <button class="btn ghost small" data-mod="history" style="vertical-align:baseline;">My history</button></p>`
+          : ""}
         <div id="historyList">
           ${state.history.length===0 
             ? `<div class="empty-history">No attempts yet — your history will appear here.</div>`
@@ -8725,41 +8767,40 @@ function checkGap(userVal, answers){
   return answers.some(a => norm(a) === v);
 }
 
-function submitListening(){
-  const L = state.listening;
-  let correct=0, total=0;
-  LISTENING.parts.forEach(part=>part.questions.forEach(q=>{
-    total++;
-    const user = L.answers[q.n];
-    if(q.type==="mc" && Array.isArray(q.options)){
-      if(user!==undefined && parseInt(user)===q.answer) correct++;
-    } else {
-      if(checkGap(user, Array.isArray(q.answer) ? q.answer : [])) correct++;
-    }
-  }));
-  L.submitted = true;
-  const band = rawToBandListening(correct, total);
-  recordScore("listening", band, `${correct}/${total} correct`);
-  renderListening();
-}
-
-function showListeningResult(){
+function gradeListening(){
   const L = state.listening;
   let correct=0, total=0;
   const lines = [];
   LISTENING.parts.forEach(part=>part.questions.forEach(q=>{
     total++;
     const user = L.answers[q.n];
-    let ok = false;
+    let ok, given;
     if(q.type==="mc" && Array.isArray(q.options)){
       ok = (user!==undefined && parseInt(user)===q.answer);
-    }else{
+      given = optionText(q.options, user);
+    } else {
       ok = checkGap(user, Array.isArray(q.answer) ? q.answer : []);
+      given = typedAnswer(user);
     }
-    lines.push({n:q.n, ok, answer: listeningAnswerText(q)});
     if(ok) correct++;
+    lines.push({n:q.n, ok, given, answer: listeningAnswerText(q)});
   }));
+  return {correct, total, lines};
+}
 
+function submitListening(){
+  const L = state.listening;
+  const {correct, total, lines} = gradeListening();
+  L.submitted = true;
+  const band = rawToBandListening(correct, total);
+  recordScore("listening", band, `${correct}/${total} correct`);
+  saveAnswerSheet("listening", LISTENING.parts.map(x=>x.title).filter(Boolean).join(" · "),
+                  band, correct, total, lines);
+  renderListening();
+}
+
+function showListeningResult(){
+  const {correct, total, lines} = gradeListening();
   const box = document.getElementById("listeningResult");
   const rows = lines.map(l=>`<div class="key-line"><span class="${l.ok?'ok':'bad'}">${l.ok?'✓':'✗'}</span> Q${l.n}: <span class="correct-answer">${l.answer}</span></div>`).join("");
   box.innerHTML = `
@@ -9509,6 +9550,17 @@ function renderGroup(passageId, g){
   return div;
 }
 
+/* A stored answer as the candidate would recognise it. A dropdown holds an
+   index, so the index is resolved back to the text it stood for; a blank is
+   reported as blank rather than as "undefined" or, worse, as "0". */
+function optionText(options, idx){
+  if(idx===undefined || idx===null || idx==="") return "";
+  const o = Array.isArray(options) ? options[parseInt(idx)] : undefined;
+  return o==null ? String(idx) : String(o);
+}
+function headingText(g, idx){ return optionText(g && g.options, idx); }
+function typedAnswer(v){ return v==null ? "" : String(v).trim(); }
+
 function gradeReading(){
   const R = state.reading;
   let correct = 0, total = 0;
@@ -9522,7 +9574,9 @@ function gradeReading(){
           const ans = R.answers[`p${p.id}-heading-${pname}`];
           const ok = ans!==undefined && parseInt(ans)===targetIdx;
           if(ok) correct++;
-          lines.push({n:`Para ${pname}`, ok, correct: targetIdx});
+          // Resolved to the heading text rather than its index: "3" told the
+          // candidate nothing, on the result panel or in their history.
+          lines.push({n:`Para ${pname}`, ok, given: headingText(g, ans), correct: headingText(g, targetIdx)});
         });
       } else if(g.type==="tfng"){
         g.items.forEach((item,i)=>{
@@ -9530,7 +9584,7 @@ function gradeReading(){
           const ans = R.answers[`p${p.id}-tfng-${i}`];
           const ok = ans && ans.trim().toUpperCase() === item.a.trim().toUpperCase();
           if(ok) correct++;
-          lines.push({n:g.qStart+i, ok, correct:item.a});
+          lines.push({n:g.qStart+i, ok, given: typedAnswer(ans), correct:item.a});
         });
       } else if(g.type==="completion"){
         g.items.forEach((item,i)=>{
@@ -9538,7 +9592,7 @@ function gradeReading(){
           const ans = R.answers[`p${p.id}-comp-${i}`];
           const ok = checkGap(ans, item.a);
           if(ok) correct++;
-          lines.push({n:g.qStart+i, ok, correct:item.a[0]});
+          lines.push({n:g.qStart+i, ok, given: typedAnswer(ans), correct:item.a[0]});
         });
       } else if(g.type==="matchinfo"){
         g.items.forEach((item,i)=>{
@@ -9546,7 +9600,7 @@ function gradeReading(){
           const _mv = R.answers[`p${p.id}-match-${i}`];
           const ok = _mv!==undefined && String(_mv).trim().toUpperCase()===String(item.a).trim().toUpperCase();
           if(ok) correct++;
-          lines.push({n:g.qStart+i, ok, correct:item.a});
+          lines.push({n:g.qStart+i, ok, given: typedAnswer(_mv), correct:item.a});
         });
       } else if(g.type==="mc"){
         g.items.forEach((item,i)=>{
@@ -9554,7 +9608,7 @@ function gradeReading(){
           const v = R.answers[`p${p.id}-mc-${i}`];
           const ok = v!==undefined && parseInt(v)===item.a;
           if(ok) correct++;
-          lines.push({n:g.qStart+i, ok, correct:item.options[item.a]});
+          lines.push({n:g.qStart+i, ok, given: optionText(item.options, v), correct:item.options[item.a]});
         });
       }
     });
@@ -9564,9 +9618,11 @@ function gradeReading(){
 
 function submitReading(){
   state.reading.submitted = true;
-  const {correct,total} = gradeReading();
+  const {correct,total,lines} = gradeReading();
   const band = rawToBandReading(correct, total);
   recordScore("reading", band, `${correct}/${total} correct`);
+  saveAnswerSheet("reading", READING_PASSAGES.map(x=>x.title).filter(Boolean).join(" · "),
+                  band, correct, total, lines);
   renderReading();
 }
 
@@ -12377,7 +12433,11 @@ async function selectSpeakingBandVersion(slot, band){
    ========================================================================= */
 
 const AUTH = { client:null, enabled:false, user:null, profile:null, feedback:[], homework:[],
-               students:[], authMode:"signin", signupRole:"student", ready:false, lastError:"" };
+               students:[], authMode:"signin", signupRole:"student", ready:false, lastError:"",
+               // The student's own work, and whether their teacher lets them
+               // read it back. Both are settled on sign-in; see the history
+               // section further down.
+               submissions:[], historyAllowed:false, historyReady:false, submissionsLoaded:false };
 
 /* A class code typed at sign-up cannot be used until the account exists, and
    with "Confirm email" switched on the account does not exist until the student
@@ -12472,6 +12532,11 @@ async function adoptSession(session){
       await pullProgress();
       await loadFeedback();
       await loadHomework();
+      // Ask once whether this student may read their work back, then fetch it.
+      // Asking before fetching keeps a blocked student from firing a query the
+      // database is only going to answer with an empty list.
+      await loadHistoryAccess();
+      await loadMySubmissions();
     }else{
       await loadStudents();
       await loadTeacherHomework();
@@ -12635,6 +12700,38 @@ async function regenerateClassCode(){
   return data;
 }
 
+/* The two ends of the history switch. Both are RPCs for the same reason
+   join_class is: the columns behind them are not writable from the browser, so
+   the check lives next to the write. See supabase/03_history_visibility.sql. */
+async function setClassHistory(on){
+  const { data, error } = await AUTH.client.rpc("set_class_history", { p_on: !!on });
+  if(error) throw error;
+  await loadProfile();
+  return data;
+}
+
+// value === null puts the student back on the class default, rather than
+// freezing today's value into their row.
+async function setStudentHistory(studentId, value){
+  const { data, error } = await AUTH.client.rpc("set_student_history",
+    { p_student: studentId, p_value: (value===null || value===undefined) ? null : !!value });
+  if(error) throw error;
+  await loadStudents();
+  return data;
+}
+
+/* What the teacher's controls read. The class default lives on the teacher's
+   own row; a student's override, when set, wins over it. */
+function classHistoryOn(){ return !!(AUTH.profile && AUTH.profile.history_default !== false); }
+function studentHistorySetting(s){
+  if(s.history_override === true)  return "on";
+  if(s.history_override === false) return "off";
+  return "class";
+}
+function studentHistoryOn(s){
+  return s.history_override == null ? classHistoryOn() : !!s.history_override;
+}
+
 async function removeStudent(studentId){
   const { error } = await AUTH.client.rpc("remove_student", { p_student: studentId });
   if(error) throw error;
@@ -12656,10 +12753,13 @@ async function switchRole(role){
 async function doSignOut(){
   try{ await AUTH.client.auth.signOut(); }catch(e){}
   AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.homework=[]; AUTH.students=[];
+  // Their work leaves with them — on a shared computer the next student must
+  // not find the last one's essays sitting in the history tab.
+  AUTH.submissions=[]; AUTH.historyAllowed=false; AUTH.historyReady=false; AUTH.submissionsLoaded=false;
   AUTH.lastError = "";
   // The bands on screen belong to the person who just left.
   resetLocalProgress(null);
-  if(state.mod === "class") state.mod = "dashboard";
+  if(state.mod === "class" || state.mod === "history") state.mod = "dashboard";
   refreshAccountUI();
   render();
 }
@@ -12728,7 +12828,70 @@ async function saveSubmission(moduleName, task, prompt, content, band, report){
       band: (band==null ? null : Number(band)),
       report: report || null
     });
+    AUTH.submissionsLoaded = false;   // the history is a paper out of date now
   }catch(e){ console.error("submission save failed", e); }
+}
+
+/* Reading and Listening are marked right or wrong rather than written up, so
+   what is worth keeping is the answer sheet itself: what the candidate put,
+   what the key said, and which way the mark went. It is stored as an ordinary
+   submission, so one history view renders all four papers and the teacher's
+   class view picks these up with no change at all. */
+function saveAnswerSheet(moduleName, prompt, band, correct, total, lines){
+  if(!isStudent()) return;
+  const content = (lines || []).map(l=>{
+    const label = (typeof l.n === "number") ? `Q${l.n}` : String(l.n);
+    const given = String(l.given || "").trim() || "(blank)";
+    const key   = String(l.correct != null ? l.correct : (l.answer || "")).trim() || "—";
+    // A correct answer needs no key beside it; a wrong one is only useful with it.
+    return `${l.ok ? "✓" : "✗"} ${label}  you: ${given}${l.ok ? "" : `  ·  key: ${key}`}`;
+  }).join("\n");
+  saveSubmission(moduleName, null, prompt, content, band,
+                 { kind:"answer_sheet", correct, total, lines });
+}
+
+/* =========================================================================
+   THE STUDENT'S OWN HISTORY
+   Every scored attempt was already kept for the teacher. This is the half that
+   gives it back to the student — but only while their teacher allows it, and
+   that permission is enforced by row-level security, not here. The checks below
+   decide what to put on screen; they are not what makes the data safe.
+   See supabase/03_history_visibility.sql.
+   ========================================================================= */
+
+async function loadHistoryAccess(){
+  AUTH.historyReady = false;
+  if(!isStudent()){ AUTH.historyAllowed = false; return false; }
+  try{
+    const { data, error } = await AUTH.client.rpc("can_see_my_history");
+    if(error) throw error;
+    AUTH.historyAllowed = (data !== false);
+  }catch(e){
+    // A project that has not run 03_history_visibility.sql has no such
+    // function. There the feature is absent rather than broken: the tab stays
+    // hidden and everything else works exactly as it did.
+    console.warn("history permission check failed — is 03_history_visibility.sql applied?", e);
+    AUTH.historyAllowed = false;
+  }
+  AUTH.historyReady = true;
+  return AUTH.historyAllowed;
+}
+
+async function loadMySubmissions(){
+  if(!isStudent() || !AUTH.historyAllowed){ AUTH.submissions = []; AUTH.submissionsLoaded = false; return; }
+  try{
+    const { data, error } = await AUTH.client.from("submissions")
+      .select("*").eq("student_id", AUTH.profile.id).order("created_at", { ascending:false }).limit(100);
+    if(error) throw error;
+    AUTH.submissions = data || [];
+    AUTH.submissionsLoaded = true;
+  }catch(e){
+    console.error("history load failed", e);
+    AUTH.submissions = [];
+    // Left unloaded so the next visit retries rather than showing an empty
+    // history as though there were nothing to show.
+    AUTH.submissionsLoaded = false;
+  }
 }
 
 /* ---- feedback ---- */
@@ -12946,7 +13109,7 @@ async function loadStudents(){
   if(!isTeacher()) return;
   try{
     const { data:profs, error } = await AUTH.client.from("profiles")
-      .select("id, full_name, email, created_at").eq("teacher_id", AUTH.profile.id).order("full_name");
+      .select("id, full_name, email, created_at, history_override").eq("teacher_id", AUTH.profile.id).order("full_name");
     if(error) throw error;
     const students = profs || [];
     if(students.length){
@@ -13003,6 +13166,21 @@ function refreshAccountUI(){
     }
   }else if(classTab){
     classTab.remove();
+  }
+  // student-only History tab, present only while their teacher allows it. The
+  // tab is a convenience, not the boundary: render() checks again, and the
+  // database checks after that.
+  let histTab = tabs.querySelector('button[data-mod="history"]');
+  if(isStudent() && AUTH.historyAllowed){
+    if(!histTab){
+      histTab = document.createElement("button");
+      histTab.dataset.mod = "history";
+      histTab.textContent = "My history";
+      const progTab = tabs.querySelector('button[data-mod="progress"]');
+      tabs.insertBefore(histTab, progTab ? progTab.nextSibling : null);
+    }
+  }else if(histTab){
+    histTab.remove();
   }
   // Home carries the badge for anything waiting: unread notes and open tasks.
   const dashTab = tabs.querySelector('button[data-mod="dashboard"]');
@@ -13338,11 +13516,187 @@ let classSelectedStudent = null;
 // setting a new one. The form is the same in both cases.
 let hwEditingId = null;
 
+/* =========================================================================
+   MY HISTORY  (student)
+   Every paper this student has sat, with what they actually wrote, said or
+   answered, and the examiner's report where there is one. Their teacher
+   decides whether the tab exists at all; the same rule is enforced in
+   row-level security, so nothing here is what keeps the data private.
+   See supabase/03_history_visibility.sql.
+   ========================================================================= */
+let histFilter = "all";
+let histOpenId = null;
+
+const HIST_MODULES = ["listening","reading","writing","speaking"];
+
+// Both papers' criterion names in one table: a submission carries whichever
+// four its examiner used, and the rest simply are not there.
+const HIST_CRIT_LABELS = {
+  task_achievement:   "Task Achievement / Response",
+  fluency_coherence:  "Fluency & Coherence",
+  coherence_cohesion: "Coherence & Cohesion",
+  lexical_resource:   "Lexical Resource",
+  grammar:            "Grammatical Range & Accuracy",
+  pronunciation:      "Pronunciation"
+};
+
+function histLabel(m){
+  const k = String(m || "").toLowerCase();
+  return HIST_MODULES.includes(k) ? k[0].toUpperCase() + k.slice(1) : escapeXml(m || "Attempt");
+}
+
+// Reading and Listening are stored as a marked answer sheet; Writing and
+// Speaking as prose with an examiner's report behind it. The two render
+// differently, and this is how they are told apart.
+function histIsAnswerSheet(sub){
+  const r = sub && sub.report;
+  return !!(r && (r.kind === "answer_sheet" || Array.isArray(r.lines)));
+}
+
+function histWhen(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})
+       + " · " + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+function histAnswerSheetHTML(sub){
+  const r = sub.report || {};
+  const lines = Array.isArray(r.lines) ? r.lines : [];
+  if(!lines.length) return `<p class="hist-note">The answers themselves were not kept for this attempt.</p>`;
+  const rows = lines.map(l=>{
+    const label = (typeof l.n === "number") ? ("Q" + l.n) : escapeXml(String(l.n));
+    const given = escapeXml(String(l.given || "").trim() || "(blank)");
+    const key   = escapeXml(String(l.correct != null ? l.correct : (l.answer || "")).trim() || "—");
+    // A right answer speaks for itself; a wrong one is only useful next to the key.
+    return `<div class="key-line"><span class="${l.ok?"ok":"bad"}">${l.ok?"✓":"✗"}</span>
+      <span>${label}: <b>${given}</b>${l.ok ? "" : ` → <span class="correct-answer">${key}</span>`}</span></div>`;
+  }).join("");
+  const got = Number(r.correct), outOf = Number(r.total);
+  return `<div class="key-box" style="margin-top:12px;">
+      <h4>Your answer sheet${isFinite(outOf) && outOf ? ` — ${isFinite(got) ? got : 0} of ${outOf} correct` : ""}</h4>
+      <div class="key-cols">${rows}</div>
+    </div>`;
+}
+
+function histReportHTML(sub){
+  const r = sub.report || {};
+  const text = sub.content || "";
+  const crits = Object.keys(HIST_CRIT_LABELS)
+    .filter(k => r[k] && typeof r[k] === "object" && r[k].band != null)
+    .map(k => `<div class="criterion-row">
+        <div><div class="name">${HIST_CRIT_LABELS[k]}</div><div class="comment">${escapeXml(r[k].comment || "")}</div></div>
+        <div class="band">${fmtBand(r[k].band)}</div>
+      </div>`).join("");
+  return `
+    ${text ? `<div class="hist-said">${escapeXml(text)}</div>` : `<p class="hist-note">No text was kept for this attempt.</p>`}
+    ${r.summary ? `<p style="margin:12px 0 0;font-size:13px;line-height:1.7;color:#2a3145;">${escapeXml(r.summary)}</p>` : ""}
+    ${crits ? `<div class="feedback-label" style="margin-top:16px;">Feedback by criterion</div>${crits}` : ""}
+    ${annotatedFeedbackHTML(text, r, {
+      sub:"Cada marca es una cita literal de lo que entregaste ese día. Pasa el cursor por encima para leer el comentario del examinador."
+    })}`;
+}
+
+function histDetailHTML(sub){
+  return `
+    ${sub.prompt ? `<div class="hist-prompt">${escapeXml(sub.prompt)}</div>` : ""}
+    ${histIsAnswerSheet(sub) ? histAnswerSheetHTML(sub) : histReportHTML(sub)}`;
+}
+
+async function renderMyHistory(){
+  // Not a student, or a teacher who typed the URL: there is nothing here for
+  // them, and the class view is what they wanted.
+  if(!isStudent()){
+    state.mod = isTeacher() ? "class" : "progress";
+    return render();
+  }
+  // The permission can have been withdrawn since the tab was drawn.
+  if(!AUTH.historyReady) await loadHistoryAccess();
+  if(!AUTH.historyAllowed){
+    refreshAccountUI();
+    panel.innerHTML = `
+      <p class="section-title">My history</p>
+      <div class="hist-locked">
+        <b>Your teacher has not opened your history yet.</b><br>
+        Every paper you sit is still recorded and still goes to them — this only
+        decides whether you can read it back yourself. Ask your teacher to turn it
+        on from their <b>My class</b> tab, and your past answers, essays and
+        recordings will appear here.
+      </div>`;
+    return;
+  }
+
+  if(!AUTH.submissionsLoaded) await loadMySubmissions();
+  const all = AUTH.submissions || [];
+  const counts = {};
+  HIST_MODULES.forEach(m => counts[m] = all.filter(x => String(x.module).toLowerCase() === m).length);
+  if(histFilter !== "all" && !counts[histFilter]) histFilter = "all";
+  const shown = histFilter === "all" ? all : all.filter(x => String(x.module).toLowerCase() === histFilter);
+
+  panel.innerHTML = `
+    <p class="section-title">My history</p>
+    <p class="section-sub">Everything you have written, said and answered on this account, newest first. Open one to read it back with the examiner's marks on it — what you got right, what to fix, and why the band was what it was.</p>
+
+    <div class="hist-filters">
+      <button class="hist-chip ${histFilter==="all"?"on":""}" data-hf="all">All · ${all.length}</button>
+      ${HIST_MODULES.map(m=>`<button class="hist-chip ${histFilter===m?"on":""}" data-hf="${m}"${counts[m]?"":" disabled style=\"opacity:.45;cursor:default;\""}>${histLabel(m)} · ${counts[m]}</button>`).join("")}
+      <button class="btn ghost small" id="histRefresh" style="margin-left:auto;">Refresh</button>
+    </div>
+
+    ${shown.length ? shown.map(sub=>{
+      const open = histOpenId === sub.id;
+      return `<div class="hist-item">
+        <div class="hist-sum" data-hid="${escapeXml(sub.id)}">
+          <span class="caret">${open ? "▾" : "▸"}</span>
+          <span class="mod">${histLabel(sub.module)}${sub.task ? " · " + escapeXml(sub.task) : ""}</span>
+          <span class="ttl">${escapeXml((sub.prompt || "").slice(0,110)) || "&nbsp;"}</span>
+          <span class="when">${histWhen(sub.created_at)}</span>
+          <span class="bnd">${sub.band != null ? fmtBand(sub.band) : "—"}</span>
+        </div>
+        ${open ? `<div class="hist-open">${histDetailHTML(sub)}</div>` : ""}
+      </div>`;
+    }).join("") : `<p class="dash-empty">Nothing here yet.<br>Sit a paper and it will appear the moment it is marked.</p>`}
+
+    <p class="hist-note">Your teacher sees all of this too, and decides whether this page is open to you. Papers you sit in <b>Free practice</b> are not recorded.</p>
+  `;
+
+  panel.querySelectorAll("[data-hf]").forEach(b=>b.addEventListener("click", ()=>{
+    if(b.disabled) return;
+    histFilter = b.dataset.hf;
+    renderMyHistory();
+  }));
+  panel.querySelectorAll("[data-hid]").forEach(el=>el.addEventListener("click", ()=>{
+    histOpenId = (histOpenId === el.dataset.hid) ? null : el.dataset.hid;
+    renderMyHistory();
+  }));
+  const rb = document.getElementById("histRefresh");
+  if(rb) rb.addEventListener("click", async ()=>{
+    rb.disabled = true;
+    await loadHistoryAccess();
+    AUTH.submissionsLoaded = false;
+    refreshAccountUI();
+    await renderMyHistory();
+  });
+}
+
 async function renderClassDashboard(){
   if(!isTeacher()){ state.mod = "dashboard"; return renderDashboard(); }
   panel.innerHTML = `
     <p class="section-title">My class</p>
-    <p class="section-sub">Every student who joined with your class code, their latest band scores, and the work they have submitted. Select a student to read their responses and send feedback.</p>
+    <p class="section-sub">Every student who joined with your class code, their latest band scores, and the work they have submitted. Select a student to read their responses, send feedback, and decide whether they may read their own history back.</p>
+    <div class="hist-switch">
+      <div class="txt">
+        <b>Let students read their own history</b>
+        Their essays, recordings and answer sheets, with the examiner's marks, on a
+        <b style="display:inline;">My history</b> tab of their own. Every paper is recorded and
+        reaches you either way — this decides only whether they can read it back.
+        You can still override it for one student below.
+      </div>
+      <div class="hist-seg" id="classHistSeg">
+        <button data-ch="on"${classHistoryOn()?' class="on"':''}>On</button>
+        <button data-ch="off"${classHistoryOn()?'':' class="on"'}>Off</button>
+      </div>
+      <span id="classHistStatus" style="font-size:12px;"></span>
+    </div>
     <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
       <div class="class-code-box" style="margin:0;flex:1;min-width:220px;">
         <span class="lbl">Class code</span>
@@ -13353,6 +13707,26 @@ async function renderClassDashboard(){
     <div id="rosterArea"><p class="dash-empty">Loading your class…</p></div>
     <div id="studentDetailArea"></div>
   `;
+  document.querySelectorAll("#classHistSeg button").forEach(b=>b.addEventListener("click", async ()=>{
+    const want = b.dataset.ch === "on";
+    if(want === classHistoryOn()) return;
+    const st = document.getElementById("classHistStatus");
+    document.querySelectorAll("#classHistSeg button").forEach(x=>x.disabled = true);
+    st.style.color = "var(--slate)"; st.textContent = "Saving…";
+    try{
+      await setClassHistory(want);
+      await loadStudents();
+      renderClassDashboard();
+    }catch(e){
+      document.querySelectorAll("#classHistSeg button").forEach(x=>x.disabled = false);
+      st.style.color = "var(--coral)";
+      // Almost always one thing: the SQL file that adds the switch has not been run.
+      st.textContent = /function|does not exist|schema cache/i.test(e.message||"")
+        ? "Run supabase/03_history_visibility.sql first."
+        : (e.message || "Could not save that.");
+    }
+  }));
+
   document.getElementById("refreshClassBtn").addEventListener("click", async ()=>{
     await loadStudents();
     await loadTeacherHomework();
@@ -13374,7 +13748,7 @@ function drawRoster(){
     <table class="roster">
       <tr>
         <th>Student</th><th class="band">Listening</th><th class="band">Reading</th>
-        <th class="band">Writing</th><th class="band">Speaking</th><th class="band">Homework</th><th>Last activity</th>
+        <th class="band">Writing</th><th class="band">Speaking</th><th class="band">Homework</th><th class="band">History</th><th>Last activity</th>
       </tr>
       ${AUTH.students.map(s=>{
         const sc = (s.progress && s.progress.scores) || {};
@@ -13387,6 +13761,11 @@ function drawRoster(){
           ${cell(sc.listening)}${cell(sc.reading)}${cell(sc.writing)}${cell(sc.speaking)}
           <td class="band" style="font-family:'IBM Plex Mono',monospace;font-size:12px;${open?"color:var(--coral);font-weight:700;":"color:var(--slate);"}">${
             hw.length ? `${hw.length-open}/${hw.length}` : "—"}</td>
+          <td class="band">${
+            studentHistoryOn(s)
+              ? `<span class="hist-state yes">${s.history_override===true?"On · set":"On"}</span>`
+              : `<span class="hist-state no">${s.history_override===false?"Off · set":"Off"}</span>`
+          }</td>
           <td style="font-size:12px;color:var(--slate);">${when}</td>
         </tr>`;
       }).join("")}
@@ -13422,7 +13801,23 @@ async function openStudent(sid){
         </div>
       </div>
 
-      <div class="feedback-label" style="margin-top:16px;">Recent submissions</div>
+      <div class="feedback-label" style="margin-top:18px;">Can ${escapeXml((s.full_name||"this student").split(" ")[0])} read this back?</div>
+      <div class="hist-switch" style="margin-bottom:4px;">
+        <div class="txt">
+          <b>${studentHistoryOn(s) ? "Yes — their My history tab is open" : "No — their My history tab is hidden"}</b>
+          ${studentHistorySetting(s) === "class"
+            ? `Following the class setting, which is currently <b style="display:inline;">${classHistoryOn()?"on":"off"}</b>. Change the class setting and this student moves with it.`
+            : `Set for this student alone, so the class setting no longer applies to them.`}
+        </div>
+        <div class="hist-seg" id="stuHistSeg">
+          <button data-sh="class"${studentHistorySetting(s)==="class"?' class="on"':''}>Follow class</button>
+          <button data-sh="on"${studentHistorySetting(s)==="on"?' class="on"':''}>Always</button>
+          <button data-sh="off"${studentHistorySetting(s)==="off"?' class="on"':''}>Never</button>
+        </div>
+        <span id="stuHistStatus" style="font-size:12px;"></span>
+      </div>
+
+      <div class="feedback-label" style="margin-top:18px;">Recent submissions</div>
       ${subs.length ? subs.map(x=>`
         <div class="sub-card">
           <div class="sub-head">
@@ -13477,6 +13872,28 @@ async function openStudent(sid){
           </ul>` : `<p style="font-size:12.5px;color:var(--slate);margin:10px 0 0;">No homework set for this student yet.</p>`}
       </div>
     </div>`;
+  document.querySelectorAll("#stuHistSeg button").forEach(b=>b.addEventListener("click", async ()=>{
+    const pick = b.dataset.sh;
+    if(pick === studentHistorySetting(s)) return;
+    const st = document.getElementById("stuHistStatus");
+    document.querySelectorAll("#stuHistSeg button").forEach(x=>x.disabled = true);
+    st.style.color = "var(--slate)"; st.textContent = "Saving…";
+    try{
+      // "Follow class" stores null rather than today's value, so a later change
+      // to the class setting still carries this student with it.
+      await setStudentHistory(sid, pick === "class" ? null : (pick === "on"));
+      drawRoster();
+      await openStudent(sid);
+    }catch(e){
+      document.querySelectorAll("#stuHistSeg button").forEach(x=>x.disabled = false);
+      st.style.color = "var(--coral)";
+      // Almost always one thing: the SQL file behind the switch has not been run.
+      st.textContent = /function|does not exist|schema cache/i.test(e.message||"")
+        ? "Run supabase/03_history_visibility.sql first."
+        : (e.message || "Could not save that.");
+    }
+  }));
+
   const rmBtn = document.getElementById("removeStudentBtn");
   if(rmBtn) rmBtn.addEventListener("click", async ()=>{
     if(!confirm(`Remove ${s.full_name||"this student"} from your class?\n\nThey keep their account and their scores; you stop seeing them, and any homework you set stops applying. They can rejoin with your class code.`)) return;

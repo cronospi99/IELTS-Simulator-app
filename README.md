@@ -25,6 +25,12 @@ Open `index.html` in any modern browser. No build step, no server required.
   end. Nothing here touches your dashboard.
 - **Progress** — the overall seal, per-skill cards, skill-profile and
   band-history charts, and the full attempt history.
+- **My history** — the work behind those bands. Every paper the student has sat,
+  newest first: the essay as they wrote it and the Speaking transcripts with the
+  examiner's marks still on them, and the Reading and Listening answer sheets
+  showing what they put beside what the key said. Filter by paper, open one to
+  read it back. **The teacher decides who gets this tab** — for the whole class
+  at once, or for one student against the class (see below).
 - **Listening / Reading** — full question sets with answer keys and auto-marking.
 - **Writing** — Task 1 & Task 2 drafting with word count, AI coaching hints,
   paragraph-level feedback, and band-score estimation against the four official
@@ -48,8 +54,9 @@ Open `index.html` in any modern browser. No build step, no server required.
   tables, register-ranked alternative words and collocations (see below).
 - **Accounts, homework and feedback** — students sign in with their teacher's
   class code and their progress follows them to any device; teachers see the
-  class roster, read every submission, write feedback, and set homework for one
-  student or the whole class at once. Students get it on their home page and
+  class roster, read every submission, write feedback, set homework for one
+  student or the whole class at once, and choose which students may read their
+  own history back. Students get it on their home page and
   under the 🔔 bell, and tick it off when it is done. Password reset and
   "resend the confirmation email" are built in, and a class code typed at
   sign-up survives the email-confirmation step.
@@ -162,19 +169,21 @@ fully offline, with the account button hidden.
 
 ### Setup (about 5 minutes)
 
-> **Already have a project?** Run both files again. Every statement is
+> **Already have a project?** Run all three files again. Every statement is
 > create-if-not-exists or drop-then-create, so they add what is new and leave
 > your data alone. `02_roles_and_tasks.sql` in particular is worth running on
 > any project set up before it existed — see [what it fixes](#what-02_roles_and_taskssql-fixes).
 
 1. Create a free project at <https://supabase.com>.
-2. Open **SQL Editor → New query** and run the two files in [`supabase/`](supabase/),
+2. Open **SQL Editor → New query** and run the three files in [`supabase/`](supabase/),
    in order:
    - [`supabase/01_schema.sql`](supabase/01_schema.sql) — the tables, the row-level
      security rules, and the sign-up trigger.
    - [`supabase/02_roles_and_tasks.sql`](supabase/02_roles_and_tasks.sql) — the write
      boundaries between the two roles, and the functions for joining, leaving and
      managing a class.
+   - [`supabase/03_history_visibility.sql`](supabase/03_history_visibility.sql) — the
+     student's own history, and the teacher's switch over who may see it.
 3. Go to **Settings → API** and copy your **Project URL** and **anon / public key**
    into [`supabase-config.js`](supabase-config.js), then commit. The live site picks it up on the next deploy.
 4. *(Recommended for classrooms)* **Authentication → Providers → Email** and turn
@@ -228,6 +237,23 @@ and due date. They get their edit; the teacher's wording survives it.
   module, instructions and a due date. Students tick it off and can leave a note
   back ("found Part 3 hard"), which you see on the tracking list. Edit a task in
   place rather than deleting it — the student's tick and note survive the edit.
+- **Who may read their own history:** the **My class** tab carries one switch for
+  the whole class — *Let students read their own history* — and each student's
+  panel carries **Follow class / Always / Never** for the exceptions. The roster
+  shows where everyone stands at a glance, with `· set` marking anyone you have
+  decided individually. "Follow class" is not a snapshot: flip the class switch
+  later and everyone still following it moves with you.
+
+  Switched off, a student's **My history** tab simply is not there, and the page
+  explains why rather than looking broken. Their papers are still recorded and
+  still reach you — the switch only decides whether they can read them back, so
+  turning it on later opens the whole history, not just what came after. A
+  student with no class of their own is self-studying, and keeps their history.
+
+  This is a real boundary, not a hidden tab: it is enforced by the database's
+  row-level security, so a blocked student cannot reach their submissions from
+  the browser console either. It never limits what **you** see.
+
 - **Picked the wrong role at sign-up?** The account panel offers to switch, and
   allows it while the account is still empty. After that it says so and asks you
   to make a separate account, rather than moving an account that a class already
@@ -275,8 +301,12 @@ their own rows and a teacher only their own students'. Never commit the
 **`service_role`** key, which bypasses those rules.
 
 > **Note on student data:** this stores student names, emails and their written
-> work on Supabase's servers. If your students are minors, check what your school
-> or institution allows before rolling it out.
+> work on Supabase's servers — the essays, the Speaking transcripts, and the
+> Reading and Listening answer sheets. If your students are minors, check what
+> your school or institution allows before rolling it out.
+>
+> Papers sat in **Free practice** are never uploaded, by design: that tab is for
+> work nobody is going to mark.
 
 ## Troubleshooting "no content" / generation fails
 
