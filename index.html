@@ -1655,7 +1655,38 @@ textarea.essay{
 .hist-note{font-size:11.5px;color:var(--slate);line-height:1.6;margin:12px 0 0;}
 .hist-locked{background:#fff;border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:0 12px 12px 0;padding:18px 20px;margin-top:18px;font-size:13.5px;line-height:1.75;color:var(--slate);}
 .hist-locked b{color:var(--ink);}
+.hist-mat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px;margin-top:12px;}
+.hist-mat-h{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--brass);font-weight:700;margin-bottom:8px;}
+.hist-mat-h span{color:var(--slate);font-weight:500;letter-spacing:.04em;text-transform:none;font-family:inherit;font-size:12px;}
+.hist-q{font-size:14px;line-height:1.7;color:var(--ink);margin:0;}
+.hist-inst{font-size:12.5px;line-height:1.6;color:var(--slate);margin:0 0 8px;}
+.hist-visual{margin-top:12px;}
+.hist-visual svg{max-width:100%;height:auto;}
+.hist-chart{position:relative;height:260px;}
+.hist-figures{margin-top:10px;}
+.hist-cue{border-left:3px solid var(--brass);padding:4px 0 2px 12px;margin-top:4px;}
+.hist-cue-lead{font-size:12px;color:var(--slate);margin-bottom:2px;}
+.hist-cue ul,.hist-qlist{margin:4px 0 0;padding-left:20px;font-size:13.5px;line-height:1.7;color:#2a3145;}
+.hist-qgroup{margin-top:14px;}
+.hist-qg-h{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.hist-headings{font-size:12.5px;line-height:1.6;color:#2a3145;background:var(--paper);border-radius:8px;padding:8px 11px;margin-bottom:8px;}
+.hist-headings b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--slate);margin-bottom:2px;}
+.hist-headings span{font-family:'IBM Plex Mono',monospace;font-weight:700;margin-right:4px;}
+.hist-qrow{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px;line-height:1.6;}
+.hist-qrow .mk{font-weight:700;width:14px;flex-shrink:0;}
+.hist-qrow.ok .mk{color:var(--teal);}
+.hist-qrow.bad .mk{color:var(--coral);}
+.hist-qrow .body{flex:1;min-width:0;}
+.hist-qrow .qq{color:#2a3145;}
+.hist-qrow .aa{color:var(--slate);margin-top:2px;}
+.hist-qrow .aa b{color:var(--ink);}
+.hist-qrow .key{color:var(--teal);font-weight:600;}
+.hist-passage{margin:6px 0 4px;font-size:13px;line-height:1.7;color:#2a3145;}
+.hist-passage summary{cursor:pointer;font-size:12px;color:var(--brass);font-weight:600;padding:4px 0;}
+.hist-passage p{margin:8px 0;}
+.hist-score{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--ink);margin-top:12px;}
 @media(max-width:640px){
+  .hist-chart{height:220px;}
   .hist-sum .mod{min-width:0;}
   .hist-sum .when{width:100%;order:9;}
   .hist-said{font-size:13px;max-height:260px;}
@@ -6404,6 +6435,7 @@ function render(){
   // Tear the 3D chart down explicitly so its animation loop and GPU resources
   // are released before we render the next module.
   if(typeof chart3D !== "undefined" && chart3D){ chart3D.dispose(); chart3D = null; }
+  if(typeof destroyHistoryCharts === "function") destroyHistoryCharts();
   // Leaving a paper stops its clock; only the module on screen is being sat.
   pauseTimersOutside(state.mod, state.mod === "writing" ? activeTimerKey("writing") : null);
   if(state.mod==="class") return renderClassDashboard();
@@ -8795,7 +8827,7 @@ function submitListening(){
   const band = rawToBandListening(correct, total);
   recordScore("listening", band, `${correct}/${total} correct`);
   saveAnswerSheet("listening", LISTENING.parts.map(x=>x.title).filter(Boolean).join(" · "),
-                  band, correct, total, lines);
+                  band, correct, total, lines, listeningMaterial());
   renderListening();
 }
 
@@ -9622,7 +9654,7 @@ function submitReading(){
   const band = rawToBandReading(correct, total);
   recordScore("reading", band, `${correct}/${total} correct`);
   saveAnswerSheet("reading", READING_PASSAGES.map(x=>x.title).filter(Boolean).join(" · "),
-                  band, correct, total, lines);
+                  band, correct, total, lines, readingMaterial());
   renderReading();
 }
 
@@ -9961,10 +9993,15 @@ function drawTask1Chart(cd, type){
   const ctx = document.getElementById("task1Canvas");
   if(!ctx) return;
   if(task1Chart) task1Chart.destroy();
+  task1Chart = new Chart(ctx, task1ChartConfig(cd, type));
+}
 
+// Shared by the exam and the student's history, so a chart read back later is
+// drawn exactly the way it was drawn on the day.
+function task1ChartConfig(cd, type){
   if(type === "pie"){
     // Pie has no time axis, so it summarises the LATEST value of each series.
-    task1Chart = new Chart(ctx, {
+    return {
       type:"pie",
       data:{
         labels: cd.series.map(s=>s.label),
@@ -9981,11 +10018,10 @@ function drawTask1Chart(cd, type){
           title:{display:true,text:`Latest value (${cd.labels[cd.labels.length-1]})`,font:{size:11}}
         }
       }
-    });
-    return;
+    };
   }
 
-  task1Chart = new Chart(ctx, {
+  return {
     type: type === "bar" ? "bar" : "line",
     data:{
       labels: cd.labels,
@@ -10003,7 +10039,7 @@ function drawTask1Chart(cd, type){
       maintainAspectRatio: false,
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}}}
     }
-  });
+  };
 }
 
 /* =========================================================================
@@ -10609,7 +10645,7 @@ async function requestWritingScore(task){
     }
 
     recordScore("writing", finalBand, note);
-    saveSubmission("writing", task, WRITING[task].prompt, draft, json.overall_band, json);
+    saveSubmission("writing", task, WRITING[task].prompt, draft, json.overall_band, json, writingMaterial(task));
   }catch(e){
     console.error(e);
     alert("Scoring failed: " + e.message + (/key|quota|network|blocked|model/i.test(e.message)
@@ -11682,7 +11718,7 @@ function finishSpeakingPart(part){
     .filter(sl => S.answers[sl])
     .map(sl => `[${speakingSlotPrompt(sl)}]\n${S.transcripts[sl] || ""}`).join("\n\n");
   saveSubmission("speaking", part, speakingSlotsFor(part).map(speakingSlotPrompt).join(" / "),
-                 transcripts, rep.overall_band, rep);
+                 transcripts, rep.overall_band, rep, speakingMaterial(part));
   return rep;
 }
 
@@ -12817,8 +12853,17 @@ async function pullProgress(){
   }
 }
 
-async function saveSubmission(moduleName, task, prompt, content, band, report){
+/* `material` is what the candidate was working from — the Task 1 chart and its
+   data, the essay question, the cue card, the passages and their questions.
+   It rides inside `report` rather than in a column of its own so that a project
+   which has not run a new SQL file still saves every submission: an unknown
+   column would make the insert fail and the attempt would be lost. It is merged
+   into a copy, so the report held in the browser is not weighed down with it. */
+async function saveSubmission(moduleName, task, prompt, content, band, report, material){
   if(!isStudent()) return;
+  const stored = material
+    ? Object.assign({}, report || {}, { material })
+    : (report || null);
   try{
     await AUTH.client.from("submissions").insert({
       student_id: AUTH.profile.id,
@@ -12826,10 +12871,46 @@ async function saveSubmission(moduleName, task, prompt, content, band, report){
       prompt: (prompt||"").slice(0,2000),
       content: (content||"").slice(0,20000),
       band: (band==null ? null : Number(band)),
-      report: report || null
+      report: stored
     });
     AUTH.submissionsLoaded = false;   // the history is a paper out of date now
   }catch(e){ console.error("submission save failed", e); }
+}
+
+/* A copy of the paper as it stood when it was marked. The sets are replaced
+   whenever a new exam is generated, so a history that pointed at the live
+   WRITING / SPEAKING / READING_PASSAGES / LISTENING would show a student today's
+   question beside last week's answer. JSON round-trip: plain data, no shared
+   references, nothing that cannot be stored. */
+function paperSnapshot(v){
+  try{ return JSON.parse(JSON.stringify(v)); }catch(e){ return null; }
+}
+
+function writingMaterial(task){
+  const w = WRITING[task] || {};
+  const m = { tag: w.tag || "", prompt: w.prompt || "" };
+  if(task === "task1" && w.chartData) m.chartData = paperSnapshot(w.chartData);
+  if(task === "task1") m.chartType = (state.writing && state.writing.chartType) || "";
+  return m;
+}
+
+function speakingMaterial(part){
+  const d = SPEAKING[part] || {};
+  return paperSnapshot({ part, title: d.title || "", note: d.note || "",
+                         questions: Array.isArray(d.questions) ? d.questions : undefined,
+                         cue: d.cue || undefined });
+}
+
+function readingMaterial(){
+  return { passages: paperSnapshot(READING_PASSAGES) || [] };
+}
+
+function listeningMaterial(){
+  // The audio itself is not kept — it is a file on the teacher's machine, not
+  // data — but the transcript is, and it is where a wrong answer can be traced.
+  return { parts: paperSnapshot((LISTENING.parts || []).map(pt=>({
+    id: pt.id, title: pt.title, context: pt.context, script: pt.script, questions: pt.questions
+  }))) || [] };
 }
 
 /* Reading and Listening are marked right or wrong rather than written up, so
@@ -12837,7 +12918,7 @@ async function saveSubmission(moduleName, task, prompt, content, band, report){
    what the key said, and which way the mark went. It is stored as an ordinary
    submission, so one history view renders all four papers and the teacher's
    class view picks these up with no change at all. */
-function saveAnswerSheet(moduleName, prompt, band, correct, total, lines){
+function saveAnswerSheet(moduleName, prompt, band, correct, total, lines, material){
   if(!isStudent()) return;
   const content = (lines || []).map(l=>{
     const label = (typeof l.n === "number") ? `Q${l.n}` : String(l.n);
@@ -12847,7 +12928,7 @@ function saveAnswerSheet(moduleName, prompt, band, correct, total, lines){
     return `${l.ok ? "✓" : "✗"} ${label}  you: ${given}${l.ok ? "" : `  ·  key: ${key}`}`;
   }).join("\n");
   saveSubmission(moduleName, null, prompt, content, band,
-                 { kind:"answer_sheet", correct, total, lines });
+                 { kind:"answer_sheet", correct, total, lines }, material);
 }
 
 /* =========================================================================
@@ -13596,10 +13677,195 @@ function histReportHTML(sub){
     })}`;
 }
 
-function histDetailHTML(sub){
+/* ---- the paper itself, as the candidate saw it ----
+   Submissions made before the material was kept have none, and render as they
+   always did: prompt, response, report. */
+let histCharts = [];
+function destroyHistoryCharts(){
+  histCharts.forEach(c=>{ try{ c.destroy(); }catch(e){} });
+  histCharts = [];
+}
+
+function histMaterial(sub){
+  const m = sub && sub.report && sub.report.material;
+  return (m && typeof m === "object") ? m : null;
+}
+
+// Generated papers come back from the AI and could carry markup. Here it is
+// reading matter, not layout, so tags are dropped and the rest escaped.
+function histText(v){ return escapeXml(String(v == null ? "" : v).replace(/<[^>]*>/g, "")); }
+
+// The on-screen 3D views cannot be replayed from a record, so each is shown as
+// its nearest flat equivalent; the mind map and table are redrawn as they were.
+function histChartType(t){
+  if(t === "trend3d" || t === "line") return "line";
+  if(t === "pie") return "pie";
+  if(t === "mindmap" || t === "table") return t;
+  return "bar";
+}
+
+function histWritingTaskHTML(sub, m){
+  const cd = m.chartData;
+  const hasChart = !!(cd && Array.isArray(cd.labels) && Array.isArray(cd.series) && cd.series.length);
+  let visual = "";
+  if(hasChart){
+    const t = histChartType(m.chartType);
+    if(t === "mindmap" && typeof buildMindMapSVG === "function"){
+      visual = `<div class="hist-visual">${buildMindMapSVG(cd, m.prompt || "")}</div>`;
+    }else if(t !== "table"){
+      visual = `<div class="hist-visual hist-chart"><canvas data-hchart="${escapeXml(sub.id)}" data-htype="${t}"></canvas></div>`;
+    }
+    // The figures under the picture: what a Task 1 answer is actually checked
+    // against, and still readable if the chart library never loaded.
+    visual += `<div class="hist-figures">${buildTaskTable(cd)}</div>`;
+  }
   return `
-    ${sub.prompt ? `<div class="hist-prompt">${escapeXml(sub.prompt)}</div>` : ""}
-    ${histIsAnswerSheet(sub) ? histAnswerSheetHTML(sub) : histReportHTML(sub)}`;
+    <div class="hist-mat">
+      <div class="hist-mat-h">The task${m.tag ? ` · <span>${histText(m.tag)}</span>` : ""}</div>
+      <p class="hist-q">${histText(m.prompt)}</p>
+      ${visual}
+    </div>`;
+}
+
+function histSpeakingTaskHTML(m){
+  const cue = m.cue && typeof m.cue === "object" ? m.cue : null;
+  const qs = Array.isArray(m.questions) ? m.questions : [];
+  return `
+    <div class="hist-mat">
+      <div class="hist-mat-h">${histText(m.title || "The questions")}</div>
+      ${m.note ? `<p class="hist-note" style="margin-top:0;">${histText(m.note)}</p>` : ""}
+      ${cue ? `<div class="hist-cue">
+          <p class="hist-q" style="margin:0 0 6px;">${histText(cue.title)}</p>
+          ${Array.isArray(cue.points) && cue.points.length ? `<div class="hist-cue-lead">You should say:</div>
+            <ul>${cue.points.map(pt=>`<li>${histText(pt)}</li>`).join("")}</ul>` : ""}
+        </div>` : ""}
+      ${qs.length ? `<ol class="hist-qlist">${qs.map(q=>`<li>${histText(q)}</li>`).join("")}</ol>` : ""}
+    </div>`;
+}
+
+// One marked question: what was asked, what they put, and — only when they
+// got it wrong — what the key wanted.
+function histQRow(num, question, line){
+  const ok = !!(line && line.ok);
+  const given = line ? (String(line.given || "").trim() || "(blank)") : "(not recorded)";
+  const key = line ? String(line.correct != null ? line.correct : (line.answer || "")).trim() : "";
+  return `<div class="hist-qrow ${ok ? "ok" : "bad"}">
+      <span class="mk">${ok ? "✓" : "✗"}</span>
+      <div class="body">
+        <div class="qq"><b>${histText(num)}.</b> ${histText(question)}</div>
+        <div class="aa">Your answer: <b>${histText(given)}</b>${ok || !key ? "" : ` <span class="key">→ ${histText(key)}</span>`}</div>
+      </div>
+    </div>`;
+}
+
+/* Reading: each passage, then its questions with the answers set against them.
+   The answer sheet was built by walking the passages in exactly this order
+   (gradeReading), so the two are zipped by position. If they ever disagree the
+   combined view is abandoned for the plain sheet rather than risk pinning an
+   answer to the wrong question. */
+function histReadingHTML(sub, m){
+  const passages = Array.isArray(m.passages) ? m.passages : [];
+  const lines = (sub.report && Array.isArray(sub.report.lines)) ? sub.report.lines : [];
+  let cursor = 0;
+  const next = ()=>lines[cursor++];
+
+  const html = passages.map(p=>{
+    const paras = p.paras && typeof p.paras === "object" ? Object.entries(p.paras) : [];
+    const groups = (Array.isArray(p.groups) ? p.groups : []).map(g=>{
+      const items = Array.isArray(g.items) ? g.items : [];
+      let rows = "";
+      let extra = "";
+      if(g.type === "heading"){
+        const opts = Array.isArray(g.options) ? g.options : [];
+        extra = `<div class="hist-headings"><b>List of headings</b>${opts.map((o,i)=>`<div><span>${i}</span> ${histText(o)}</div>`).join("")}</div>`;
+        rows = Object.keys(g.key || {}).map(pname=>histQRow(`Para ${pname}`, "Choose the heading", next())).join("");
+      }else if(g.type === "matchinfo"){
+        if(Array.isArray(g.letters)) extra = `<div class="hist-note" style="margin:0 0 6px;">Letters: ${g.letters.map(histText).join(", ")}</div>`;
+        rows = items.map((it,i)=>histQRow(g.qStart+i, it.q, next())).join("");
+      }else if(g.type === "mc"){
+        rows = items.map((it,i)=>histQRow(g.qStart+i,
+          String(it.q || "") + (Array.isArray(it.options) ? "  —  " + it.options.map((o,k)=>`${String.fromCharCode(65+k)}) ${o}`).join("   ") : ""),
+          next())).join("");
+      }else{
+        if(g.summaryIntro) extra = `<p class="hist-note" style="margin:0 0 6px;font-style:italic;">${histText(g.summaryIntro)}</p>`;
+        rows = items.map((it,i)=>histQRow(g.qStart+i, it.q, next())).join("");
+      }
+      return `<div class="hist-qgroup">
+          <div class="hist-qg-h">Questions ${histText(typeof groupRange === "function" ? groupRange(g) : "")}</div>
+          ${g.instructions ? `<p class="hist-inst">${histText(g.instructions)}</p>` : ""}
+          ${extra}${rows}
+        </div>`;
+    }).join("");
+    return `<div class="hist-mat">
+        <div class="hist-mat-h">Section ${histText(p.id)} · <span>${histText(p.title)}</span></div>
+        ${paras.length ? `<details class="hist-passage"><summary>Read the passage again</summary>
+            ${paras.map(([k,v])=>`<p><b>${histText(k)}</b> ${histText(v)}</p>`).join("")}
+          </details>` : ""}
+        ${groups}
+      </div>`;
+  }).join("");
+
+  if(cursor !== lines.length) return "";
+  return html;
+}
+
+// Listening numbers its questions across the whole paper, so the answers are
+// matched by question number rather than by position.
+function histListeningHTML(sub, m){
+  const parts = Array.isArray(m.parts) ? m.parts : [];
+  const lines = (sub.report && Array.isArray(sub.report.lines)) ? sub.report.lines : [];
+  const byN = {};
+  lines.forEach(l=>{ byN[String(l.n)] = l; });
+  return parts.map(pt=>{
+    const qs = Array.isArray(pt.questions) ? pt.questions : [];
+    return `<div class="hist-mat">
+        <div class="hist-mat-h">${histText(pt.title || ("Section " + pt.id))}</div>
+        ${pt.context ? `<p class="hist-inst">${histText(pt.context)}</p>` : ""}
+        ${qs.map(q=>histQRow(q.n,
+          String(q.label || "") + (q.type === "mc" && Array.isArray(q.options)
+            ? "  —  " + q.options.map((o,k)=>`${String.fromCharCode(65+k)}) ${o}`).join("   ") : ""),
+          byN[String(q.n)])).join("")}
+        ${pt.script ? `<details class="hist-passage"><summary>Read the transcript</summary>
+            <div style="white-space:pre-wrap;">${histText(pt.script)}</div></details>` : ""}
+      </div>`;
+  }).join("");
+}
+
+function histDetailHTML(sub){
+  const m = histMaterial(sub);
+  const mod = String(sub.module || "").toLowerCase();
+
+  if(histIsAnswerSheet(sub)){
+    const r = sub.report || {};
+    const got = Number(r.correct), outOf = Number(r.total);
+    const score = isFinite(outOf) && outOf
+      ? `<div class="hist-score">${isFinite(got) ? got : 0} of ${outOf} correct</div>` : "";
+    const combined = m ? (mod === "reading" ? histReadingHTML(sub, m) : mod === "listening" ? histListeningHTML(sub, m) : "") : "";
+    if(combined) return score + combined;
+    return `${sub.prompt ? `<div class="hist-prompt">${escapeXml(sub.prompt)}</div>` : ""}${histAnswerSheetHTML(sub)}`;
+  }
+
+  const task = m
+    ? (mod === "writing" ? histWritingTaskHTML(sub, m) : mod === "speaking" ? histSpeakingTaskHTML(m) : "")
+    : "";
+  return `
+    ${task || (sub.prompt ? `<div class="hist-prompt">${escapeXml(sub.prompt)}</div>` : "")}
+    ${task ? `<div class="hist-mat-h" style="margin-top:16px;">${mod === "speaking" ? "What you said" : "What you wrote"}</div>` : ""}
+    ${histReportHTML(sub)}`;
+}
+
+// Charts need a canvas that is already in the page, so they are drawn after
+// the panel is, and remembered so the next render can release them.
+function drawHistoryCharts(){
+  destroyHistoryCharts();
+  if(typeof Chart === "undefined") return;       // the figures table still shows
+  panel.querySelectorAll("canvas[data-hchart]").forEach(cv=>{
+    const sub = (AUTH.submissions || []).find(x=>String(x.id) === cv.dataset.hchart);
+    const m = histMaterial(sub);
+    if(!m || !m.chartData) return;
+    try{ histCharts.push(new Chart(cv, task1ChartConfig(m.chartData, cv.dataset.htype || "bar"))); }
+    catch(e){ console.error("history chart failed", e); }
+  });
 }
 
 async function renderMyHistory(){
@@ -13626,6 +13892,7 @@ async function renderMyHistory(){
   }
 
   if(!AUTH.submissionsLoaded) await loadMySubmissions();
+  destroyHistoryCharts();
   const all = AUTH.submissions || [];
   const counts = {};
   HIST_MODULES.forEach(m => counts[m] = all.filter(x => String(x.module).toLowerCase() === m).length);
@@ -13658,6 +13925,7 @@ async function renderMyHistory(){
 
     <p class="hist-note">Your teacher sees all of this too, and decides whether this page is open to you. Papers you sit in <b>Free practice</b> are not recorded.</p>
   `;
+  drawHistoryCharts();
 
   panel.querySelectorAll("[data-hf]").forEach(b=>b.addEventListener("click", ()=>{
     if(b.disabled) return;

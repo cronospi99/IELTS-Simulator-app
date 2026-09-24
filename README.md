@@ -26,10 +26,12 @@ Open `index.html` in any modern browser. No build step, no server required.
 - **Progress** — the overall seal, per-skill cards, skill-profile and
   band-history charts, and the full attempt history.
 - **My history** — the work behind those bands. Every paper the student has sat,
-  newest first: the essay as they wrote it and the Speaking transcripts with the
-  examiner's marks still on them, and the Reading and Listening answer sheets
-  showing what they put beside what the key said. Filter by paper, open one to
-  read it back. **The teacher decides who gets this tab** — for the whole class
+  newest first, opened next to the paper they were answering: the Task 1 chart
+  with its figures, the essay question, the cue card or interview questions, and
+  the Reading passages and Listening sections with every question, their answer
+  and — where it was wrong — the key, plus the Listening transcript. Then the
+  essay as they wrote it and the Speaking transcripts with the examiner's marks
+  still on them. Filter by paper, open one to read it back. **The teacher decides who gets this tab** — for the whole class
   at once, or for one student against the class (see below).
 - **Listening / Reading** — full question sets with answer keys and auto-marking.
 - **Writing** — Task 1 & Task 2 drafting with word count, AI coaching hints,
@@ -304,6 +306,11 @@ their own rows and a teacher only their own students'. Never commit the
 > work on Supabase's servers — the essays, the Speaking transcripts, and the
 > Reading and Listening answer sheets. If your students are minors, check what
 > your school or institution allows before rolling it out.
+>
+> Each submission also carries a copy of the paper it answered — passages,
+> questions, the chart's data — inside its `report`, so the history still shows
+> last week's question after a new exam has been generated. No SQL file is
+> needed for this; attempts made before it show the question text only.
 >
 > Papers sat in **Free practice** are never uploaded, by design: that tab is for
 > work nobody is going to mark.
