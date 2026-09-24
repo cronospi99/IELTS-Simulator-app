@@ -2,8 +2,9 @@
    SUPABASE CONNECTION  —  fill these in to switch on teacher/student accounts
    -----------------------------------------------------------------------------
    1. Create a free project at https://supabase.com
-   2. Run supabase/01_schema.sql, then supabase/02_roles_and_tasks.sql,
-      in the project's SQL Editor
+   2. Run the SQL files in supabase/ in order (01, 02, 03, 04) in the
+      project's SQL Editor — and, to give the whole class one Gemini key,
+      deploy supabase/functions/gemini (steps at the top of that file)
    3. In Supabase go to  Settings → API  and copy:
         • Project URL      →  url    below
         • anon / public key →  anonKey below

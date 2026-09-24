@@ -1655,7 +1655,55 @@ textarea.essay{
 .hist-note{font-size:11.5px;color:var(--slate);line-height:1.6;margin:12px 0 0;}
 .hist-locked{background:#fff;border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:0 12px 12px 0;padding:18px 20px;margin-top:18px;font-size:13.5px;line-height:1.75;color:var(--slate);}
 .hist-locked b{color:var(--ink);}
+.alib-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:1000px){.alib-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.alib-grid{grid-template-columns:1fr;}}
+.alib-col{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 13px;display:flex;flex-direction:column;min-width:0;}
+.alib-h{font-weight:700;font-size:13.5px;color:var(--ink);display:flex;justify-content:space-between;align-items:center;}
+.alib-h span{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);font-weight:500;}
+.alib-hint{font-size:11.5px;color:var(--slate);line-height:1.5;margin:3px 0 8px;}
+.alib-col ul{list-style:none;margin:0 0 10px;padding:0;flex:1;max-height:220px;overflow-y:auto;}
+.alib-col li{display:flex;align-items:center;gap:6px;font-size:12px;padding:5px 0;border-top:1px solid var(--line);}
+.alib-col li.none{color:var(--slate);font-style:italic;border-top:0;}
+.alib-col li .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#2a3145;}
+.alib-col li .sz{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--slate);white-space:nowrap;}
+.alib-del{border:0;background:transparent;color:var(--slate);font-size:16px;line-height:1;cursor:pointer;padding:0 3px;}
+.alib-del:hover{color:var(--coral);}
+.alib-add{align-self:flex-start;cursor:pointer;}
+.shared-ai-note{font-size:12.5px;line-height:1.6;color:var(--slate);background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:0 8px 8px 0;padding:10px 12px;margin:0 0 14px;}
+.shared-ai-note.ok{border-left-color:var(--teal);color:#1f4238;background:#eef4f2;}
+.hist-mat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px;margin-top:12px;}
+.hist-mat-h{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--brass);font-weight:700;margin-bottom:8px;}
+.hist-mat-h span{color:var(--slate);font-weight:500;letter-spacing:.04em;text-transform:none;font-family:inherit;font-size:12px;}
+.hist-q{font-size:14px;line-height:1.7;color:var(--ink);margin:0;}
+.hist-inst{font-size:12.5px;line-height:1.6;color:var(--slate);margin:0 0 8px;}
+.hist-visual{margin-top:12px;}
+.hist-visual svg{max-width:100%;height:auto;}
+.hist-chart{position:relative;height:260px;}
+.hist-figures{margin-top:10px;}
+.hist-cue{border-left:3px solid var(--brass);padding:4px 0 2px 12px;margin-top:4px;}
+.hist-cue-lead{font-size:12px;color:var(--slate);margin-bottom:2px;}
+.hist-cue ul,.hist-qlist{margin:4px 0 0;padding-left:20px;font-size:13.5px;line-height:1.7;color:#2a3145;}
+.hist-qgroup{margin-top:14px;}
+.hist-qg-h{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.hist-headings{font-size:12.5px;line-height:1.6;color:#2a3145;background:var(--paper);border-radius:8px;padding:8px 11px;margin-bottom:8px;}
+.hist-headings b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--slate);margin-bottom:2px;}
+.hist-headings span{font-family:'IBM Plex Mono',monospace;font-weight:700;margin-right:4px;}
+.hist-qrow{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13px;line-height:1.6;}
+.hist-qrow .mk{font-weight:700;width:14px;flex-shrink:0;}
+.hist-qrow.ok .mk{color:var(--teal);}
+.hist-qrow.bad .mk{color:var(--coral);}
+.hist-qrow .body{flex:1;min-width:0;}
+.hist-qrow .qq{color:#2a3145;}
+.hist-qrow .aa{color:var(--slate);margin-top:2px;}
+.hist-qrow .aa b{color:var(--ink);}
+.hist-qrow .key{color:var(--teal);font-weight:600;}
+.hist-passage{margin:6px 0 4px;font-size:13px;line-height:1.7;color:#2a3145;}
+.hist-passage summary{cursor:pointer;font-size:12px;color:var(--brass);font-weight:600;padding:4px 0;}
+.hist-passage p{margin:8px 0;}
+.hist-score{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--ink);margin-top:12px;}
 @media(max-width:640px){
+  .hist-chart{height:220px;}
   .hist-sum .mod{min-width:0;}
   .hist-sum .when{width:100%;order:9;}
   .hist-said{font-size:13px;max-height:260px;}
@@ -2635,7 +2683,8 @@ textarea.essay{
       Writing hints/scoring, paragraph feedback, and Speaking scoring all run on <b>Gemini 3.5 Flash-Lite</b> using the key below. To score Speaking from the <b>actual audio</b> (real pronunciation and intonation, not just the transcript), Gemini listens to the audio directly. Paste your key once and it is saved in this browser only — get a free key at
       <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
     </p>
-    <label style="font-size:12px;font-weight:600;color:var(--slate);">Gemini API key (stored only in this browser)</label>
+    <div id="sharedAINote" class="shared-ai-note" style="display:none;"></div>
+    <label style="font-size:12px;font-weight:600;color:var(--slate);" id="geminiKeyLabel">Gemini API key (stored only in this browser)</label>
     <input type="password" id="geminiKeyInput" placeholder="AIza..." style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
     <label style="font-size:12px;font-weight:600;color:var(--slate);">Text model (hints, scoring, paragraph feedback)</label>
     <input type="text" id="geminiModelInput" value="gemini-3.5-flash-lite" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin:6px 0 14px;">
@@ -3514,30 +3563,124 @@ function friendlyGeminiError(status, bodyText){
   }
 }
 
+/* =========================================================================
+   THE CLASS'S SHARED KEY
+   A teacher sets one Gemini key as a secret on the Supabase Edge Function in
+   supabase/functions/gemini, and every teacher and class member signed in to
+   this app uses it through that function — nobody pastes anything, and the key
+   never reaches a browser. A key of your own in ⚙ AI engine still wins when it
+   is there, and is the only way to use AI while signed out.
+   ========================================================================= */
+
+// Which key a call would use right now: "own", "shared" or "none".
+function geminiRoute(){
+  if((state.settings.geminiKey || "").trim()) return "own";
+  if(AUTH.sharedAI === true) return "shared";
+  return "none";
+}
+function geminiAvailable(){ return geminiRoute() !== "none"; }
+
+// Said wherever an AI feature is unavailable, so the reason is the real one:
+// signed out, not in a class yet, or the key simply not set on the server.
+function geminiMissingMessage(){
+  if(AUTH.enabled && AUTH.profile && AUTH.sharedAIReason) return AUTH.sharedAIReason;
+  if(AUTH.enabled && !AUTH.profile) return "Sign in to use your class's AI key, or add a Gemini key of your own in ⚙ AI engine.";
+  return "Add a Gemini API key in ⚙ AI engine settings first.";
+}
+
+function sharedAIUrl(){
+  const cfg = window.SUPABASE_CONFIG || {};
+  return String(cfg.url || "").replace(/\/+$/, "") + "/functions/v1/gemini";
+}
+
+// Raw call to the Edge Function. Returns the Response so callers can treat a
+// Google error and a function error with the same code path.
+async function sharedAIFetch(body){
+  const { data } = await AUTH.client.auth.getSession();
+  const token = data && data.session && data.session.access_token;
+  if(!token) throw new Error("Your session has expired. Sign in again.");
+  try{
+    return await fetch(sharedAIUrl(), {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + token,
+                "apikey": (window.SUPABASE_CONFIG || {}).anonKey || "" },
+      body: JSON.stringify(body)
+    });
+  }catch(netErr){
+    throw new Error("Network error reaching your class's AI service — check your internet connection.");
+  }
+}
+
+// The function's own refusals carry a text code (or null); Google's carry a
+// numeric HTTP code and get the usual translation.
+async function sharedAIError(res){
+  const text = await res.text().catch(()=> "");
+  let j = null; try{ j = JSON.parse(text); }catch(e){}
+  const err = j && j.error;
+  if(err && err.message && (typeof err.code === "string" || err.code === null)) return err.message;
+  if(res.status === 404 && /not.?found/i.test(text) && !/models\//.test(text)){
+    return "Your class's AI service is not deployed yet. Your teacher deploys supabase/functions/gemini — see the README.";
+  }
+  return friendlyGeminiError(res.status, text);
+}
+
+/* Asked once per sign-in: may this account use the shared key, and is there a
+   key to use? A status request costs nothing at Google. */
+async function probeSharedAI(){
+  AUTH.sharedAI = false; AUTH.sharedAIReason = ""; AUTH.sharedAIModel = "";
+  if(!AUTH.enabled || !AUTH.client || !AUTH.profile) return false;
+  if(AUTH.profile.role !== "teacher" && !AUTH.profile.teacher_id){
+    AUTH.sharedAIReason = "Join your class with its class code to use its AI key — or add a Gemini key of your own in ⚙ AI engine.";
+    return false;
+  }
+  try{
+    const res = await sharedAIFetch({ op:"status" });
+    if(!res.ok){ AUTH.sharedAIReason = await sharedAIError(res); return false; }
+    const j = await res.json();
+    if(!j.configured){
+      AUTH.sharedAIReason = AUTH.profile.role === "teacher"
+        ? "The shared key is not set yet: in Supabase → Edge Functions → Secrets, add GEMINI_API_KEY."
+        : "Your teacher has not set up the class's AI key yet. Until then, a Gemini key of your own works in ⚙ AI engine.";
+      return false;
+    }
+    AUTH.sharedAI = true;
+    AUTH.sharedAIModel = j.model || "";
+    return true;
+  }catch(e){
+    console.warn("shared AI check failed", e);
+    AUTH.sharedAIReason = e.message || "Your class's AI service could not be reached.";
+    return false;
+  }
+}
+
 async function callGemini(systemPrompt, userText, audioBase64, audioMime){
+  const route = geminiRoute();
   const key = (state.settings.geminiKey || "").trim();
   const model = (state.settings.geminiModel || "gemini-3.5-flash-lite").trim();
-  if(!key){
-    throw new Error("No API key set. Open “⚙ AI engine”, paste your Gemini key, and Save (or add it to config.local.js).");
-  }
-  const url = `${GEMINI_BASE}/models/${model}:generateContent`;
+  if(route === "none") throw new Error(geminiMissingMessage());
 
   const parts = [{ text: systemPrompt + "\n\n" + userText }];
   if(audioBase64){
     parts.push({ inline_data: { mime_type: audioMime || "audio/webm", data: audioBase64 } });
   }
   let res;
-  try{
-    res = await fetch(url, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json", "x-goog-api-key": key },
-      body: JSON.stringify({ contents:[{ parts }] })
-    });
-  }catch(netErr){
-    throw new Error("Network error reaching Gemini — check your internet connection (and that the browser isn't blocking the request).");
-  }
-  if(!res.ok){
-    throw new Error(friendlyGeminiError(res.status, await res.text().catch(()=> "")));
+  if(route === "shared"){
+    // The server picks the model it allows; this is only a preference.
+    res = await sharedAIFetch({ op:"generate", model, contents:[{ parts }] });
+    if(!res.ok) throw new Error(await sharedAIError(res));
+  }else{
+    try{
+      res = await fetch(`${GEMINI_BASE}/models/${model}:generateContent`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", "x-goog-api-key": key },
+        body: JSON.stringify({ contents:[{ parts }] })
+      });
+    }catch(netErr){
+      throw new Error("Network error reaching Gemini — check your internet connection (and that the browser isn't blocking the request).");
+    }
+    if(!res.ok){
+      throw new Error(friendlyGeminiError(res.status, await res.text().catch(()=> "")));
+    }
   }
   const data = await res.json();
   // A 200 with no candidates usually means the response was safety-blocked.
@@ -3569,7 +3712,23 @@ async function testGeminiConnection(){
   const key = document.getElementById("geminiKeyInput").value.trim();
   const model = document.getElementById("geminiModelInput").value.trim();
   if(!statusEl) return;
-  if(!key){ statusEl.style.color = "var(--coral)"; statusEl.textContent = "Enter an API key first, then test."; return; }
+  if(!key && AUTH.sharedAI === true){
+    // No key of their own: test the one they are actually using.
+    statusEl.style.color = "var(--slate)";
+    statusEl.textContent = "Testing your class's shared key…";
+    if(btn) btn.disabled = true;
+    try{
+      const res = await sharedAIFetch({ op:"models" });
+      if(!res.ok) throw new Error(await sharedAIError(res));
+      statusEl.style.color = "var(--teal)";
+      statusEl.innerHTML = `✅ Your class's shared key works${AUTH.sharedAIModel ? `, on <b>${escapeHtml(AUTH.sharedAIModel)}</b>` : ""}. Nothing to set up here.`;
+    }catch(err){
+      statusEl.style.color = "var(--coral)";
+      statusEl.textContent = "❌ " + (err.message || String(err));
+    }finally{ if(btn) btn.disabled = false; }
+    return;
+  }
+  if(!key){ statusEl.style.color = "var(--coral)"; statusEl.textContent = geminiMissingMessage(); return; }
   statusEl.style.color = "var(--slate)";
   statusEl.textContent = "Testing connection to Google…";
   if(btn){ btn.disabled = true; }
@@ -5427,7 +5586,7 @@ function trResultHTML(r){
 
 function trStudioHTML(){
   const T = state.translator;
-  const hasKey = !!(state.settings.geminiKey||"").trim();
+  const hasKey = geminiAvailable();
   if(T.studioLoading){
     return `<div class="tr-studio"><div class="tr-studio-empty"><span class="tr-spin"></span>Building the word entry — conjugation, alternatives and collocations…</div></div>`;
   }
@@ -6404,6 +6563,7 @@ function render(){
   // Tear the 3D chart down explicitly so its animation loop and GPU resources
   // are released before we render the next module.
   if(typeof chart3D !== "undefined" && chart3D){ chart3D.dispose(); chart3D = null; }
+  if(typeof destroyHistoryCharts === "function") destroyHistoryCharts();
   // Leaving a paper stops its clock; only the module on screen is being sat.
   pauseTimersOutside(state.mod, state.mod === "writing" ? activeTimerKey("writing") : null);
   if(state.mod==="class") return renderClassDashboard();
@@ -6466,7 +6626,32 @@ function addMobileGeneratorShortcut(mod){
    ========================================================================= */
 
 const sOverlay = document.getElementById("settingsOverlay");
-function openSettings(){ sOverlay.style.display = "flex"; }
+function openSettings(){
+  renderSharedAINote();
+  sOverlay.style.display = "flex";
+}
+
+// Tells whoever opens the panel which key they are on, so nobody pastes a key
+// they do not need — or goes looking for one when the class key is not set up.
+function renderSharedAINote(){
+  const box = document.getElementById("sharedAINote");
+  const label = document.getElementById("geminiKeyLabel");
+  if(!box) return;
+  const own = !!(state.settings.geminiKey || "").trim();
+  if(!AUTH.enabled){ box.style.display = "none"; return; }
+  box.style.display = "";
+  if(AUTH.sharedAI === true){
+    box.className = "shared-ai-note ok";
+    box.innerHTML = own
+      ? `<b>Your class has a shared key</b>, but the key below is filled in, so yours is used instead. Clear it and Save to go back to the class key.`
+      : `<b>✓ Using your class's shared key${AUTH.sharedAIModel ? ` (${escapeHtml(AUTH.sharedAIModel)})` : ""}.</b> Nothing to set up — leave the key below empty.`;
+    if(label) label.textContent = "Your own Gemini key (optional — overrides the class key in this browser)";
+  }else{
+    box.className = "shared-ai-note";
+    box.innerHTML = escapeHtml(AUTH.profile ? (AUTH.sharedAIReason || "Your class has no shared key.") : "Sign in to use your class's shared key — then nothing needs pasting here.");
+    if(label) label.textContent = "Gemini API key (stored only in this browser)";
+  }
+}
 document.getElementById("settingsBtn").addEventListener("click", openSettings);
 document.getElementById("closeSettings").addEventListener("click", ()=>sOverlay.style.display="none");
 document.getElementById("saveSettings").addEventListener("click", async ()=>{
@@ -7415,7 +7600,7 @@ function renderPracticeWriting(){
   const W = state.practice.writing;
   const body = document.getElementById("practiceBody");
   const topic = PRACTICE_WRITING_TOPICS.find(t=>t.id===W.topicId) || PRACTICE_WRITING_TOPICS[0];
-  const geminiOn = !!state.settings.geminiKey;
+  const geminiOn = geminiAvailable();
 
   body.innerHTML = `
     <div class="gen-card">
@@ -7475,7 +7660,7 @@ async function checkPracticeWriting(){
   const W = state.practice.writing;
   const text = (W.draft||"").trim();
   if(countWords(text) < 15){ alert("Write a little more first — at least a couple of sentences."); return; }
-  if(!state.settings.geminiKey){ alert("Add a Gemini API key under the account menu → AI engine first."); return; }
+  if(!geminiAvailable()){ alert(geminiMissingMessage()); return; }
   const btn = document.getElementById("prCheckBtn");
   const label = btn.textContent;
   btn.disabled = true;
@@ -7651,7 +7836,7 @@ async function checkPracticeSpeaking(){
     text:(state.speaking.transcripts[practiceSlot(i)]||"").trim()
   })).filter(a=>a.text);
   if(!answers.length){ alert("Record or type at least one answer first."); return; }
-  if(!state.settings.geminiKey){ alert("Add a Gemini API key under the account menu → AI engine first."); return; }
+  if(!geminiAvailable()){ alert(geminiMissingMessage()); return; }
 
   const btn = document.getElementById("prSpeakCheck");
   const label = btn.textContent;
@@ -8401,7 +8586,7 @@ async function driveDownloadB64(file){
 // existing pipeline that transcribes each and writes the 40 questions.
 async function generateListeningFromDrive(){
   const L = state.listening;
-  if(!state.settings.geminiKey){ alert("Add a Gemini API key in ⚙ AI engine settings first."); return; }
+  if(!geminiAvailable()){ alert(geminiMissingMessage()); return; }
   if(!driveConfigured()){ alert("Add your Drive folder ID and OAuth Client ID in ⚙ AI engine settings first."); return; }
 
   const btn = document.getElementById("driveGenerateBtn");
@@ -8453,9 +8638,175 @@ async function refreshDriveLibrary(){
   }
 }
 
+/* =========================================================================
+   THE CLASS AUDIO LIBRARY
+   One set of recordings per teacher, in the private Supabase Storage bucket
+   "listening-audio" (supabase/04_audio_library.sql):
+
+     <teacher id>/section-1/…  section-2/…  section-3/…  section-4/…
+
+   The teacher fills it from My class; every student in the class draws from it
+   with one button — no files of their own, no Google account. The two older
+   routes (four files from this computer, or a Drive folder of your own) are
+   still there below it, as options.
+   ========================================================================= */
+
+const AUDIO_BUCKET = "listening-audio";
+const AUDIO_MIME_BY_EXT = { mp3:"audio/mpeg", m4a:"audio/mp4", aac:"audio/aac", wav:"audio/wav",
+                            ogg:"audio/ogg", webm:"audio/webm", flac:"audio/flac" };
+
+// Whose library this account sees: its own if it teaches, its teacher's if it
+// is in a class. The bucket policies apply the same rule on the server.
+function audioLibraryOwner(){
+  if(!AUTH.enabled || !AUTH.client || !AUTH.profile) return null;
+  return AUTH.profile.role === "teacher" ? AUTH.profile.id : (AUTH.profile.teacher_id || null);
+}
+
+// The bucket accepts a fixed list of audio types; browsers sometimes report
+// none, or an odd one, so the extension decides when the browser does not.
+function audioMimeFor(file){
+  const byExt = AUDIO_MIME_BY_EXT[String(file.name || "").split(".").pop().toLowerCase()];
+  const t = String(file.type || "");
+  return Object.values(AUDIO_MIME_BY_EXT).includes(t) ? t : (byExt || "audio/mpeg");
+}
+
+// Storage refuses some characters and Drive exports are full of them. The name
+// stays readable; only what would break the path goes.
+function audioSafeName(name){
+  const n = String(name || "audio").normalize("NFKD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^A-Za-z0-9._ -]+/g, "-").replace(/\s+/g, " ").trim();
+  return n || "audio.mp3";
+}
+
+// The shape driveLoadLibrary returns, so drivePickFour and the generator treat
+// both libraries the same.
+async function classLibLoad(){
+  const owner = audioLibraryOwner();
+  if(!owner) throw new Error("Sign in and join a class to use its audio library.");
+  const sections = {1:[],2:[],3:[],4:[]};
+  for(let n=1;n<=4;n++){
+    const folder = `${owner}/section-${n}`;
+    const { data, error } = await AUTH.client.storage.from(AUDIO_BUCKET)
+      .list(folder, { limit:1000, sortBy:{ column:"name", order:"asc" } });
+    if(error){
+      if(/bucket not found/i.test(error.message || "")){
+        throw new Error("The audio library is not set up yet — run supabase/04_audio_library.sql in the Supabase SQL Editor.");
+      }
+      throw new Error(error.message || "Could not read the audio library.");
+    }
+    sections[n] = (data || [])
+      .filter(f => f && f.id && isAudio({ name:f.name, mimeType:(f.metadata||{}).mimetype }))
+      .map(f => ({ id:`${folder}/${f.name}`, name:f.name,
+                   size:(f.metadata||{}).size || 0, mimeType:(f.metadata||{}).mimetype || "" }));
+  }
+  return { mode:"sections", sections, flat:[], owner, loadedAt:Date.now(),
+           total:[1,2,3,4].reduce((a,n)=>a+sections[n].length,0) };
+}
+
+async function classLibDownloadB64(file){
+  if(file.size && Number(file.size) > DRIVE_MAX_BYTES){
+    throw new Error(`"${file.name}" is ${(Number(file.size)/1048576).toFixed(1)} MB — over the ${(DRIVE_MAX_BYTES/1048576)|0} MB limit. Ask your teacher to replace it with a compressed copy.`);
+  }
+  const { data, error } = await AUTH.client.storage.from(AUDIO_BUCKET).download(file.id);
+  if(error || !data) throw new Error(`Couldn't download "${file.name}"${error && error.message ? ": " + error.message : "."}`);
+  return { b64: await blobToBase64(data), mime: data.type || file.mimeType || "audio/mpeg", name: file.name };
+}
+
+// Held per owner, so signing in as someone from another class never shows the
+// last class's library.
+function classLibState(){
+  const L = state.listening;
+  const owner = audioLibraryOwner();
+  if(!L.classLib || L.classLib.owner !== owner) L.classLib = { owner, library:null, loading:false, error:"", lastPick:[] };
+  return L.classLib;
+}
+
+async function refreshClassLibrary(silent){
+  const cl = classLibState();
+  if(!cl.owner || cl.loading) return;
+  cl.loading = true; cl.error = "";
+  try{ cl.library = await classLibLoad(); }
+  catch(e){ console.error(e); cl.error = e.message || String(e); cl.library = null; }
+  finally{ cl.loading = false; }
+  if(state.mod === "listening") renderListening();
+  if(!silent && cl.error) alert("Couldn't read the class audio library:\n\n" + cl.error);
+}
+
+// Roll one recording from each section, load them into the generator's slots
+// and hand over to the same pipeline the other two routes use.
+async function generateListeningFromClassLib(){
+  const L = state.listening;
+  if(!geminiAvailable()){ alert(geminiMissingMessage()); return; }
+  const cl = classLibState();
+  const btn = document.getElementById("classLibGenerateBtn");
+  const status = document.getElementById("classLibStatus");
+  const setStatus = t => { if(status) status.textContent = t; };
+  if(btn) btn.disabled = true;
+  try{
+    if(!cl.library){ setStatus("Reading the class library…"); cl.library = await classLibLoad(); }
+    const empty = [1,2,3,4].filter(n=>!cl.library.sections[n].length);
+    if(empty.length) throw new Error(`Section ${empty.join(", ")} of the class library has no audio yet.`);
+    const picks = drivePickFour(cl.library, cl.lastPick || []);
+    cl.lastPick = picks.map(f=>f.id);
+    L.genAudio = L.genAudio || {};
+    for(let i=0;i<4;i++){
+      setStatus(`Downloading ${i+1} of 4 — ${picks[i].name}`);
+      L.genAudio[i+1] = await classLibDownloadB64(picks[i]);
+    }
+    setStatus(`Selected: ${picks.map(f=>f.name).join(" · ")}`);
+    renderListening();
+    await generateNewListeningWithAI();
+  }catch(e){
+    console.error(e);
+    setStatus("");
+    alert("Couldn't build a test from the class library:\n\n" + e.message);
+  }finally{
+    const b = document.getElementById("classLibGenerateBtn");
+    if(b) b.disabled = false;
+  }
+}
+
+function classLibCardHTML(geminiOn){
+  if(!AUTH.enabled) return "";
+  const owner = audioLibraryOwner();
+  const teacher = isTeacher();
+  let line, ready = false;
+  if(!AUTH.profile){
+    line = `Sign in and join your class to draw tests from your teacher's audio library — no files needed.`;
+  }else if(!owner){
+    line = `Join your class with its code (👤 account) to use your teacher's audio library.`;
+  }else{
+    const cl = classLibState();
+    const lib = cl.library;
+    if(cl.loading) line = `Reading the class library…`;
+    else if(cl.error) line = escapeHtml(cl.error);
+    else if(!lib) line = `Checking the class library…`;
+    else{
+      const counts = [1,2,3,4].map(n=>lib.sections[n].length);
+      ready = counts.every(c=>c>0);
+      line = ready
+        ? `<b>${lib.total}</b> recordings — ${counts.map((c,i)=>`S${i+1}: ${c}`).join(" · ")}. One is drawn at random from each section, so every test is different.`
+        : (teacher
+            ? `Your library is ${lib.total ? "missing Section " + counts.map((c,i)=>c?null:i+1).filter(Boolean).join(", ") : "empty"}. Add recordings in <b>My class → Listening audio library</b>.`
+            : `Your teacher hasn't finished the class audio library yet${lib.total ? ` (${counts.map((c,i)=>`S${i+1}: ${c}`).join(" · ")})` : ""}.`);
+    }
+  }
+  return `
+    <div class="gen-card classlib-card" style="margin-bottom:20px;">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);">Option 1 · your class library</span><br>
+      <b>🎧 New test from your class's recordings</b>
+      <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${line}</p>
+      <div class="drive-actions">
+        <button class="btn brass small" id="classLibGenerateBtn" ${(!ready || !geminiOn) ? "disabled" : ""}>🎲 Pick 4 &amp; generate</button>
+        ${owner ? `<button class="btn ghost small" id="classLibRefreshBtn">Refresh</button>` : ""}
+        <span style="font-size:12px;color:var(--slate);" id="classLibStatus">${ready && !geminiOn ? escapeHtml(geminiMissingMessage()) : ""}</span>
+      </div>
+    </div>`;
+}
+
 function renderListening(){
   const L = state.listening;
-  const geminiOn = !!state.settings.geminiKey;
+  const geminiOn = geminiAvailable();
   L.genAudio = L.genAudio || {};
   L.transcriptOpen = L.transcriptOpen || {};
   const genReady = [1,2,3,4].filter(i=>L.genAudio[i]).length;
@@ -8469,8 +8820,10 @@ function renderListening(){
       <b style="color:var(--ink);">About audio files:</b> official IELTS recordings (Cambridge, IDP, British Council) are copyrighted, so they can't be bundled inside this file or downloaded by the app. Instead, attach the MP3/WAV files you legally own — from your Cambridge IELTS book CDs/downloads or other licensed practice materials — under each section below, or drop four of them into the generator to build a brand-new test around them.
     </div>
 
+    ${classLibCardHTML(geminiOn)}
+
     <div class="gen-card" style="margin-bottom:24px;">
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);">Option 1 · works now</span><br>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);">${AUTH.enabled ? "Option 2 · optional, your own files" : "Option 1 · works now"}</span><br>
       <b>🎧 Generate from audios on this computer</b>
       <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${geminiOn ? "Attach a different official recording for each of the four sections. The AI listens to each audio, transcribes it, and writes 10 fresh IELTS-style questions per section (40 total) — replacing the current test. Your audios become the playable tracks." : "Add a Gemini API key in ⚙ AI engine to enable question generation from audio."}</p>
       <div class="gen-slots">
@@ -8513,7 +8866,7 @@ function renderListening(){
       }
       return `
     <div class="gen-card" style="background:linear-gradient(180deg,var(--surface),var(--surface-1)); border:1px solid var(--line); border-radius:18px; padding:18px 20px; margin-bottom:20px; box-shadow:var(--elev-2);">
-      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);">Option 2 · optional, needs Google setup</span><br>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);">${AUTH.enabled ? "Option 3" : "Option 2"} · optional, needs Google setup</span><br>
       <b>☁️ Random test from your Google Drive library</b>
       <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${libLine}</p>
       <div class="drive-actions">
@@ -8653,6 +9006,15 @@ function renderListening(){
   });
   const genBtn = document.getElementById("generateListeningBtn");
   if(genBtn) genBtn.addEventListener("click", generateNewListeningWithAI);
+  const clGen = document.getElementById("classLibGenerateBtn");
+  if(clGen) clGen.addEventListener("click", generateListeningFromClassLib);
+  const clRef = document.getElementById("classLibRefreshBtn");
+  if(clRef) clRef.addEventListener("click", ()=>refreshClassLibrary(false));
+  // First visit: read the library in the background and redraw when it lands.
+  if(audioLibraryOwner()){
+    const cl = classLibState();
+    if(!cl.library && !cl.loading && !cl.error) refreshClassLibrary(true);
+  }
   const dGen = document.getElementById("driveGenerateBtn");
   if(dGen) dGen.addEventListener("click", generateListeningFromDrive);
   const dRef = document.getElementById("driveRefreshBtn");
@@ -8795,7 +9157,7 @@ function submitListening(){
   const band = rawToBandListening(correct, total);
   recordScore("listening", band, `${correct}/${total} correct`);
   saveAnswerSheet("listening", LISTENING.parts.map(x=>x.title).filter(Boolean).join(" · "),
-                  band, correct, total, lines);
+                  band, correct, total, lines, listeningMaterial());
   renderListening();
 }
 
@@ -9057,7 +9419,7 @@ async function generateNewListeningWithAI(){
     for(let i=1;i<=4;i++) keptAudio[i] = { b64: L.genAudio[i].b64, mime: L.genAudio[i].mime };
     // Carry the Drive library across the reset, or every roll would re-list the
     // folder (and lose the "don't repeat last pick" memory).
-    state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: keptAudio, audioDur:{}, genAudio: L.genAudio, drive: L.drive };
+    state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: keptAudio, audioDur:{}, genAudio: L.genAudio, drive: L.drive, classLib: L.classLib };
     // New audios mean a new running time for the paper, so the clock restarts.
     delete state.timers.listening;
     state.timeUp.listening = false;
@@ -9081,7 +9443,7 @@ async function generateNewListeningWithAI(){
 
 function renderReading(){
   const R = state.reading;
-  const geminiOn = !!state.settings.geminiKey;
+  const geminiOn = geminiAvailable();
 
   panel.innerHTML = `
     <p class="section-title">Reading Mock Examination</p>
@@ -9622,7 +9984,7 @@ function submitReading(){
   const band = rawToBandReading(correct, total);
   recordScore("reading", band, `${correct}/${total} correct`);
   saveAnswerSheet("reading", READING_PASSAGES.map(x=>x.title).filter(Boolean).join(" · "),
-                  band, correct, total, lines);
+                  band, correct, total, lines, readingMaterial());
   renderReading();
 }
 
@@ -9645,7 +10007,7 @@ function renderWriting(){
   if(chart3D){ chart3D.dispose(); chart3D = null; }
   const W = state.writing;
   const task = W.activeTask;
-  const geminiOn = !!state.settings.geminiKey;
+  const geminiOn = geminiAvailable();
 
   // Task 1 graph type is chosen up-front in the generator (and also switches
   // the current chart live). Keep this list in sync with renderTask1Visual().
@@ -9961,10 +10323,15 @@ function drawTask1Chart(cd, type){
   const ctx = document.getElementById("task1Canvas");
   if(!ctx) return;
   if(task1Chart) task1Chart.destroy();
+  task1Chart = new Chart(ctx, task1ChartConfig(cd, type));
+}
 
+// Shared by the exam and the student's history, so a chart read back later is
+// drawn exactly the way it was drawn on the day.
+function task1ChartConfig(cd, type){
   if(type === "pie"){
     // Pie has no time axis, so it summarises the LATEST value of each series.
-    task1Chart = new Chart(ctx, {
+    return {
       type:"pie",
       data:{
         labels: cd.series.map(s=>s.label),
@@ -9981,11 +10348,10 @@ function drawTask1Chart(cd, type){
           title:{display:true,text:`Latest value (${cd.labels[cd.labels.length-1]})`,font:{size:11}}
         }
       }
-    });
-    return;
+    };
   }
 
-  task1Chart = new Chart(ctx, {
+  return {
     type: type === "bar" ? "bar" : "line",
     data:{
       labels: cd.labels,
@@ -10003,7 +10369,7 @@ function drawTask1Chart(cd, type){
       maintainAspectRatio: false,
       plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}}}
     }
-  });
+  };
 }
 
 /* =========================================================================
@@ -10510,8 +10876,8 @@ async function requestParagraphFeedback(task){
     alert("Please write something first before requesting paragraph feedback.");
     return;
   }
-  if(!state.settings.geminiKey){
-    alert("Add a Gemini API key in AI engine settings first.");
+  if(!geminiAvailable()){
+    alert(geminiMissingMessage());
     return;
   }
   const paras = splitParagraphs(draft);
@@ -10584,8 +10950,8 @@ async function requestWritingScore(task){
   btn.disabled = true;
   try{
     const user = `Task prompt: ${WRITING[task].prompt}\n\nWord count: ${wc} (minimum required: ${minWords})\n\nStudent response:\n${draft}`;
-    if(!state.settings.geminiKey){
-      alert("Add a Gemini API key in AI engine settings first.");
+    if(!geminiAvailable()){
+      alert(geminiMissingMessage());
       btn.textContent = original; btn.disabled = false; return;
     }
     const text = await callGemini(writingRubric(task), user, null, null);
@@ -10609,7 +10975,7 @@ async function requestWritingScore(task){
     }
 
     recordScore("writing", finalBand, note);
-    saveSubmission("writing", task, WRITING[task].prompt, draft, json.overall_band, json);
+    saveSubmission("writing", task, WRITING[task].prompt, draft, json.overall_band, json, writingMaterial(task));
   }catch(e){
     console.error(e);
     alert("Scoring failed: " + e.message + (/key|quota|network|blocked|model/i.test(e.message)
@@ -10681,8 +11047,8 @@ async function requestGrammarCheck(task){
     alert("Please write something first before running a grammar check.");
     return;
   }
-  if(!state.settings.geminiKey){
-    alert("Add a Gemini API key in ⚙ AI engine settings first.");
+  if(!geminiAvailable()){
+    alert(geminiMissingMessage());
     return;
   }
   const btn = document.getElementById("grammarBtn");
@@ -10867,7 +11233,7 @@ async function selectBandVersion(task, band){
 
   if(store[band]){ showBandVersionBody(task, band); return; }
 
-  if(!state.settings.geminiKey){
+  if(!geminiAvailable()){
     document.getElementById("bandVersionBody").innerHTML =
       `<div class="band-version-note" style="border-color:var(--coral);color:var(--coral);background:#fdecea;">Add a Gemini API key in ⚙ AI engine settings to generate model answers.</div>`;
     return;
@@ -11005,7 +11371,7 @@ function speakingSpanMs(){
 }
 function renderSpeaking(){
   const S = state.speaking;
-  const geminiOn = !!state.settings.geminiKey;
+  const geminiOn = geminiAvailable();
   panel.innerHTML = `
     <p class="section-title">Speaking</p>
     <p class="section-sub">Simulate a fully structured IELTS speaking assessment. Record your response, preview the speech playback stream, and finalize metrics.</p>
@@ -11132,7 +11498,7 @@ function renderSpeakingPart(part){
   const qi = speakingActiveQ(part);
   const slot = speakingSlot(part, qi);
   const transcript = S.transcripts[slot] || "";
-  const geminiOn = !!state.settings.geminiKey;
+  const geminiOn = geminiAvailable();
   const marked = !!S.answers[slot];
 
   let promptHtml = "";
@@ -11549,8 +11915,8 @@ async function scoreSpeakingAnswer(slot, opts){
   const S = state.speaking;
   const part = slot.split(":")[0];
   const transcript = S.transcripts[slot] || "";
-  const hasAudio = !!(state.settings.geminiKey && S.audioB64[slot]);
-  if(!state.settings.geminiKey) throw new Error("Add a Gemini API key in ⚙ AI engine settings first.");
+  const hasAudio = !!(geminiAvailable() && S.audioB64[slot]);
+  if(!geminiAvailable()) throw new Error(geminiMissingMessage());
   if(!hasAudio && !transcript.trim()) throw new Error("Record an answer (or type a transcript) for this question first.");
 
   const question = speakingSlotPrompt(slot);
@@ -11682,7 +12048,7 @@ function finishSpeakingPart(part){
     .filter(sl => S.answers[sl])
     .map(sl => `[${speakingSlotPrompt(sl)}]\n${S.transcripts[sl] || ""}`).join("\n\n");
   saveSubmission("speaking", part, speakingSlotsFor(part).map(speakingSlotPrompt).join(" / "),
-                 transcripts, rep.overall_band, rep);
+                 transcripts, rep.overall_band, rep, speakingMaterial(part));
   return rep;
 }
 
@@ -12018,11 +12384,11 @@ function renderSpeakingFeedback(part){
   if(synth) synth.innerHTML = speakingIsPerQuestion(part) ? partSynthesisHTML(part) : "";
   const partRep = S.reports[part];
   if(!speakingIsPerQuestion(part) && S.answers[part]){
-    showSpeakingReport(S.answers[part], !!state.settings.geminiKey);
+    showSpeakingReport(S.answers[part], geminiAvailable());
   } else if(speakingIsPerQuestion(part) && partRep && !Array.isArray(partRep.perQuestion)){
     // Marked before this part was recorded question by question — show the
     // report that exists rather than pretending there is none.
-    showSpeakingReport(partRep, !!state.settings.geminiKey);
+    showSpeakingReport(partRep, geminiAvailable());
   }
   refreshQuestionStrip(part);
 }
@@ -12203,8 +12569,8 @@ async function requestSpeakingLanguageCheck(slot){
     alert("Record (or type) a response first — the language check reads your transcript.");
     return;
   }
-  if(!state.settings.geminiKey){
-    alert("Add a Gemini API key in ⚙ AI engine settings first.");
+  if(!geminiAvailable()){
+    alert(geminiMissingMessage());
     return;
   }
   const btn = document.getElementById("speakLangBtn");
@@ -12404,7 +12770,7 @@ async function selectSpeakingBandVersion(slot, band){
   if(store[band]){ showSpeakingBandBody(slot, band); return; }
 
   const body = document.getElementById("speakBandVersionBody");
-  if(!state.settings.geminiKey){
+  if(!geminiAvailable()){
     body.innerHTML = `<div class="band-version-note" style="border-color:var(--coral);color:var(--coral);background:#fdecea;">Add a Gemini API key in ⚙ AI engine settings to generate model answers.</div>`;
     return;
   }
@@ -12437,7 +12803,9 @@ const AUTH = { client:null, enabled:false, user:null, profile:null, feedback:[],
                // The student's own work, and whether their teacher lets them
                // read it back. Both are settled on sign-in; see the history
                // section further down.
-               submissions:[], historyAllowed:false, historyReady:false, submissionsLoaded:false };
+               submissions:[], historyAllowed:false, historyReady:false, submissionsLoaded:false,
+               // The class's shared Gemini key: null = not asked yet.
+               sharedAI:null, sharedAIReason:"", sharedAIModel:"" };
 
 /* A class code typed at sign-up cannot be used until the account exists, and
    with "Confirm email" switched on the account does not exist until the student
@@ -12483,9 +12851,11 @@ async function initAuth(){
     AUTH.client.auth.onAuthStateChange(async (event, session)=>{
       if(!session){
         AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.homework=[]; AUTH.students=[];
+        AUTH.submissions=[]; AUTH.historyAllowed=false; AUTH.historyReady=false; AUTH.submissionsLoaded=false;
+        AUTH.sharedAI=null; AUTH.sharedAIReason=""; AUTH.sharedAIModel="";
         AUTH.lastError = "";
         resetLocalProgress(null);
-        if(state.mod === "class") state.mod = "dashboard";
+        if(state.mod === "class" || state.mod === "history") state.mod = "dashboard";
         refreshAccountUI();
         render();
         return;
@@ -12541,6 +12911,8 @@ async function adoptSession(session){
       await loadStudents();
       await loadTeacherHomework();
     }
+    // After the class join above, so a code typed at sign-up already counts.
+    await probeSharedAI();
   }
   refreshAccountUI();
 }
@@ -12676,6 +13048,7 @@ async function joinClass(code){
   const { data, error } = await AUTH.client.rpc("join_class", { p_code: code });
   if(error) throw error;
   await loadProfile();
+  await probeSharedAI();        // joining a class is what unlocks its key
   refreshAccountUI();
   return data;
 }
@@ -12689,6 +13062,7 @@ async function leaveClass(){
   const { error } = await AUTH.client.rpc("leave_class");
   if(error) throw error;
   await loadProfile();
+  await probeSharedAI();
   refreshAccountUI();
 }
 
@@ -12756,6 +13130,7 @@ async function doSignOut(){
   // Their work leaves with them — on a shared computer the next student must
   // not find the last one's essays sitting in the history tab.
   AUTH.submissions=[]; AUTH.historyAllowed=false; AUTH.historyReady=false; AUTH.submissionsLoaded=false;
+  AUTH.sharedAI=null; AUTH.sharedAIReason=""; AUTH.sharedAIModel="";
   AUTH.lastError = "";
   // The bands on screen belong to the person who just left.
   resetLocalProgress(null);
@@ -12817,8 +13192,17 @@ async function pullProgress(){
   }
 }
 
-async function saveSubmission(moduleName, task, prompt, content, band, report){
+/* `material` is what the candidate was working from — the Task 1 chart and its
+   data, the essay question, the cue card, the passages and their questions.
+   It rides inside `report` rather than in a column of its own so that a project
+   which has not run a new SQL file still saves every submission: an unknown
+   column would make the insert fail and the attempt would be lost. It is merged
+   into a copy, so the report held in the browser is not weighed down with it. */
+async function saveSubmission(moduleName, task, prompt, content, band, report, material){
   if(!isStudent()) return;
+  const stored = material
+    ? Object.assign({}, report || {}, { material })
+    : (report || null);
   try{
     await AUTH.client.from("submissions").insert({
       student_id: AUTH.profile.id,
@@ -12826,10 +13210,46 @@ async function saveSubmission(moduleName, task, prompt, content, band, report){
       prompt: (prompt||"").slice(0,2000),
       content: (content||"").slice(0,20000),
       band: (band==null ? null : Number(band)),
-      report: report || null
+      report: stored
     });
     AUTH.submissionsLoaded = false;   // the history is a paper out of date now
   }catch(e){ console.error("submission save failed", e); }
+}
+
+/* A copy of the paper as it stood when it was marked. The sets are replaced
+   whenever a new exam is generated, so a history that pointed at the live
+   WRITING / SPEAKING / READING_PASSAGES / LISTENING would show a student today's
+   question beside last week's answer. JSON round-trip: plain data, no shared
+   references, nothing that cannot be stored. */
+function paperSnapshot(v){
+  try{ return JSON.parse(JSON.stringify(v)); }catch(e){ return null; }
+}
+
+function writingMaterial(task){
+  const w = WRITING[task] || {};
+  const m = { tag: w.tag || "", prompt: w.prompt || "" };
+  if(task === "task1" && w.chartData) m.chartData = paperSnapshot(w.chartData);
+  if(task === "task1") m.chartType = (state.writing && state.writing.chartType) || "";
+  return m;
+}
+
+function speakingMaterial(part){
+  const d = SPEAKING[part] || {};
+  return paperSnapshot({ part, title: d.title || "", note: d.note || "",
+                         questions: Array.isArray(d.questions) ? d.questions : undefined,
+                         cue: d.cue || undefined });
+}
+
+function readingMaterial(){
+  return { passages: paperSnapshot(READING_PASSAGES) || [] };
+}
+
+function listeningMaterial(){
+  // The audio itself is not kept — it is a file on the teacher's machine, not
+  // data — but the transcript is, and it is where a wrong answer can be traced.
+  return { parts: paperSnapshot((LISTENING.parts || []).map(pt=>({
+    id: pt.id, title: pt.title, context: pt.context, script: pt.script, questions: pt.questions
+  }))) || [] };
 }
 
 /* Reading and Listening are marked right or wrong rather than written up, so
@@ -12837,7 +13257,7 @@ async function saveSubmission(moduleName, task, prompt, content, band, report){
    what the key said, and which way the mark went. It is stored as an ordinary
    submission, so one history view renders all four papers and the teacher's
    class view picks these up with no change at all. */
-function saveAnswerSheet(moduleName, prompt, band, correct, total, lines){
+function saveAnswerSheet(moduleName, prompt, band, correct, total, lines, material){
   if(!isStudent()) return;
   const content = (lines || []).map(l=>{
     const label = (typeof l.n === "number") ? `Q${l.n}` : String(l.n);
@@ -12847,7 +13267,7 @@ function saveAnswerSheet(moduleName, prompt, band, correct, total, lines){
     return `${l.ok ? "✓" : "✗"} ${label}  you: ${given}${l.ok ? "" : `  ·  key: ${key}`}`;
   }).join("\n");
   saveSubmission(moduleName, null, prompt, content, band,
-                 { kind:"answer_sheet", correct, total, lines });
+                 { kind:"answer_sheet", correct, total, lines }, material);
 }
 
 /* =========================================================================
@@ -13596,10 +14016,195 @@ function histReportHTML(sub){
     })}`;
 }
 
-function histDetailHTML(sub){
+/* ---- the paper itself, as the candidate saw it ----
+   Submissions made before the material was kept have none, and render as they
+   always did: prompt, response, report. */
+let histCharts = [];
+function destroyHistoryCharts(){
+  histCharts.forEach(c=>{ try{ c.destroy(); }catch(e){} });
+  histCharts = [];
+}
+
+function histMaterial(sub){
+  const m = sub && sub.report && sub.report.material;
+  return (m && typeof m === "object") ? m : null;
+}
+
+// Generated papers come back from the AI and could carry markup. Here it is
+// reading matter, not layout, so tags are dropped and the rest escaped.
+function histText(v){ return escapeXml(String(v == null ? "" : v).replace(/<[^>]*>/g, "")); }
+
+// The on-screen 3D views cannot be replayed from a record, so each is shown as
+// its nearest flat equivalent; the mind map and table are redrawn as they were.
+function histChartType(t){
+  if(t === "trend3d" || t === "line") return "line";
+  if(t === "pie") return "pie";
+  if(t === "mindmap" || t === "table") return t;
+  return "bar";
+}
+
+function histWritingTaskHTML(sub, m){
+  const cd = m.chartData;
+  const hasChart = !!(cd && Array.isArray(cd.labels) && Array.isArray(cd.series) && cd.series.length);
+  let visual = "";
+  if(hasChart){
+    const t = histChartType(m.chartType);
+    if(t === "mindmap" && typeof buildMindMapSVG === "function"){
+      visual = `<div class="hist-visual">${buildMindMapSVG(cd, m.prompt || "")}</div>`;
+    }else if(t !== "table"){
+      visual = `<div class="hist-visual hist-chart"><canvas data-hchart="${escapeXml(sub.id)}" data-htype="${t}"></canvas></div>`;
+    }
+    // The figures under the picture: what a Task 1 answer is actually checked
+    // against, and still readable if the chart library never loaded.
+    visual += `<div class="hist-figures">${buildTaskTable(cd)}</div>`;
+  }
   return `
-    ${sub.prompt ? `<div class="hist-prompt">${escapeXml(sub.prompt)}</div>` : ""}
-    ${histIsAnswerSheet(sub) ? histAnswerSheetHTML(sub) : histReportHTML(sub)}`;
+    <div class="hist-mat">
+      <div class="hist-mat-h">The task${m.tag ? ` · <span>${histText(m.tag)}</span>` : ""}</div>
+      <p class="hist-q">${histText(m.prompt)}</p>
+      ${visual}
+    </div>`;
+}
+
+function histSpeakingTaskHTML(m){
+  const cue = m.cue && typeof m.cue === "object" ? m.cue : null;
+  const qs = Array.isArray(m.questions) ? m.questions : [];
+  return `
+    <div class="hist-mat">
+      <div class="hist-mat-h">${histText(m.title || "The questions")}</div>
+      ${m.note ? `<p class="hist-note" style="margin-top:0;">${histText(m.note)}</p>` : ""}
+      ${cue ? `<div class="hist-cue">
+          <p class="hist-q" style="margin:0 0 6px;">${histText(cue.title)}</p>
+          ${Array.isArray(cue.points) && cue.points.length ? `<div class="hist-cue-lead">You should say:</div>
+            <ul>${cue.points.map(pt=>`<li>${histText(pt)}</li>`).join("")}</ul>` : ""}
+        </div>` : ""}
+      ${qs.length ? `<ol class="hist-qlist">${qs.map(q=>`<li>${histText(q)}</li>`).join("")}</ol>` : ""}
+    </div>`;
+}
+
+// One marked question: what was asked, what they put, and — only when they
+// got it wrong — what the key wanted.
+function histQRow(num, question, line){
+  const ok = !!(line && line.ok);
+  const given = line ? (String(line.given || "").trim() || "(blank)") : "(not recorded)";
+  const key = line ? String(line.correct != null ? line.correct : (line.answer || "")).trim() : "";
+  return `<div class="hist-qrow ${ok ? "ok" : "bad"}">
+      <span class="mk">${ok ? "✓" : "✗"}</span>
+      <div class="body">
+        <div class="qq"><b>${histText(num)}.</b> ${histText(question)}</div>
+        <div class="aa">Your answer: <b>${histText(given)}</b>${ok || !key ? "" : ` <span class="key">→ ${histText(key)}</span>`}</div>
+      </div>
+    </div>`;
+}
+
+/* Reading: each passage, then its questions with the answers set against them.
+   The answer sheet was built by walking the passages in exactly this order
+   (gradeReading), so the two are zipped by position. If they ever disagree the
+   combined view is abandoned for the plain sheet rather than risk pinning an
+   answer to the wrong question. */
+function histReadingHTML(sub, m){
+  const passages = Array.isArray(m.passages) ? m.passages : [];
+  const lines = (sub.report && Array.isArray(sub.report.lines)) ? sub.report.lines : [];
+  let cursor = 0;
+  const next = ()=>lines[cursor++];
+
+  const html = passages.map(p=>{
+    const paras = p.paras && typeof p.paras === "object" ? Object.entries(p.paras) : [];
+    const groups = (Array.isArray(p.groups) ? p.groups : []).map(g=>{
+      const items = Array.isArray(g.items) ? g.items : [];
+      let rows = "";
+      let extra = "";
+      if(g.type === "heading"){
+        const opts = Array.isArray(g.options) ? g.options : [];
+        extra = `<div class="hist-headings"><b>List of headings</b>${opts.map((o,i)=>`<div><span>${i}</span> ${histText(o)}</div>`).join("")}</div>`;
+        rows = Object.keys(g.key || {}).map(pname=>histQRow(`Para ${pname}`, "Choose the heading", next())).join("");
+      }else if(g.type === "matchinfo"){
+        if(Array.isArray(g.letters)) extra = `<div class="hist-note" style="margin:0 0 6px;">Letters: ${g.letters.map(histText).join(", ")}</div>`;
+        rows = items.map((it,i)=>histQRow(g.qStart+i, it.q, next())).join("");
+      }else if(g.type === "mc"){
+        rows = items.map((it,i)=>histQRow(g.qStart+i,
+          String(it.q || "") + (Array.isArray(it.options) ? "  —  " + it.options.map((o,k)=>`${String.fromCharCode(65+k)}) ${o}`).join("   ") : ""),
+          next())).join("");
+      }else{
+        if(g.summaryIntro) extra = `<p class="hist-note" style="margin:0 0 6px;font-style:italic;">${histText(g.summaryIntro)}</p>`;
+        rows = items.map((it,i)=>histQRow(g.qStart+i, it.q, next())).join("");
+      }
+      return `<div class="hist-qgroup">
+          <div class="hist-qg-h">Questions ${histText(typeof groupRange === "function" ? groupRange(g) : "")}</div>
+          ${g.instructions ? `<p class="hist-inst">${histText(g.instructions)}</p>` : ""}
+          ${extra}${rows}
+        </div>`;
+    }).join("");
+    return `<div class="hist-mat">
+        <div class="hist-mat-h">Section ${histText(p.id)} · <span>${histText(p.title)}</span></div>
+        ${paras.length ? `<details class="hist-passage"><summary>Read the passage again</summary>
+            ${paras.map(([k,v])=>`<p><b>${histText(k)}</b> ${histText(v)}</p>`).join("")}
+          </details>` : ""}
+        ${groups}
+      </div>`;
+  }).join("");
+
+  if(cursor !== lines.length) return "";
+  return html;
+}
+
+// Listening numbers its questions across the whole paper, so the answers are
+// matched by question number rather than by position.
+function histListeningHTML(sub, m){
+  const parts = Array.isArray(m.parts) ? m.parts : [];
+  const lines = (sub.report && Array.isArray(sub.report.lines)) ? sub.report.lines : [];
+  const byN = {};
+  lines.forEach(l=>{ byN[String(l.n)] = l; });
+  return parts.map(pt=>{
+    const qs = Array.isArray(pt.questions) ? pt.questions : [];
+    return `<div class="hist-mat">
+        <div class="hist-mat-h">${histText(pt.title || ("Section " + pt.id))}</div>
+        ${pt.context ? `<p class="hist-inst">${histText(pt.context)}</p>` : ""}
+        ${qs.map(q=>histQRow(q.n,
+          String(q.label || "") + (q.type === "mc" && Array.isArray(q.options)
+            ? "  —  " + q.options.map((o,k)=>`${String.fromCharCode(65+k)}) ${o}`).join("   ") : ""),
+          byN[String(q.n)])).join("")}
+        ${pt.script ? `<details class="hist-passage"><summary>Read the transcript</summary>
+            <div style="white-space:pre-wrap;">${histText(pt.script)}</div></details>` : ""}
+      </div>`;
+  }).join("");
+}
+
+function histDetailHTML(sub){
+  const m = histMaterial(sub);
+  const mod = String(sub.module || "").toLowerCase();
+
+  if(histIsAnswerSheet(sub)){
+    const r = sub.report || {};
+    const got = Number(r.correct), outOf = Number(r.total);
+    const score = isFinite(outOf) && outOf
+      ? `<div class="hist-score">${isFinite(got) ? got : 0} of ${outOf} correct</div>` : "";
+    const combined = m ? (mod === "reading" ? histReadingHTML(sub, m) : mod === "listening" ? histListeningHTML(sub, m) : "") : "";
+    if(combined) return score + combined;
+    return `${sub.prompt ? `<div class="hist-prompt">${escapeXml(sub.prompt)}</div>` : ""}${histAnswerSheetHTML(sub)}`;
+  }
+
+  const task = m
+    ? (mod === "writing" ? histWritingTaskHTML(sub, m) : mod === "speaking" ? histSpeakingTaskHTML(m) : "")
+    : "";
+  return `
+    ${task || (sub.prompt ? `<div class="hist-prompt">${escapeXml(sub.prompt)}</div>` : "")}
+    ${task ? `<div class="hist-mat-h" style="margin-top:16px;">${mod === "speaking" ? "What you said" : "What you wrote"}</div>` : ""}
+    ${histReportHTML(sub)}`;
+}
+
+// Charts need a canvas that is already in the page, so they are drawn after
+// the panel is, and remembered so the next render can release them.
+function drawHistoryCharts(){
+  destroyHistoryCharts();
+  if(typeof Chart === "undefined") return;       // the figures table still shows
+  panel.querySelectorAll("canvas[data-hchart]").forEach(cv=>{
+    const sub = (AUTH.submissions || []).find(x=>String(x.id) === cv.dataset.hchart);
+    const m = histMaterial(sub);
+    if(!m || !m.chartData) return;
+    try{ histCharts.push(new Chart(cv, task1ChartConfig(m.chartData, cv.dataset.htype || "bar"))); }
+    catch(e){ console.error("history chart failed", e); }
+  });
 }
 
 async function renderMyHistory(){
@@ -13626,6 +14231,7 @@ async function renderMyHistory(){
   }
 
   if(!AUTH.submissionsLoaded) await loadMySubmissions();
+  destroyHistoryCharts();
   const all = AUTH.submissions || [];
   const counts = {};
   HIST_MODULES.forEach(m => counts[m] = all.filter(x => String(x.module).toLowerCase() === m).length);
@@ -13658,6 +14264,7 @@ async function renderMyHistory(){
 
     <p class="hist-note">Your teacher sees all of this too, and decides whether this page is open to you. Papers you sit in <b>Free practice</b> are not recorded.</p>
   `;
+  drawHistoryCharts();
 
   panel.querySelectorAll("[data-hf]").forEach(b=>b.addEventListener("click", ()=>{
     if(b.disabled) return;
@@ -13706,6 +14313,7 @@ async function renderClassDashboard(){
     </div>
     <div id="rosterArea"><p class="dash-empty">Loading your class…</p></div>
     <div id="studentDetailArea"></div>
+    <div id="audioLibArea"></div>
   `;
   document.querySelectorAll("#classHistSeg button").forEach(b=>b.addEventListener("click", async ()=>{
     const want = b.dataset.ch === "on";
@@ -13731,10 +14339,94 @@ async function renderClassDashboard(){
     await loadStudents();
     await loadTeacherHomework();
     drawRoster();
+    drawAudioLibraryManager(true);
   });
   await loadStudents();
   await loadTeacherHomework();
   drawRoster();
+  drawAudioLibraryManager(false);
+}
+
+/* ---- the teacher's side of the class audio library ----
+   Four columns, one per section. What goes in a column is what that section of
+   the real paper sounds like, so the hint under each heading says so: a lecture
+   filed under Section 1 would get conversation questions written for it. */
+const AUDIO_SECTION_HINTS = {
+  1: "Everyday conversation — booking, enquiry, form-filling.",
+  2: "One speaker, everyday topic — a tour, a talk, an announcement.",
+  3: "Academic discussion — students and a tutor.",
+  4: "Academic lecture — one speaker."
+};
+let audioMgr = { owner:null, library:null, loading:false, error:"", note:"" };
+
+async function drawAudioLibraryManager(reload){
+  const area = document.getElementById("audioLibArea");
+  if(!area || !isTeacher()) return;
+  if(audioMgr.owner !== AUTH.profile.id) audioMgr = { owner:AUTH.profile.id, library:null, loading:false, error:"", note:"" };
+  if((reload || (!audioMgr.library && !audioMgr.error)) && !audioMgr.loading){
+    audioMgr.loading = true;
+    area.innerHTML = `<div class="feedback-label" style="margin-top:28px;">Listening audio library</div><p class="dash-empty" style="padding:14px;">Reading your library…</p>`;
+    try{ audioMgr.library = await classLibLoad(); audioMgr.error = ""; }
+    catch(e){ console.error(e); audioMgr.library = null; audioMgr.error = e.message || String(e); }
+    finally{ audioMgr.loading = false; }
+    // The teacher's own Listening tab reads the same library; let it re-read.
+    if(state.listening) state.listening.classLib = null;
+  }
+  const lib = audioMgr.library;
+  const mb = b => b ? (Number(b)/1048576).toFixed(1) + " MB" : "";
+  area.innerHTML = `
+    <div class="feedback-label" style="margin-top:28px;">Listening audio library</div>
+    <p class="section-sub" style="margin:0 0 12px;">The recordings your students' Listening tests are built from. Each new test draws one at random from every section, so the more you add, the less often a student meets the same one. Nobody outside your class can open these files.</p>
+    ${audioMgr.error ? `<div class="hist-locked" style="margin-top:0;">${escapeHtml(audioMgr.error)}</div>` : `
+    <div class="alib-grid">
+      ${[1,2,3,4].map(n=>{
+        const files = lib ? lib.sections[n] : [];
+        return `<div class="alib-col">
+          <div class="alib-h">Section ${n} <span>${files.length}</span></div>
+          <div class="alib-hint">${AUDIO_SECTION_HINTS[n]}</div>
+          <ul>${files.length ? files.map(f=>`
+            <li><span class="nm" title="${escapeXml(f.name)}">${escapeHtml(f.name)}</span><span class="sz">${mb(f.size)}</span>
+              <button class="alib-del" data-alib-del="${escapeXml(f.id)}" title="Delete ${escapeXml(f.name)}">×</button></li>`).join("")
+            : `<li class="none">No recordings yet</li>`}</ul>
+          <label class="btn ghost small alib-add">+ Add audio<input type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac,.flac" multiple data-alib-up="${n}" hidden></label>
+        </div>`;
+      }).join("")}
+    </div>`}
+    <p class="hist-note" id="alibStatus">${escapeHtml(audioMgr.note || "")}</p>
+    <p class="hist-note">Up to 18 MB a file — the most the AI accepts in one go. Mono MP3 at 64 kbps keeps a 30-minute recording near 14 MB. Moving from Google Drive: download the folder (right-click → Download), unzip it, and add each section's files here; several can be chosen at once.</p>`;
+
+  area.querySelectorAll("[data-alib-up]").forEach(inp=>inp.addEventListener("change", async ()=>{
+    const n = Number(inp.dataset.alibUp);
+    const files = Array.from(inp.files || []);
+    if(!files.length) return;
+    const st = document.getElementById("alibStatus");
+    const failed = [];
+    let done = 0;
+    for(const f of files){
+      if(f.size > DRIVE_MAX_BYTES){
+        failed.push(`${f.name} is ${(f.size/1048576).toFixed(1)} MB — over 18 MB`);
+        continue;
+      }
+      if(st) st.textContent = `Uploading ${done+1} of ${files.length} to Section ${n} — ${f.name}…`;
+      const path = `${AUTH.profile.id}/section-${n}/${audioSafeName(f.name)}`;
+      const { error } = await AUTH.client.storage.from(AUDIO_BUCKET)
+        .upload(path, f, { contentType: audioMimeFor(f), upsert: true, cacheControl: "3600" });
+      if(error) failed.push(`${f.name}: ${error.message || "upload failed"}`);
+      else done++;
+    }
+    audioMgr.note = `${done} file${done===1?"":"s"} added to Section ${n}.` + (failed.length ? ` Not added — ${failed.join("; ")}.` : "");
+    drawAudioLibraryManager(true);
+  }));
+
+  area.querySelectorAll("[data-alib-del]").forEach(b=>b.addEventListener("click", async ()=>{
+    const path = b.dataset.alibDel;
+    const name = path.split("/").pop();
+    if(!confirm(`Delete "${name}" from your class library?\n\nTests already generated from it keep working in the browsers that made them.`)) return;
+    b.disabled = true;
+    const { error } = await AUTH.client.storage.from(AUDIO_BUCKET).remove([path]);
+    audioMgr.note = error ? `Could not delete ${name}: ${error.message}` : `Deleted ${name}.`;
+    drawAudioLibraryManager(true);
+  }));
 }
 
 function drawRoster(){
