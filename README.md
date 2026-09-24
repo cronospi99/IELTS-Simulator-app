@@ -130,7 +130,39 @@ still translates; the word-studio card just explains what it needs.
 AI features (Writing hints/scoring, paragraph feedback, Speaking scoring, and
 the "Generate New Writing Exam" button) run on Google **Gemini**. You need a
 free API key from <https://aistudio.google.com/apikey> (keys look like
-`AIzaSy…`). There are two ways to provide it:
+`AIzaSy…`).
+
+**For a class, set it once for everyone — the class key.** With accounts
+switched on (see below), the key lives on your Supabase project as a server
+secret, and every teacher and every student who has joined a class uses it
+without pasting anything. It never reaches a browser, so no student can copy it.
+
+1. Supabase dashboard → **Edge Functions → Deploy a new function → Via editor**.
+   Name it exactly **`gemini`**, paste the contents of
+   [`supabase/functions/gemini/index.ts`](supabase/functions/gemini/index.ts), and deploy.
+2. **Edge Functions → Secrets** → add **`GEMINI_API_KEY`** with your key.
+3. Reload the app signed in. **⚙ AI engine** now says *Using your class's shared
+   key* — that is all.
+
+Optional secrets: **`GEMINI_MODEL`** picks the model (default
+`gemini-3.5-flash-lite`), and **`GEMINI_MODELS`** lists any others the app may
+ask for. The model is the key owner's call — a student's settings cannot point
+your key at a more expensive one. If the app reports *Invalid JWT*, turn off
+**Verify JWT** for the function: it checks the session itself.
+
+Who can use it: teachers, and students who have joined a class with its code.
+Not "anyone with an account" — with email confirmation off, anybody could make
+one, and the quota is yours. Every call is counted against **your** Gemini
+quota, so a whole class generating Listening tests (four audio uploads each) can
+reach the free tier's limits; Google AI Studio shows the usage.
+
+> **Why not just put the key in a file the site loads?** Because whatever the
+> page loads, every visitor can read — and a Gemini key committed to a public
+> GitHub repository is found by scanners and revoked by Google, usually within
+> minutes.
+
+**For one person, a key of your own** still works, and always wins over the
+class key in that browser:
 
 **Option 1 — paste it in the app (simplest).**
 Open **⚙ AI engine**, paste your key, click **Save**. It's stored in this
@@ -171,13 +203,13 @@ fully offline, with the account button hidden.
 
 ### Setup (about 5 minutes)
 
-> **Already have a project?** Run all three files again. Every statement is
+> **Already have a project?** Run all the files again. Every statement is
 > create-if-not-exists or drop-then-create, so they add what is new and leave
 > your data alone. `02_roles_and_tasks.sql` in particular is worth running on
 > any project set up before it existed — see [what it fixes](#what-02_roles_and_taskssql-fixes).
 
 1. Create a free project at <https://supabase.com>.
-2. Open **SQL Editor → New query** and run the three files in [`supabase/`](supabase/),
+2. Open **SQL Editor → New query** and run the four files in [`supabase/`](supabase/),
    in order:
    - [`supabase/01_schema.sql`](supabase/01_schema.sql) — the tables, the row-level
      security rules, and the sign-up trigger.
@@ -186,10 +218,14 @@ fully offline, with the account button hidden.
      managing a class.
    - [`supabase/03_history_visibility.sql`](supabase/03_history_visibility.sql) — the
      student's own history, and the teacher's switch over who may see it.
+   - [`supabase/04_audio_library.sql`](supabase/04_audio_library.sql) — the class's
+     Listening audio library: a private Storage bucket and who may read or fill it.
 3. Go to **Settings → API** and copy your **Project URL** and **anon / public key**
    into [`supabase-config.js`](supabase-config.js), then commit. The live site picks it up on the next deploy.
 4. *(Recommended for classrooms)* **Authentication → Providers → Email** and turn
    **Confirm email** off, so students can sign in immediately without checking their inbox.
+5. *(Recommended)* Deploy the class key — see [AI engine — setup](#ai-engine--setup).
+   Without it everybody needs a Gemini key of their own.
 
 ### What `02_roles_and_tasks.sql` fixes
 
@@ -239,6 +275,22 @@ and due date. They get their edit; the teacher's wording survives it.
   module, instructions and a due date. Students tick it off and can leave a note
   back ("found Part 3 hard"), which you see on the tracking list. Edit a task in
   place rather than deleting it — the student's tick and note survive the edit.
+- **The Listening audio library:** **My class → Listening audio library** has one
+  column per section. Add recordings to each (several at once is fine; up to
+  18 MB a file); a student's **Listening** tab then offers *New test from your
+  class's recordings*, which draws one at random from every section and writes
+  the 40 questions — no files and no Google account on their side. The files sit
+  in a private bucket: only you and your own students can open them.
+
+  Put each recording under the section it really is — Section 1 a conversation,
+  Section 2 a monologue, Section 3 an academic discussion, Section 4 a lecture —
+  because the questions are written for that format.
+
+  **Moving from Google Drive:** download the folder from Drive (right-click →
+  Download gives a zip), unzip it, and add each section's files to its column.
+  Attaching four files of your own, or reading a Drive folder with your own
+  Google sign-in, both remain on the Listening tab as optional routes.
+
 - **Who may read their own history:** the **My class** tab carries one switch for
   the whole class — *Let students read their own history* — and each student's
   panel carries **Follow class / Always / Never** for the exceptions. The roster

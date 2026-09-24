@@ -17,8 +17,10 @@
        app, and click “Test connection” — it lists the exact model IDs your key
        can use. Put one of those here.
      • This still runs entirely in the browser, so the key is visible to anyone
-       who can open your local copy. Don't hand out a copy with your key in it;
-       for shared/classroom use, run a small proxy server instead (see README).
+       who can open your local copy. Don't hand out a copy with your key in it.
+       For a class, use the class key instead: one key kept as a server secret
+       in supabase/functions/gemini, used by every signed-in class member, with
+       nothing to paste (see README → AI engine — setup).
    ============================================================================= */
 
 window.GEMINI_CONFIG = {

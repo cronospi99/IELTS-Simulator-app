@@ -1,7 +1,7 @@
 # Database
 
-Three files, run in order, in the Supabase project's **SQL Editor → New query**.
-All three are safe to re-run: every statement is create-if-not-exists or
+Four files, run in order, in the Supabase project's **SQL Editor → New query**.
+All four are safe to re-run: every statement is create-if-not-exists or
 drop-then-create, so running them again on a live project adds what is new and
 leaves the data alone.
 
@@ -10,6 +10,13 @@ leaves the data alone.
 | `01_schema.sql` | Tables, row-level security, and the trigger that creates a profile on sign-up. |
 | `02_roles_and_tasks.sql` | The write boundaries between student and teacher, and the functions for joining, leaving and managing a class. |
 | `03_history_visibility.sql` | Whether a student may read their own submitted work back, and the teacher's switch that decides it. |
+| `04_audio_library.sql` | The private `listening-audio` Storage bucket: each teacher's Listening recordings, readable by their own class only. |
+
+And one Edge Function, deployed separately (dashboard → **Edge Functions**):
+
+| Function | What it does |
+|---|---|
+| `functions/gemini/index.ts` | Holds the class's Gemini key as the secret `GEMINI_API_KEY` and makes calls with it for signed-in teachers and class members. Deployment steps are at the top of the file. |
 
 ## Why there are two
 
@@ -57,6 +64,22 @@ teacher-only.
 still records every attempt for their teacher; they simply cannot read it back,
 and switching it on later reveals the whole history rather than only what came
 after.
+
+## The audio library and the class key
+
+`04_audio_library.sql` gives each teacher one folder in a **private** bucket,
+named by their user id, with a subfolder per Listening section. The first
+folder of an object's path decides everything: a teacher reads and writes only
+their own; a student reads only their teacher's (`audio_library_owner()`), and
+writes nothing. Private rather than public because official IELTS recordings
+are copyrighted — this keeps them inside the class instead of on an open URL.
+Files are capped at 18 MB, the most Gemini accepts inline in one request.
+
+The Gemini function is not SQL, but it applies the same idea: it asks Supabase
+whose session it has been sent, reads that user's own profile with their own
+token, and serves only a teacher or a student with a `teacher_id`. It also
+decides the model, so the key's owner — not a student's settings — chooses
+what the key is spent on.
 
 ## How each rule is enforced, and why
 
@@ -107,3 +130,13 @@ switch on and off, a student forced on while the class is off and forced off
 while the class is on, a student put back on the class default, a blocked
 student still able to submit, no student able to read another's work, and both
 switches refused to a student who calls them directly.
+
+`04_audio_library.sql` was checked the same way, with a stand-in for Supabase's
+`storage` schema and a second teacher and class: each class sees only its own
+teacher's recordings, a student with no class sees none, only the owning teacher
+can upload, replace or delete, and neither a student nor another teacher can.
+
+`functions/gemini/index.ts` was run in Deno against stand-ins for Supabase Auth
+and Gemini: no session, an expired one, a student without a class, a student
+asking for a model the owner has not allowed, the key not yet set, and the
+browser's CORS preflight.
