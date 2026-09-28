@@ -22,7 +22,12 @@ Open `index.html` in any modern browser. No build step, no server required.
   Listening and Reading are simply marked right or wrong. The timer is a button
   you press only if you want one, there is a live word counter throughout, and
   Speaking is recorded one question at a time and assessed as a whole set at the
-  end. Nothing here touches your dashboard.
+  end. Reading can also **generate a practice text**: one passage and ten
+  questions that climb from a detail stated in so many words (question 1) to
+  inference and the writer's purpose (question 10), each marked with the reason
+  it is right and a bar showing how far up the student got before the first
+  slip. Generated texts are kept in the browser and never replace the exam.
+  Nothing here touches your dashboard.
 - **Progress** — the overall seal, per-skill cards, skill-profile and
   band-history charts, and the full attempt history.
 - **My history** — the work behind those bands. Every paper the student has sat,
@@ -143,6 +148,14 @@ without pasting anything. It never reaches a browser, so no student can copy it.
 2. **Edge Functions → Secrets** → add **`GEMINI_API_KEY`** with your key.
 3. Reload the app signed in. **⚙ AI engine** now says *Using your class's shared
    key* — that is all.
+
+**If the app says Supabase refused the call** (or, in older copies, *"Network
+error reaching your class's AI service"*): Supabase's gateway turned the request
+away before the function ran, and a browser cannot read why. It is one of two
+settings — the function is not named exactly `gemini` (its URL must end in
+`/functions/v1/gemini`), or **Verify JWT with legacy secret** is on for it
+(turn it off; the function checks the sign-in itself). **⚙ AI engine → Check
+again** re-tests without reloading. A key of your own keeps working meanwhile.
 
 Optional secrets: **`GEMINI_MODEL`** picks the model (default
 `gemini-3.5-flash-lite`), and **`GEMINI_MODELS`** lists any others the app may
