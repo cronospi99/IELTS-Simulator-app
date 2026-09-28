@@ -1655,6 +1655,27 @@ textarea.essay{
 .hist-note{font-size:11.5px;color:var(--slate);line-height:1.6;margin:12px 0 0;}
 .hist-locked{background:#fff;border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:0 12px 12px 0;padding:18px 20px;margin-top:18px;font-size:13.5px;line-height:1.75;color:var(--slate);}
 .hist-locked b{color:var(--ink);}
+.pr-gen-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.pr-gen-row input{flex:1;min-width:220px;}
+.pr-passage b.pr-para{font-family:'IBM Plex Mono',monospace;color:var(--brass);margin-right:6px;}
+.lad-q{display:block;}
+.lad-head{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap;}
+.lad-lvl{font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;border-radius:999px;padding:2px 9px;color:#fff;font-weight:700;}
+.lad-lvl.lv1,.lad-lvl.lv2,.lad-lvl.lv3{background:#3a8f76;}
+.lad-lvl.lv4,.lad-lvl.lv5,.lad-lvl.lv6{background:#b8902a;}
+.lad-lvl.lv7,.lad-lvl.lv8{background:#c46a2f;}
+.lad-lvl.lv9,.lad-lvl.lv10{background:#b23c33;}
+.lad-skill{font-size:11.5px;color:var(--slate);}
+.pr-gap-input{margin-top:6px;max-width:260px;}
+.lad-why{margin-top:8px;font-size:12.5px;line-height:1.6;border-radius:8px;padding:8px 11px;}
+.lad-why.ok{background:#eef6f2;color:#1f4238;}
+.lad-why.no{background:#fdf1ed;color:#6b2a22;}
+.lad-why div{margin-top:3px;}
+.lad-bar{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:14px;}
+.lad-bar span{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;border-radius:6px;padding:6px 0;color:#fff;}
+.lad-bar span.ok{background:var(--teal);}
+.lad-bar span.no{background:var(--coral);}
+.lad-scale{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);margin-top:4px;}
 .alib-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 @media(max-width:1000px){.alib-grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:560px){.alib-grid{grid-template-columns:1fr;}}
@@ -3324,7 +3345,10 @@ const state = {
     writing: { topicId:"own", prompt:"", draft:"", report:null, loading:false },
     speaking: { setId:"daily", qIndex:0, report:null, loading:false },
     listening: { sectionIdx:0, answers:{}, result:null },
-    reading: { passageIdx:0, answers:{}, result:null, showPassage:true }
+    // source "exam" drills a group from the exam passages; "gen" works through
+    // a generated 10-question practice set (see PRACTICE READING SETS).
+    reading: { passageIdx:0, answers:{}, result:null, showPassage:true,
+               source:"exam", genId:null, sets:[], setsLoaded:false, generating:false, topic:"" }
   },
   reading: { answers:{}, submitted:false, activePassage:0 },
   writing: { activeTask:"task1", drafts:{task1:"",task2:""}, hints:{task1:null,task2:null}, reports:{task1:null,task2:null}, paraFeedback:{}, grammar:{task1:null,task2:null}, bandVersions:{task1:{},task2:{}}, loading:{} },
@@ -3607,7 +3631,14 @@ async function sharedAIFetch(body){
       body: JSON.stringify(body)
     });
   }catch(netErr){
-    throw new Error("Network error reaching your class's AI service — check your internet connection.");
+    // A thrown fetch with the internet up is almost always Supabase's gateway
+    // refusing the request before the function runs: its refusals carry no
+    // CORS headers, so the browser hides them and reports a network error.
+    // Two settings cause it, and the page cannot tell which — so it names both.
+    if(navigator.onLine === false) throw new Error("You're offline — reconnect and try again.");
+    throw new Error(isTeacher()
+      ? "Supabase refused the call to the class's AI service. In the Supabase dashboard → Edge Functions: (1) check there is a function named exactly \"gemini\" — its URL must end in /functions/v1/gemini; (2) open it and turn OFF \"Verify JWT with legacy secret\" (or \"Enforce JWT verification\"), then save. The function checks the sign-in itself."
+      : "Your class's AI service isn't reachable yet — your teacher needs to finish setting it up in Supabase (Edge Functions → gemini). Until then, a Gemini key of your own works in ⚙ AI engine.");
   }
 }
 
@@ -6648,8 +6679,18 @@ function renderSharedAINote(){
     if(label) label.textContent = "Your own Gemini key (optional — overrides the class key in this browser)";
   }else{
     box.className = "shared-ai-note";
-    box.innerHTML = escapeHtml(AUTH.profile ? (AUTH.sharedAIReason || "Your class has no shared key.") : "Sign in to use your class's shared key — then nothing needs pasting here.");
+    box.innerHTML = escapeHtml(AUTH.profile ? (AUTH.sharedAIReason || "Your class has no shared key.") : "Sign in to use your class's shared key — then nothing needs pasting here.")
+      + (own ? `<br><b style="color:var(--teal);">Meanwhile, AI features use your own key below.</b>` : "")
+      + (AUTH.profile ? ` <button class="btn ghost small" id="sharedAIRetry" style="margin-top:6px;">Check again</button>` : "");
     if(label) label.textContent = "Gemini API key (stored only in this browser)";
+    const retry = document.getElementById("sharedAIRetry");
+    if(retry) retry.addEventListener("click", async ()=>{
+      retry.disabled = true; retry.textContent = "Checking…";
+      await probeSharedAI();
+      refreshAccountUI();
+      renderSharedAINote();
+      if(state.mod !== "class") render();
+    });
   }
 }
 document.getElementById("settingsBtn").addEventListener("click", openSettings);
@@ -7938,54 +7979,352 @@ function markPracticeListening(){
 }
 
 /* ---------- reading drill ---------- */
+/* =========================================================================
+   PRACTICE READING SETS
+   One passage and ten questions that climb in difficulty — the first a detail
+   stated in so many words, the last the writer's purpose or an implication —
+   so a student can see where their reading stops holding up. Generated on
+   demand, kept in this browser (not the exam: generating one never replaces
+   the exam passages), and, like everything in Free practice, never uploaded.
+   ========================================================================= */
+const PRACTICE_READING_KEY = "practice-reading-sets";
+const PRACTICE_READING_MAX = 12;
+
+const PRACTICE_READING_GEN_RUBRIC = `You are an experienced IELTS Academic Reading test writer building a SHORT PRACTICE set — one passage and ten questions — not a full paper.
+
+PASSAGE: one academic passage of 450–650 words in 5 or 6 paragraphs labelled A, B, C… Use the register, density and vocabulary of a real IELTS Academic passage: a clear argument, specific facts and figures, named studies or researchers, at least one view the writer disagrees with. Use the topic given; if none is given, choose an academic subject suitable for IELTS.
+
+QUESTIONS: exactly 10, numbered 1 to 10, ordered from EASIEST to HARDEST. Difficulty must rise steadily: question 1 is the easiest in the set, question 10 the hardest.
+- Questions 1–3 (easy): one explicit detail, stated in a single sentence, in wording close to the question. Use "gap" or a straightforward "tfng".
+- Questions 4–6 (medium): the passage paraphrases the question, so the candidate must match meaning rather than words. Mix "tfng" (at least one answer must be NOT GIVEN) and "mc".
+- Questions 7–8 (harder): an inference, or information combined from two paragraphs, with plausible distractors.
+- Questions 9–10 (hardest): the writer's purpose, attitude or main argument, or an implication never stated outright. Use "mc" with close distractors, or a subtle "tfng".
+
+TYPES
+- "tfng": "q" is a statement; "a" is "TRUE", "FALSE" or "NOT GIVEN"; "options" is [].
+- "mc": "q" is a question; "options" has exactly 4 options; "a" is the 0-based index of the correct one.
+- "gap": "q" is a sentence with ___ where the missing words go; "a" is an array of accepted answers, each NO MORE THAN THREE WORDS copied exactly from the passage, all lowercase, including reasonable variants; "options" is [].
+
+Every question also has: "level" (equal to its number), "skill" (a short English label such as "Scanning for detail", "Paraphrase", "Inference", "Writer's purpose"), "para" (the letter of the paragraph holding the answer, or "" for a whole-passage question), and "why": one or two sentences IN SPANISH explaining why the answer is right, quoting the key words of the passage.
+
+Respond ONLY with raw JSON, no markdown, no preamble, in exactly this shape: {"title":"","paras":{"A":"","B":""},"questions":[{"n":1,"level":1,"type":"gap","skill":"","q":"","options":[],"a":[],"para":"A","why":""}]}`;
+
+// Turns a reply into a set the drill can mark, or explains why it cannot.
+// Anything a student could not answer — a missing key, an option index that
+// does not exist — is refused here rather than shipped as a question.
+function normalizePracticeReadingSet(json){
+  if(!json || typeof json !== "object") return { problem:"the reply was not a JSON object" };
+  const paras = {};
+  const src = json.paras && typeof json.paras === "object" ? json.paras : {};
+  Object.keys(src).forEach(k=>{
+    const t = String(src[k] || "").trim();
+    if(t) paras[String(k).trim().toUpperCase().slice(0,1) || String.fromCharCode(65 + Object.keys(paras).length)] = t;
+  });
+  if(Object.keys(paras).length < 3) return { problem:"the passage had fewer than three paragraphs" };
+  const qs = Array.isArray(json.questions) ? json.questions : [];
+  if(qs.length !== 10) return { problem:`it wrote ${qs.length} questions instead of 10` };
+  const out = [];
+  for(let i=0;i<10;i++){
+    const q = qs[i] || {};
+    const type = String(q.type || "").toLowerCase().replace(/[^a-z]/g, "");
+    const base = { n:i+1, level:i+1, q:String(q.q || q.question || "").trim(), skill:String(q.skill || "").trim(),
+                   para:String(q.para || "").trim().toUpperCase().slice(0,1), why:String(q.why || "").trim() };
+    if(!base.q) return { problem:`question ${i+1} had no text` };
+    if(type === "tfng"){
+      const a = String(q.a == null ? "" : q.a).trim().toUpperCase().replace(/_/g, " ");
+      const val = a === "T" ? "TRUE" : a === "F" ? "FALSE" : a === "NG" ? "NOT GIVEN" : a;
+      if(!["TRUE","FALSE","NOT GIVEN"].includes(val)) return { problem:`question ${i+1} had no TRUE/FALSE/NOT GIVEN answer` };
+      out.push(Object.assign(base, { type:"tfng", a:val }));
+    }else if(type === "mc"){
+      const options = (Array.isArray(q.options) ? q.options : []).map(o=>String(o || "").trim()).filter(Boolean);
+      let a = q.a;
+      if(typeof a === "string" && /^[A-Da-d]$/.test(a.trim())) a = a.trim().toUpperCase().charCodeAt(0) - 65;
+      a = parseInt(a, 10);
+      if(options.length < 3 || !(a >= 0 && a < options.length)) return { problem:`question ${i+1} had an unusable multiple-choice answer` };
+      out.push(Object.assign(base, { type:"mc", options, a }));
+    }else if(type === "gap" || type === "completion" || type === "short"){
+      const a = (Array.isArray(q.a) ? q.a : [q.a]).map(x=>String(x == null ? "" : x).trim().toLowerCase()).filter(Boolean);
+      if(!a.length) return { problem:`question ${i+1} had no accepted answer` };
+      out.push(Object.assign(base, { type:"gap", a, q: /_{2,}/.test(base.q) ? base.q : base.q + " ___" }));
+    }else{
+      return { problem:`question ${i+1} had an unknown type "${q.type}"` };
+    }
+  }
+  return { set:{ id:"pr" + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+                 title:String(json.title || "Practice passage").trim(), paras, questions:out,
+                 createdAt:new Date().toISOString() } };
+}
+
+async function loadPracticeReadingSets(){
+  const P = state.practice.reading;
+  try{
+    const r = await window.storage.get(PRACTICE_READING_KEY, false);
+    const arr = JSON.parse(r.value);
+    P.sets = (Array.isArray(arr) ? arr : []).filter(x=>x && x.id && x.paras && Array.isArray(x.questions));
+  }catch(e){ P.sets = P.sets || []; }
+  P.setsLoaded = true;
+}
+
+async function savePracticeReadingSets(){
+  const P = state.practice.reading;
+  try{ await window.storage.set(PRACTICE_READING_KEY, JSON.stringify((P.sets || []).slice(0, PRACTICE_READING_MAX)), false); }
+  catch(e){ console.error("practice reading save failed", e); }
+}
+
+async function generatePracticeReadingSet(){
+  const P = state.practice.reading;
+  if(!geminiAvailable()){ alert(geminiMissingMessage()); return; }
+  const topicEl = document.getElementById("prGenTopic");
+  P.topic = topicEl ? topicEl.value.trim() : P.topic;
+  P.generating = true;
+  renderPractice();
+  genProgressShow("prReadGen", "Writing the passage and ten questions…");
+  // Recent titles are passed along so a second press does not bring back the
+  // same article under a new name.
+  const avoid = (P.sets || []).slice(0, 6).map(x=>x.title).filter(Boolean);
+  const user = `Topic: ${P.topic || "your choice"}.` + (avoid.length ? `\nDo not reuse these recent topics: ${avoid.join("; ")}.` : "");
+  let set = null, lastProblem = "";
+  try{
+    for(let attempt=1; attempt<=3 && !set; attempt++){
+      if(attempt > 1) genProgressSet("prReadGen", 15 + attempt*20, `The first draft was not usable (${lastProblem}) — trying again (${attempt}/3)…`);
+      try{
+        const out = normalizePracticeReadingSet(parseJSON(await callGemini(PRACTICE_READING_GEN_RUBRIC, user, null, null)));
+        if(out.set) set = out.set; else lastProblem = out.problem;
+      }catch(err){ lastProblem = err.message || String(err); }
+    }
+    if(!set) throw new Error(lastProblem);
+    if(P.topic) set.topic = P.topic;
+    P.sets = [set].concat(P.sets || []).slice(0, PRACTICE_READING_MAX);
+    await savePracticeReadingSets();
+    Object.assign(P, { source:"gen", genId:set.id, answers:{}, result:null, showPassage:true });
+  }catch(e){
+    console.error(e);
+    alert("Couldn't generate a practice text: " + e.message);
+  }finally{
+    P.generating = false;
+    if(state.mod === "practice" && state.practice.skill === "reading") renderPractice();
+  }
+}
+
+// The passage as the exam shows it: paragraph letters in the margin.
+function practicePassageHTML(pg){
+  const paras = pg && pg.paras && typeof pg.paras === "object" ? Object.entries(pg.paras) : null;
+  if(paras && paras.length){
+    return paras.map(([k,v])=>`<p><b class="pr-para">${escapeHtml(k)}</b> ${escapeHtml(v)}</p>`).join("");
+  }
+  return String((pg && (pg.body || pg.text)) || "").split(/\n\n+/).map(par=>`<p>${escapeHtml(par)}</p>`).join("");
+}
+
+function currentPracticeReadingSet(){
+  const P = state.practice.reading;
+  if(P.source !== "gen") return null;
+  return (P.sets || []).find(x=>x.id === P.genId) || null;
+}
+
 function renderPracticeReading(){
   const P = state.practice.reading;
   const body = document.getElementById("practiceBody");
+  if(!P.setsLoaded){
+    body.innerHTML = `<p class="dash-empty">Loading…</p>`;
+    loadPracticeReadingSets().then(()=>{ if(state.mod === "practice" && state.practice.skill === "reading") renderPractice(); });
+    return;
+  }
   const passages = READING_PASSAGES || [];
-  if(!passages.length){ body.innerHTML = `<p class="dash-empty">No reading material loaded.</p>`; return; }
-  const idx = Math.min(P.passageIdx, passages.length-1);
+  let gen = currentPracticeReadingSet();
+  if(P.source === "gen" && !gen){ P.source = "exam"; P.genId = null; }
+  const idx = Math.min(P.passageIdx, Math.max(0, passages.length-1));
   P.passageIdx = idx;
-  const pg = passages[idx];
-  const res = P.result;
-  // One group at a time keeps a drill short; the first group is enough practice.
-  const group = (pg.groups || [])[0];
+  const pg = gen || passages[idx];
+  const aiOn = geminiAvailable();
+
+  const generator = `
+    <div class="gen-card pr-gen">
+      <div class="gen-head">
+        <div>
+          <b>✨ A new text with ten questions</b>
+          <p style="margin:4px 0 0;font-size:12.5px;color:var(--slate);line-height:1.6;">One passage and ten questions that start easy — a detail stated in so many words — and climb to the hardest: inference, the writer's purpose. See how far up you get.</p>
+        </div>
+      </div>
+      <div class="pr-gen-row">
+        <input type="text" id="prGenTopic" class="gen-select" placeholder="Topic (optional) — e.g. sleep and memory, ocean plastics" value="${escapeXml(P.topic || "")}" ${P.generating ? "disabled" : ""}>
+        <button class="btn brass small" id="prGenBtn" ${(!aiOn || P.generating) ? "disabled" : ""}>${P.generating ? "Writing…" : "Generate"}</button>
+      </div>
+      ${aiOn ? "" : `<p class="pr-note" style="margin-top:8px;">${escapeHtml(geminiMissingMessage())}</p>`}
+      <div class="gen-progress" id="prReadGenBar" style="display:none;">
+        <div class="gen-progress-track"><div class="gen-progress-fill"></div></div>
+        <div class="gen-progress-label"></div>
+      </div>
+    </div>`;
+
+  const picker = `
+    <select id="prPassage" class="gen-select">
+      ${(P.sets || []).length ? `<optgroup label="Your practice texts (10 questions)">
+        ${P.sets.map(x=>`<option value="g:${escapeXml(x.id)}" ${gen && gen.id===x.id?"selected":""}>${escapeHtml(x.title)}</option>`).join("")}
+      </optgroup>` : ""}
+      <optgroup label="Exam passages (one question group)">
+        ${passages.map((x,i)=>`<option value="e:${i}" ${!gen && i===idx?"selected":""}>${escapeHtml(x.title||("Passage "+(i+1)))}</option>`).join("")}
+      </optgroup>
+    </select>`;
+
+  if(!pg){ body.innerHTML = generator + `<p class="dash-empty">No reading material loaded.</p>`; wirePracticeReadingChrome(); return; }
+
+  const intro = gen
+    ? "Ten questions, easiest first. Answer as many as you can, then mark them — every answer comes back with the reason."
+    : "Read at your own pace and answer the set below. Marked right or wrong — no band, no clock unless you want one.";
+
+  let questions;
+  if(gen){
+    questions = `
+      <div id="prDrill">${gen.questions.map(q=>practiceLadderQuestionHTML(q, P.result)).join("")}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+        <button class="btn small" id="prMarkBtn">${P.result ? "Mark again" : "Mark these answers"}</button>
+        <button class="btn ghost small" id="prResetBtn">Clear answers</button>
+        <button class="btn ghost small" id="prDeleteSet" style="margin-left:auto;">Delete this text</button>
+      </div>
+      <div id="prDrillResult">${P.result ? practiceLadderResultHTML(gen, P.result) : ""}</div>`;
+  }else{
+    // One group at a time keeps a drill short; the first group is enough practice.
+    const group = (pg.groups || [])[0];
+    questions = group ? `
+      <p class="instructions" style="font-size:13px;color:var(--slate);line-height:1.6;">${escapeHtml(group.instructions||"")}</p>
+      ${group.type === "heading" ? `<div class="heading-list" style="margin-bottom:10px;"><b>List of Headings</b><br>${(group.options||[]).map((o,i)=>`<b>${i}:</b> ${escapeHtml(o)}`).join("<br>")}</div>` : ""}
+      <div id="prDrill">${practiceReadingQuestionsHTML(pg, group, P.result)}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+        <button class="btn small" id="prMarkBtn">${P.result ? "Mark again" : "Mark these answers"}</button>
+        <button class="btn ghost small" id="prResetBtn">Clear answers</button>
+      </div>
+      <div id="prDrillResult">${P.result ? practiceDrillResultHTML(P.result) : ""}</div>`
+      : `<p class="dash-empty">This passage has no question set attached.</p>`;
+  }
 
   body.innerHTML = `
+    ${generator}
     <div class="gen-card">
       <div class="gen-head">
         <div>
           <b>${escapeHtml(pg.title || ("Passage " + (idx+1)))}</b>
-          <p style="margin:4px 0 0;font-size:12.5px;color:var(--slate);">Read at your own pace and answer the set below. Marked right or wrong — no band, no clock unless you want one.</p>
+          <p style="margin:4px 0 0;font-size:12.5px;color:var(--slate);">${intro}</p>
         </div>
         <div class="gen-actions">
-          <select id="prPassage" class="gen-select">
-            ${passages.map((x,i)=>`<option value="${i}" ${i===idx?"selected":""}>${escapeHtml(x.title||("Passage "+(i+1)))}</option>`).join("")}
-          </select>
+          ${picker}
           <button class="btn ghost small" id="prTogglePassage">${P.showPassage ? "Hide the text" : "Show the text"}</button>
         </div>
       </div>
     </div>
-    ${P.showPassage ? `<div class="pr-passage">${(pg.body||pg.text||"").split(/\n\n+/).map(par=>`<p>${escapeHtml(par)}</p>`).join("")}</div>` : ""}
-    ${group ? `
-      <p class="instructions" style="font-size:13px;color:var(--slate);line-height:1.6;">${escapeHtml(group.instructions||"")}</p>
-      <div id="prDrill">${practiceReadingQuestionsHTML(pg, group, res)}</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
-        <button class="btn small" id="prMarkBtn">${res ? "Mark again" : "Mark these answers"}</button>
-        <button class="btn ghost small" id="prResetBtn">Clear answers</button>
-      </div>
-      <div id="prDrillResult">${res ? practiceDrillResultHTML(res) : ""}</div>`
-    : `<p class="dash-empty">This passage has no question set attached.</p>`}
+    ${P.showPassage ? `<div class="pr-passage">${practicePassageHTML(pg)}</div>` : ""}
+    ${questions}
   `;
 
-  document.getElementById("prPassage").addEventListener("change", e=>{
-    P.passageIdx = Number(e.target.value); P.answers = {}; P.result = null;
-    renderPractice();
-  });
+  wirePracticeReadingChrome();
   document.getElementById("prTogglePassage").addEventListener("click", ()=>{
     P.showPassage = !P.showPassage;
     renderPractice();
   });
-  if(group) wirePracticeDrill(P, ()=>markPracticeReading());
+  const del = document.getElementById("prDeleteSet");
+  if(del) del.addEventListener("click", async ()=>{
+    if(!confirm(`Delete "${gen.title}" from your practice texts?`)) return;
+    P.sets = (P.sets || []).filter(x=>x.id !== gen.id);
+    await savePracticeReadingSets();
+    Object.assign(P, { source:"exam", genId:null, answers:{}, result:null });
+    renderPractice();
+  });
+  if(gen) wirePracticeDrill(P, ()=>markPracticeReadingSet());
+  else if((pg.groups || [])[0]) wirePracticeDrill(P, ()=>markPracticeReading());
+}
+
+function wirePracticeReadingChrome(){
+  const P = state.practice.reading;
+  const sel = document.getElementById("prPassage");
+  if(sel) sel.addEventListener("change", e=>{
+    const [kind, val] = String(e.target.value).split(/:(.*)/s);
+    if(kind === "g"){ P.source = "gen"; P.genId = val; }
+    else { P.source = "exam"; P.genId = null; P.passageIdx = Number(val) || 0; }
+    P.answers = {}; P.result = null;
+    renderPractice();
+  });
+  const gb = document.getElementById("prGenBtn");
+  if(gb) gb.addEventListener("click", generatePracticeReadingSet);
+  const ti = document.getElementById("prGenTopic");
+  if(ti){
+    ti.addEventListener("input", ()=>{ P.topic = ti.value; });
+    ti.addEventListener("keydown", e=>{ if(e.key === "Enter" && gb && !gb.disabled) generatePracticeReadingSet(); });
+  }
+}
+
+// One rung of the ladder: its level, the question, the answer box — and, once
+// marked, the right answer and the reason for it.
+function practiceLadderQuestionHTML(q, res){
+  const line = res && res.lines[q.n];
+  const cls = line ? (line.ok ? "correct" : "wrong") : "";
+  const key = `lq-${q.n}`;
+  let input;
+  if(q.type === "tfng"){
+    input = `<div class="opt-row opt-row-inline" style="margin-top:6px;">
+      ${["TRUE","FALSE","NOT GIVEN"].map(v=>`<label><input type="radio" name="prl${q.n}" data-pra="${key}" value="${v}"> ${v}</label>`).join("")}</div>`;
+  }else if(q.type === "mc"){
+    input = `<div class="opt-row" style="margin-top:6px;">
+      ${q.options.map((o,j)=>`<label><input type="radio" name="prl${q.n}" data-pra="${key}" value="${j}"> ${String.fromCharCode(65+j)}. ${escapeHtml(o)}</label>`).join("")}</div>`;
+  }else{
+    input = `<input type="text" data-pra="${key}" class="pr-gap-input" placeholder="max. 3 words">`;
+  }
+  const verdict = line ? `
+    <div class="lad-why ${line.ok ? "ok" : "no"}">
+      <b>${line.ok ? "✓ Correct" : "✗ Answer: " + escapeHtml(String(line.correct))}</b>${q.para ? ` · paragraph ${escapeHtml(q.para)}` : ""}
+      ${q.why ? `<div>${escapeHtml(q.why)}</div>` : ""}
+    </div>` : "";
+  return `<div class="drill-q lad-q ${cls}">
+      <div class="lad-head"><span class="lad-lvl lv${Math.min(10, Math.max(1, q.level))}">Level ${q.level}</span>${q.skill ? `<span class="lad-skill">${escapeHtml(q.skill)}</span>` : ""}</div>
+      <div><span class="dq-n">${q.n}</span>${escapeHtml(q.q)}</div>
+      ${input}
+      ${verdict}
+    </div>`;
+}
+
+function markPracticeReadingSet(){
+  const P = state.practice.reading;
+  const set = currentPracticeReadingSet();
+  if(!set) return;
+  let correct = 0;
+  const lines = {};
+  set.questions.forEach(q=>{
+    const v = P.answers[`lq-${q.n}`];
+    let ok, shown;
+    if(q.type === "tfng"){ ok = !!v && String(v).toUpperCase() === q.a; shown = q.a; }
+    else if(q.type === "mc"){ ok = v !== undefined && v !== "" && parseInt(v, 10) === q.a; shown = `${String.fromCharCode(65+q.a)}. ${q.options[q.a]}`; }
+    else { ok = checkGap(v, q.a); shown = q.a[0]; }
+    if(ok) correct++;
+    lines[q.n] = { ok, correct: shown };
+  });
+  P.result = { correct, total: set.questions.length, lines };
+  renderPractice();
+}
+
+// The ladder read as a whole: how far up the student got before the first
+// slip, and which rungs held.
+function practiceLadderResultHTML(set, res){
+  const pct = res.total ? Math.round((res.correct / res.total) * 100) : 0;
+  let clean = 0;
+  for(const q of set.questions){ if(res.lines[q.n] && res.lines[q.n].ok) clean++; else break; }
+  const hardestRight = set.questions.filter(q=>res.lines[q.n] && res.lines[q.n].ok).reduce((m,q)=>Math.max(m, q.level), 0);
+  const read = clean === res.total ? "Todo el recorrido sin un fallo: el texto ya no te exige. Genera otro sobre un tema que conozcas menos."
+    : clean >= 6 ? `Sin fallos hasta la pregunta ${clean}. Lo literal y la paráfrasis los dominas; lo que falta está en la inferencia y la intención del autor.`
+    : clean >= 3 ? `Sin fallos hasta la pregunta ${clean}. Los detalles explícitos salen; la paráfrasis (preguntas 4–6) es donde conviene practicar.`
+    : `El primer fallo llegó en la pregunta ${clean + 1}. Empieza por localizar la frase exacta en el párrafo antes de responder.`;
+  return `
+    <div class="acc-card">
+      <div class="acc-top">
+        ${accuracyDialHTML(pct, "accuracy")}
+        <div class="acc-head">
+          <h4>${res.correct} de ${res.total} correctas — ${pct}%</h4>
+          <p>${escapeHtml(read)}</p>
+        </div>
+      </div>
+      <div class="lad-bar" aria-label="Results by difficulty">
+        ${set.questions.map(q=>`<span class="${res.lines[q.n] && res.lines[q.n].ok ? "ok" : "no"}" title="Question ${q.n}${q.skill ? " — " + escapeXml(q.skill) : ""}">${q.n}</span>`).join("")}
+      </div>
+      <div class="lad-scale"><span>fácil</span><span>difícil</span></div>
+      <p class="pr-note">${hardestRight ? `La pregunta más difícil que acertaste fue la ${hardestRight}. ` : ""}Práctica libre: no es una banda ni un nivel, y no cuenta para tu panel.</p>
+    </div>`;
 }
 
 function markPracticeReading(){
@@ -7999,7 +8338,7 @@ function markPracticeReading(){
   if(g.type === "heading"){
     Object.entries(g.key||{}).forEach(([pname, targetIdx])=>{
       const v = P.answers[`heading-${pname}`];
-      mark(`heading-${pname}`, v !== undefined && parseInt(v) === targetIdx, String(targetIdx));
+      mark(`heading-${pname}`, v !== undefined && parseInt(v) === targetIdx, `${targetIdx} · ${(g.options||[])[targetIdx] || ""}`);
     });
   } else if(g.type === "tfng"){
     (g.items||[]).forEach((item,i)=>{
