@@ -9904,105 +9904,186 @@ function showReadingAnswerKey(){
   `;
 }
 
+/* One section per request. The whole test in one reply — four 700–950 word
+   articles plus forty questions — is long enough to come back cut off or
+   reshaped, and one bad section then threw away the other three. Asked one at
+   a time, each reply is a quarter of the size, a bad one is retried on its
+   own, and the progress bar means something. Nothing replaces the current
+   test until all four have passed. */
+const READING_SECTION_PLANS = {
+  1: "heading + tfng (optionally completion)",
+  2: "matchinfo + mc (optionally completion)",
+  3: "tfng + completion (optionally matchinfo)",
+  4: "heading + mc (optionally tfng)"
+};
+
+function readingSectionPrompt(i, topic, previous){
+  const others = previous.map(p=>`"${p.title}"`).join(", ");
+  return `Write SECTION ${i} of a 4-section IELTS Academic Reading test on the theme "${topic}". This must read like genuine Cambridge/British Council IELTS Academic Reading material, not a simplified exercise.
+
+${i === 1 ? "Section 1 is the most accessible of the four; difficulty rises section by section, and Section 4 is the most demanding." : `Difficulty rises section by section: this is Section ${i} of 4${i === 4 ? ", the most demanding" : ""}.`}
+Choose a distinct sub-topic within the theme${others ? ` — the other sections are already titled ${others}; do not overlap with them` : ""}.
+
+` + READING_PASSAGE_REQUIREMENTS + `QUESTIONS:
+- 2 to 4 question groups, preferably ${READING_SECTION_PLANS[i]}.
+- MOST IMPORTANT RULE: the groups must contain EXACTLY 10 questions in total (for "heading": one question per paragraph listed in "paragraphs"; for "tfng", "mc", "completion" and "matchinfo": one per item). Count them before answering.
+- Do not add "qStart" numbers — the application numbers the questions itself.
+
+Return ONE JSON object for this one section — not an array — in exactly this shape, using only the group types you chose from the five shown:
+{
+  "title": "Clear Academic Title",
+  "paras": { "A": "Full paragraph (80-140 words)...", "B": "...", "C": "...", "D": "...", "E": "...", "F": "..." },
+  "groups": [
+    { "type": "heading", "instructions": "The passage has [N] paragraphs, A-[last letter]. Choose the correct heading for paragraphs A-[letter] from the list of headings below.",
+      "paragraphs": ["A","B","C","D"], "options": ["Heading 1","Heading 2","Heading 3","Heading 4","Heading 5","Heading 6"], "key": {"A":0,"B":2,"C":4,"D":1} },
+    { "type": "tfng", "instructions": "Do the following statements agree with the information in the passage? Choose TRUE, FALSE or NOT GIVEN.",
+      "items": [ {"q":"A claim taken from the passage.","a":"TRUE"}, {"q":"Another claim.","a":"FALSE"}, {"q":"A claim the passage does not address.","a":"NOT GIVEN"} ] },
+    { "type": "matchinfo", "instructions": "Which paragraph contains the following information? Write the correct letter. NB You may use any letter more than once.",
+      "letters": ["A","B","C","D","E","F"], "items": [ {"q":"a description of a specific method","a":"C"} ] },
+    { "type": "mc", "instructions": "Choose the correct letter, A, B or C.",
+      "items": [ {"q":"According to the passage, X is best explained by","options":["option A","option B","option C"],"a":1} ] },
+    { "type": "completion", "instructions": "Complete the sentences below. Use NO MORE THAN TWO WORDS from the passage for each answer.",
+      "items": [ {"q":"The process is driven mainly by ___.","a":["exactword","acceptedvariant"]} ] }
+  ]
+}
+Return ONLY the raw JSON object: no markdown, no commentary.`;
+}
+
+const READING_PASSAGE_REQUIREMENTS = `PASSAGE REQUIREMENTS:
+- Each passage must be a full, complex academic article of roughly 700-950 words, split into 6 to 9 lettered paragraphs (A, B, C, D, E, F, and G/H/I as needed — do not stop at 4-5 short paragraphs).
+- Register: dense, formal academic English — the kind found in a broadsheet science/humanities section or a university textbook. Use hedged claims ("it has been argued that…", "some researchers maintain…"), named studies or institutions where natural, subordinate clauses, and topic-specific technical vocabulary. Avoid short, simple sentences throughout — this is a high-difficulty B2-C1 reading test, not a graded reader.
+- Each paragraph should be substantial (roughly 80-140 words), developing one clear idea in depth so it can support heading-matching, information-matching and detail questions.
+
+`;
+
+// Models name things their own way — "TFNG", "multiple_choice", an answer
+// given as the letter "B". Each of these has exactly one meaning, so it is
+// mapped rather than sent back for another attempt.
+function readingGroupType(t){
+  const x = String(t || "").toLowerCase();
+  if(/head/.test(x)) return "heading";
+  if(/match|paragraph|information/.test(x)) return "matchinfo";
+  if(/tfng|true|yes.?no|not.?given/.test(x)) return "tfng";
+  if(/^mc$|multiple|choice|mcq/.test(x)) return "mc";
+  if(/complet|gap|summary|sentence|short/.test(x)) return "completion";
+  return x;
+}
+
+function normalizeReadingSection(p){
+  if(!p || typeof p !== "object") return p;
+  if(p.paragraphs && !p.paras && typeof p.paragraphs === "object" && !Array.isArray(p.paragraphs)) p.paras = p.paragraphs;
+  if(!Array.isArray(p.groups) && Array.isArray(p.questions)) p.groups = p.questions;
+  if(p.paras && typeof p.paras === "object"){
+    const fixed = {};
+    Object.keys(p.paras).forEach(k=>{
+      const t = String(p.paras[k] || "").trim();
+      if(t) fixed[String(k).trim().toUpperCase().replace(/^PARAGRAPH\s*/, "").slice(0,1)] = t;
+    });
+    p.paras = fixed;
+  }
+  const letters = p.paras ? Object.keys(p.paras) : [];
+  (Array.isArray(p.groups) ? p.groups : []).forEach(g=>{
+    if(!g || typeof g !== "object") return;
+    g.type = readingGroupType(g.type);
+    if(!Array.isArray(g.items) && Array.isArray(g.questions)) g.items = g.questions;
+    (g.items || []).forEach(it=>{
+      if(!it || typeof it !== "object") return;
+      if(it.q == null && it.question != null) it.q = it.question;
+      if(it.a == null && it.answer != null) it.a = it.answer;
+      if(g.type === "tfng" && it.a != null){
+        const a = String(it.a).trim().toUpperCase().replace(/_/g, " ");
+        it.a = a === "T" ? "TRUE" : a === "F" ? "FALSE" : (a === "NG" ? "NOT GIVEN" : a);
+      }
+      if(g.type === "mc" && typeof it.a === "string"){
+        const a = it.a.trim();
+        it.a = /^[A-Za-z]$/.test(a) ? a.toUpperCase().charCodeAt(0) - 65 : parseInt(a, 10);
+      }
+      if(g.type === "completion" && !Array.isArray(it.a) && it.a != null) it.a = [String(it.a)];
+      if(g.type === "matchinfo" && it.a != null) it.a = String(it.a).trim().toUpperCase();
+    });
+    if(g.type === "matchinfo" && !Array.isArray(g.letters)) g.letters = letters;
+    if(g.type === "heading" && g.key && typeof g.key === "object"){
+      Object.keys(g.key).forEach(k=>{ g.key[k] = parseInt(g.key[k], 10); });
+      if(!Array.isArray(g.paragraphs)) g.paragraphs = Object.keys(g.key);
+    }
+  });
+  return p;
+}
+
+// The reply may be the object itself, an array holding it, or a wrapper
+// ({"section": …}, {"sections": [...]}) — take the section out of whichever.
+function pickReadingSection(v){
+  if(Array.isArray(v)) return v.length ? pickReadingSection(v[0]) : null;
+  if(!v || typeof v !== "object") return null;
+  if(v.paras || v.groups || v.paragraphs) return v;
+  for(const k of ["section","passage","sections","passages","data","result","test"]){
+    if(v[k]) return pickReadingSection(v[k]);
+  }
+  return null;
+}
+
+// What came back, briefly — so a failure says more than "got 0".
+function replyGist(raw){
+  const t = String(raw || "").replace(/\s+/g, " ").trim();
+  return t ? `“${t.slice(0, 90)}${t.length > 90 ? "…" : ""}”` : "an empty reply";
+}
+
+const READING_GEN_SYS = "You are a meticulous IELTS Academic Reading test-writer. You output only raw JSON matching the exact schema you are given, with genuinely long, complex academic content. You always double check that every section's questions sum to exactly 10 before responding.";
+
+async function generateReadingSection(i, topic, previous){
+  const MAX_ATTEMPTS = 3;
+  let lastError = "";
+  for(let attempt=1; attempt<=MAX_ATTEMPTS; attempt++){
+    genProgressSet("readingGen", ((i-1)/4)*100 + (attempt-1)*6,
+      `Section ${i} of 4 — writing the passage and 10 questions${attempt > 1 ? ` (attempt ${attempt}/${MAX_ATTEMPTS})` : ""}…`);
+    let raw = "";
+    try{
+      const correction = lastError ? `\n\nYour previous attempt was rejected for this reason: "${lastError}". Fix that specific problem this time.` : "";
+      raw = await callGemini(READING_GEN_SYS, readingSectionPrompt(i, topic, previous) + correction, null, null);
+      const section = pickReadingSection(parseJSON(raw));
+      if(!section) throw new Error(`the reply was not a section (got ${replyGist(raw)})`);
+      normalizeReadingSection(section);
+      normalizeReadingArray([section]);
+      validateReadingSection(section, `Section ${i}`);
+      return section;
+    }catch(error){
+      console.error(`Reading section ${i}, attempt ${attempt} failed:`, error, raw);
+      lastError = error.message;
+    }
+  }
+  throw new Error(`Section ${i} failed after ${MAX_ATTEMPTS} attempts — ${lastError}`);
+}
+
 async function generateNewReadingWithAI() {
   const btn = document.getElementById("generateReadingBtn");
   const topic = document.getElementById("aiTopic").value;
   const originalText = btn.textContent;
   btn.disabled = true;
-
-  const prompt = `Generate a complete set of exactly 4 IELTS Academic Reading Sections based on the domain theme: "${topic}". This must read like genuine Cambridge/British Council IELTS Academic Reading material, not a simplified exercise.
-
-PASSAGE REQUIREMENTS (apply to all 4 sections):
-- Each passage must be a full, complex academic article of roughly 700-950 words, split into 6 to 9 lettered paragraphs (A, B, C, D, E, F, and G/H/I as needed — do not stop at 4-5 short paragraphs).
-- Register: dense, formal academic English — the kind found in a broadsheet science/humanities section or a university textbook. Use hedged claims ("it has been argued that…", "some researchers maintain…"), named studies or institutions where natural, subordinate clauses, and topic-specific technical vocabulary. Avoid short, simple sentences throughout — this is a high-difficulty B2-C1 reading test, not a graded reader.
-- Each paragraph should be substantial (roughly 80-140 words), developing one clear idea in depth so it can support heading-matching, information-matching and detail questions.
-
-QUESTION-TYPE REQUIREMENTS — variety is strongly preferred, correctness matters most:
-- There are 5 available group types: "heading", "tfng", "matchinfo", "mc", "completion". Try to use a good mix across the 4 sections (ideally all 5 appear somewhere), and avoid giving every section the identical combination.
-- Each section should have 2 to 4 question groups — whatever combination cleanly adds up.
-- MOST IMPORTANT RULE, more important than variety: each section's groups must contain EXACTLY 10 questions in total when you count (for "heading": one question per paragraph listed; for "tfng"/"mc"/"completion": one per item; for "matchinfo": one per item). Count carefully before finalizing — e.g. 4+3+3, 5+5, 3+3+4, 6+4 all work as long as they sum to exactly 10. A section with 9 or 11 will be rejected.
-- Do not worry about the exact "qStart" numbers — the application recalculates numbering automatically from your item order. Just make sure each section internally totals exactly 10 questions.
-
-Each section must look exactly like this JSON schema shape inside a master array of 4 objects. Below is ONE example of each of the 5 possible group types — use 2 to 4 of these per section, following the field names exactly:
-
-[
-  {
-    "title": "Clear Academic Title",
-    "paras": { "A": "Full paragraph content (80-140 words)...", "B": "...", "C": "...", "D": "...", "E": "...", "F": "..." },
-    "groups": [
-      {
-        "type": "heading",
-        "instructions": "The passage has [N] paragraphs, A-[last letter]. Choose the correct heading for paragraphs A-[letter] from the list of headings below.",
-        "paragraphs": ["A","B","C","D"],
-        "options": ["Heading option 1","Heading option 2","Heading option 3","Heading option 4","Heading option 5","Heading option 6"],
-        "key": {"A":0,"B":2,"C":4,"D":1}
-      },
-      {
-        "type": "tfng",
-        "instructions": "Do the following statements agree with the information in the passage? Choose TRUE, FALSE or NOT GIVEN.",
-        "items": [ {"q":"A specific claim taken from the passage.","a":"TRUE"}, {"q":"Another claim.","a":"FALSE"}, {"q":"A third claim not addressed by the passage.","a":"NOT GIVEN"} ]
-      },
-      {
-        "type": "matchinfo",
-        "instructions": "Which paragraph contains the following information? Write the correct letter. NB You may use any letter more than once.",
-        "letters": ["A","B","C","D","E","F"],
-        "items": [ {"q":"a description of a specific method or process","a":"C"}, {"q":"a reference to a counter-argument","a":"E"} ]
-      },
-      {
-        "type": "mc",
-        "instructions": "Choose the correct letter, A, B or C.",
-        "items": [ {"q":"According to the passage, X is best explained by","options":["option A text","option B text","option C text"],"a":1} ]
-      },
-      {
-        "type": "completion",
-        "instructions": "Complete the sentences/summary below. Use NO MORE THAN TWO WORDS from the passage for each answer.",
-        "summaryIntro": "Optional: a short summary paragraph with blanks like (___) embedded in running text, OR omit this field and use standalone sentence-completion items instead.",
-        "items": [ {"q":"A sentence with a blank: the process is driven mainly by ___.","a":["exactword","acceptedvariant"]} ]
-      }
-    ]
-  }
-]
-
-Remember: this array shows all 5 group-type shapes for reference only — do NOT put all 5 in one section. Each section gets 2-4 of these types, EXACTLY 10 questions total when counted as described above.
-Double-check before returning: every section's paragraphs are long and academically dense, not short filler sentences, and every section's item count adds up to exactly 10. Return ONLY the raw JSON array, no markdown, no commentary, no "qStart" fields needed.`;
-
-  const sys = "You are a meticulous IELTS Academic Reading test-writer. You output only raw JSON arrays matching the exact schema you are given, with genuinely long, complex academic content. You always double check that every section's questions sum to exactly 10 before responding.";
-
-  const MAX_ATTEMPTS = 3;
-  let lastError = null;
   genProgressShow("readingGen", "Starting…");
-  for(let attempt=1; attempt<=MAX_ATTEMPTS; attempt++){
-    btn.textContent = MAX_ATTEMPTS>1 ? `Generating Sections… (attempt ${attempt}/${MAX_ATTEMPTS})` : "Generating Sections...";
-    genProgressSet("readingGen", ((attempt-1)/MAX_ATTEMPTS)*100, `Writing 4 academic passages — attempt ${attempt}/${MAX_ATTEMPTS}…`);
-    try {
-      const correction = lastError ? `\n\nYour previous attempt was rejected for this reason: "${lastError}". Fix that specific problem this time.` : "";
-      const rawText = await callGemini(sys, prompt + correction, null, null);
-      const parsedArray = parseJSON(rawText);
-      normalizeReadingArray(parsedArray); // recalculates qStart, so the AI's own numbering is never trusted
-      validateReadingArray(parsedArray);
-      READING_PASSAGES = parsedArray.map((p, idx) => {
-        p.id = idx + 1;
-        return p;
-      });
-      saveGeneratedContent();
-      genProgressDone("readingGen", "Done — 40 questions across 4 sections.");
-      alert(`✨ Success! Full exam reloaded with 4 new, longer academic sections (40 questions, mixed question types).`);
-      state.reading.activePassage = 0;
-      state.reading.answers = {};
-      state.reading.submitted = false;
-      renderReading();
-      btn.textContent = originalText;
-      btn.disabled = false;
-      return;
-    } catch (error) {
-      console.error(`Reading generation attempt ${attempt} failed:`, error);
-      lastError = error.message;
+  try{
+    const sections = [];
+    for(let i=1;i<=4;i++){
+      btn.textContent = `Writing Section ${i} of 4…`;
+      sections.push(await generateReadingSection(i, topic, sections));
     }
+    normalizeReadingArray(sections);       // number 1–40 across the whole test
+    validateReadingArray(sections);
+    READING_PASSAGES = sections.map((p, idx) => { p.id = idx + 1; return p; });
+    saveGeneratedContent();
+    genProgressDone("readingGen", "Done — 40 questions across 4 sections.");
+    alert(`✨ Success! Full exam reloaded with 4 new, longer academic sections (40 questions, mixed question types).`);
+    state.reading.activePassage = 0;
+    state.reading.answers = {};
+    state.reading.submitted = false;
+    renderReading();
+  }catch(error){
+    console.error(error);
+    genProgressHide("readingGen");
+    alert("Couldn't generate new reading sections: " + error.message + "\n\nYour current test has been left as it was. Try again, or try a different topic.");
+  }finally{
+    const b = document.getElementById("generateReadingBtn");
+    if(b){ b.textContent = originalText; b.disabled = false; }
   }
-  genProgressHide("readingGen");
-  alert("Failed to generate reading sections after " + MAX_ATTEMPTS + " attempts: " + lastError + "\n\nTip: try again, or try a different topic — the AI occasionally miscounts questions in a section.");
-  btn.textContent = originalText;
-  btn.disabled = false;
 }
 
 // The AI is unreliable at hand-assigning "qStart" numbers across groups and
@@ -10027,41 +10108,61 @@ function normalizeReadingArray(arr){
 // on type variety (encouraged, not enforced) since those aren't the app's
 // real requirements — only the true hard constraints are checked here:
 // valid types, required fields per type, and exactly 10 questions/section.
+// The checks every section must pass, on its own: valid types, the fields
+// each type needs, answers that exist, and exactly 10 questions.
+function validateReadingSection(p, label){
+  if(!p || typeof p !== "object") throw new Error(label + " is not a valid object.");
+  if(!p.paras || typeof p.paras !== "object" || Object.keys(p.paras).length < 4){
+    throw new Error(label + " needs at least 4 lettered paragraphs.");
+  }
+  if(!Array.isArray(p.groups) || p.groups.length < 2 || p.groups.length > 4){
+    throw new Error(label + " must have between 2 and 4 question groups, got " + (p.groups ? p.groups.length : 0) + ".");
+  }
+  let sectionCount = 0;
+  p.groups.forEach((g, gi) => {
+    const glabel = `${label}, group ${gi+1} (${g && g.type})`;
+    if(!g || typeof g !== "object") throw new Error(glabel + " is not a valid object.");
+    if(typeof g.qStart !== "number") throw new Error(glabel + " is missing a numeric qStart.");
+    if(g.type === "heading"){
+      if(!Array.isArray(g.paragraphs) || !Array.isArray(g.options) || !g.key) throw new Error(glabel + " is missing paragraphs/options/key.");
+      g.paragraphs.forEach(pn=>{
+        const k = g.key[pn];
+        if(!(k >= 0 && k < g.options.length)) throw new Error(glabel + ` has no valid heading for paragraph ${pn}.`);
+      });
+      sectionCount += g.paragraphs.length;
+    } else if(g.type === "tfng" || g.type === "mc" || g.type === "completion" || g.type === "matchinfo"){
+      if(!Array.isArray(g.items) || g.items.length === 0) throw new Error(glabel + " is missing its items array.");
+      if(g.type === "matchinfo" && !Array.isArray(g.letters)) throw new Error(glabel + " is missing letters.");
+      g.items.forEach((it, ii)=>{
+        const bad = !it || !String(it.q || "").trim()
+          || (g.type === "tfng" && !["TRUE","FALSE","NOT GIVEN"].includes(it.a))
+          || (g.type === "mc" && !(Array.isArray(it.options) && it.a >= 0 && it.a < it.options.length))
+          || (g.type === "completion" && !(Array.isArray(it.a) && it.a.length))
+          || (g.type === "matchinfo" && !String(it.a || "").trim());
+        if(bad) throw new Error(glabel + `, item ${ii+1} has no usable question or answer.`);
+      });
+      sectionCount += g.items.length;
+    } else {
+      throw new Error(glabel + " has an unrecognised type.");
+    }
+  });
+  if(sectionCount !== 10) throw new Error(label + " has " + sectionCount + " questions instead of 10.");
+}
+
+// Fails loudly with a specific, actionable message instead of silently
+// rendering a broken passage. Each section is checked on its own, then the
+// test as a whole: four sections, numbered 1 to 40 without gaps or repeats.
 function validateReadingArray(arr){
   if(!Array.isArray(arr) || arr.length !== 4){
-    throw new Error("Expected exactly 4 sections in the response, got " + (Array.isArray(arr) ? arr.length : typeof arr) + ".");
+    throw new Error("Expected exactly 4 sections, got " + (Array.isArray(arr) ? arr.length : typeof arr) + ".");
   }
   const allNumbers = [];
   arr.forEach((p, si) => {
-    const label = `Section ${si+1}`;
-    if(!p || typeof p !== "object") throw new Error(label + " is not a valid object.");
-    if(!p.paras || typeof p.paras !== "object" || Object.keys(p.paras).length < 4){
-      throw new Error(label + " needs at least 4 lettered paragraphs.");
-    }
-    if(!Array.isArray(p.groups) || p.groups.length < 2 || p.groups.length > 4){
-      throw new Error(label + " must have between 2 and 4 question groups, got " + (p.groups ? p.groups.length : 0) + ".");
-    }
-    let sectionCount = 0;
-    p.groups.forEach((g, gi) => {
-      const glabel = `${label}, group ${gi+1} (${g.type})`;
-      if(typeof g.qStart !== "number") throw new Error(glabel + " is missing a numeric qStart.");
-      if(g.type === "heading"){
-        if(!Array.isArray(g.paragraphs) || !Array.isArray(g.options) || !g.key) throw new Error(glabel + " is missing paragraphs/options/key.");
-        g.paragraphs.forEach((_,i)=>allNumbers.push(g.qStart+i));
-        sectionCount += g.paragraphs.length;
-      } else if(g.type === "tfng" || g.type === "mc" || g.type === "completion"){
-        if(!Array.isArray(g.items) || g.items.length === 0) throw new Error(glabel + " is missing its items array.");
-        g.items.forEach((_,i)=>allNumbers.push(g.qStart+i));
-        sectionCount += g.items.length;
-      } else if(g.type === "matchinfo"){
-        if(!Array.isArray(g.letters) || !Array.isArray(g.items) || g.items.length === 0) throw new Error(glabel + " is missing letters/items.");
-        g.items.forEach((_,i)=>allNumbers.push(g.qStart+i));
-        sectionCount += g.items.length;
-      } else {
-        throw new Error(glabel + " has an unrecognised type.");
-      }
+    validateReadingSection(p, `Section ${si+1}`);
+    p.groups.forEach(g=>{
+      const n = g.type === "heading" ? g.paragraphs.length : g.items.length;
+      for(let i=0;i<n;i++) allNumbers.push(g.qStart+i);
     });
-    if(sectionCount !== 10) throw new Error(label + " has " + sectionCount + " questions instead of 10.");
   });
   const uniqueSorted = [...new Set(allNumbers)].sort((a,b)=>a-b);
   if(allNumbers.length !== uniqueSorted.length){
