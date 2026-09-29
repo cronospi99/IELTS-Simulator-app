@@ -1703,6 +1703,78 @@ textarea.essay{
 .alib-add{align-self:flex-start;cursor:pointer;}
 .shared-ai-note{font-size:12.5px;line-height:1.6;color:var(--slate);background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:0 8px 8px 0;padding:10px 12px;margin:0 0 14px;}
 .shared-ai-note.ok{border-left-color:var(--teal);color:#1f4238;background:#eef4f2;}
+/* ---------- class dashboard ---------- */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:4px 0 14px;}
+@media(max-width:1100px){.kpi-row{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:620px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;min-width:0;}
+.kpi-l{font-size:11.5px;color:var(--slate);}
+.kpi-v{font-size:26px;font-weight:700;color:var(--ink);line-height:1.15;font-family:inherit;}
+.kpi-v small{font-size:12px;font-weight:600;color:var(--slate);margin-left:3px;}
+.kpi-s{font-size:11.5px;color:var(--slate);line-height:1.45;}
+.kpi-s i,.ddelta i,.dflag i{font-style:normal;}
+.dcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px;min-width:0;}
+.dcard-h{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px;}
+.dcard-h span{font-weight:500;color:var(--slate);}
+.sprof{display:grid;grid-template-columns:110px 1fr 38px 150px;align-items:center;gap:10px;padding:5px 0;}
+.sprof-l{font-size:12.5px;color:var(--ink);white-space:nowrap;}
+.sprof-track{height:14px;border-radius:0 4px 4px 0;background:#f1f2f4;position:relative;overflow:hidden;}
+.sprof-bar{position:absolute;left:0;top:0;bottom:0;background:#c5cad3;border-radius:0 4px 4px 0;}
+.sprof-bar.weak{background:#2a78d6;}
+.sprof-v{font-weight:700;font-size:13px;color:var(--ink);text-align:right;}
+.sprof-n{font-size:11.5px;color:var(--slate);}
+.sprof-axis{display:flex;justify-content:space-between;margin:2px 198px 0 120px;font-size:10px;color:var(--slate);}
+@media(max-width:620px){.sprof{grid-template-columns:86px 1fr 34px;}.sprof-n{display:none;}.sprof-axis{margin:2px 44px 0 96px;}}
+.roster-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 6px;}
+.roster-sort{font-size:12px;color:var(--slate);display:flex;align-items:center;gap:6px;}
+.roster-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;}
+.roster td small,.roster td.band small{display:block;font-family:inherit;font-size:10.5px;font-weight:500;color:var(--slate);}
+.roster td.ov{font-size:19px;}
+.roster td.band b{font-family:inherit;font-size:14px;}
+.roster td.muted,.roster .muted{color:var(--slate);}
+.roster td.mono{font-family:'IBM Plex Mono',monospace;font-size:12px;}
+.roster td.hw-open{color:var(--ink);font-weight:700;}
+.roster td.last{font-size:12px;color:var(--ink);white-space:nowrap;}
+.roster tr.sel td{background:#f3f7fd;}
+.roster th .th-full{display:inline;}
+@media(max-width:900px){.roster th .th-full{display:none;}}
+.ddelta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink);white-space:nowrap;}
+.ddelta.flat{color:#98a0b0;}
+.ddelta i{font-size:8.5px;margin-right:2px;}
+.spark{display:block;margin:0 auto;}
+.spark-none{color:var(--slate);}
+.dflags{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
+.dflag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;color:var(--ink);border:1px solid var(--line);background:#fafafa;border-radius:999px;padding:2px 8px;white-space:nowrap;}
+.dflag.critical{background:#fdf0f0;border-color:#f1caca;}
+.dflag.warning{background:#fff8e6;border-color:#f6e0a8;}
+.dflag.good{background:#eef8ee;border-color:#c7e6c7;}
+.dnote{font-size:11.5px;color:var(--slate);line-height:1.6;margin:8px 0 0;}
+.stile-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0;}
+@media(max-width:760px){.stile-row{grid-template-columns:repeat(2,1fr);}}
+.stile{border:1px solid var(--line);border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:3px;background:var(--paper);}
+.stile-l{font-size:12px;color:var(--ink);font-weight:600;}
+.stile-v{font-size:26px;font-weight:700;color:var(--ink);line-height:1.1;}
+.stile-s{font-size:11px;color:var(--slate);}
+.dgrid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;}
+@media(max-width:900px){.dgrid{grid-template-columns:1fr;}}
+.dchart{position:relative;height:250px;}
+.act-strip{display:grid;grid-template-columns:repeat(28,1fr);gap:3px;}
+.act{display:inline-block;aspect-ratio:1;border-radius:3px;min-width:6px;}
+.act.a0{background:#eef0f3;} .act.a1{background:#b7d3f6;} .act.a2{background:#6da7ec;} .act.a3{background:#2a78d6;} .act.a4{background:#184f95;}
+.act-foot{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;color:var(--slate);margin-top:5px;gap:8px;}
+.act-key{display:inline-flex;align-items:center;gap:3px;}
+.act-key i{width:10px;height:10px;}
+.psum{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;}
+.psum > div{display:flex;flex-direction:column;gap:4px;}
+.psum .spark{margin:0;}
+.psum-sk{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--slate);}
+.psum-sk b{color:var(--ink);}
+.hist-item.practice{border-style:dashed;}
+.hist-sum .mod em{font-style:normal;color:var(--slate);font-weight:500;}
+.hist-sum .bnd.pct{font-family:inherit;font-size:15px;font-weight:700;}
+.sk-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px;}
+.hist-why{font-size:12px;line-height:1.6;color:#6b2a22;background:#fdf1ed;border-radius:6px;padding:6px 10px;margin:-2px 0 6px 24px;}
+.pr-share{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--slate);cursor:pointer;margin-right:4px;}
 .hist-mat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px;margin-top:12px;}
 .hist-mat-h{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--brass);font-weight:700;margin-bottom:8px;}
 .hist-mat-h span{color:var(--slate);font-weight:500;letter-spacing:.04em;text-transform:none;font-family:inherit;font-size:12px;}
@@ -5574,7 +5646,8 @@ const TR_TAB_BLURB = {
   listening:"Check a word from the transcript, then drill its forms.",
   reading:"Select any phrase in a passage to look it up without losing your place.",
   writing:"Find the precise word before you commit it to the draft.",
-  speaking:"Rehearse the phrase you reached for and couldn't find."
+  speaking:"Rehearse the phrase you reached for and couldn't find.",
+  practice:"Look up a word mid-sentence, or select one in a passage — then back to practising."
 };
 
 function trCard(mod){
@@ -7611,7 +7684,7 @@ function renderPractice(){
 
   panel.innerHTML = `
     <p class="section-title">Free practice</p>
-    <p class="section-sub">The same four skills without the exam around them. Nothing here is a band score or a level — Writing and Speaking come back as an accuracy percentage with every correction, and Listening and Reading are simply marked right or wrong. None of it touches your dashboard, so practise as often as you like.</p>
+    <p class="section-sub">The same four skills without the exam around them. Nothing here is a band score or a level — Writing and Speaking come back as an accuracy percentage with every correction, and Listening and Reading are simply marked right or wrong. None of it changes your band scores, so practise as often as you like; when you are signed in, what you mark is kept in your history for you and your teacher (switch <b>Save to my history</b> off to keep a session to yourself).</p>
 
     <div class="pr-skills">
       ${PRACTICE_SKILLS.map(sk=>{
@@ -7625,7 +7698,11 @@ function renderPractice(){
       }).join("")}
     </div>
 
+    ${trCard("practice")}
+
     <div class="pr-bar">
+      ${isStudent() ? `<label class="pr-share" title="Marked practice goes to your history, where your teacher sees it too">
+        <input type="checkbox" id="prShare" ${practiceShareOn() ? "checked" : ""}> Save to my history</label>` : ""}
       <button class="btn ${P.stopwatch.on ? "secondary" : "ghost"} small" id="prClockOn">${P.stopwatch.on ? "Hide the timer" : "⏱ Use a timer"}</button>
       ${P.stopwatch.on ? `
         <span class="pr-clock" id="prClock">${fmtStopwatch(practiceStopwatchMs())}</span>
@@ -7646,6 +7723,8 @@ function renderPractice(){
     P.skill = b.dataset.prSkill;
     renderPractice();
   }));
+  const shareBox = document.getElementById("prShare");
+  if(shareBox) shareBox.addEventListener("change", ()=>setPracticeShare(shareBox.checked));
   document.getElementById("prClockOn").addEventListener("click", ()=>{
     P.stopwatch.on = !P.stopwatch.on;
     if(!P.stopwatch.on) resetPracticeClock();
@@ -7731,6 +7810,38 @@ function renderPracticeWriting(){
   if(W.report) showPracticeWritingReport();
 }
 
+/* =========================================================================
+   FREE PRACTICE INTO THE HISTORY
+   A marked practice attempt is kept like an exam paper — in submissions, so
+   the teacher sees it and so does the student's own history — with two
+   differences: task is "practice", and there is no band, only the accuracy.
+   A student can switch it off in the practice bar; it is on by default.
+   Nothing here touches the band scores on the dashboard.
+   ========================================================================= */
+const PRACTICE_SHARE_KEY = "ielts:practice-share";
+function practiceShareOn(){ try{ return localStorage.getItem(PRACTICE_SHARE_KEY) !== "off"; }catch(e){ return true; } }
+function setPracticeShare(on){ try{ localStorage.setItem(PRACTICE_SHARE_KEY, on ? "on" : "off"); }catch(e){} }
+
+// "Mark again" with nothing changed is the same attempt, not a new one.
+const practiceSavedSigs = {};
+function savePracticeAttempt(skill, sig, prompt, content, report, material){
+  if(!isStudent() || !practiceShareOn()) return;
+  if(practiceSavedSigs[skill] === sig) return;
+  practiceSavedSigs[skill] = sig;
+  const r = Object.assign({}, report || {}, { kind:"practice" });
+  saveSubmission(skill, "practice", prompt, content, null, r, material);
+}
+
+// The marked answers as a list, in the order they were asked — the shape the
+// history's answer-sheet views read.
+function practiceSheet(linesInOrder){
+  const correct = linesInOrder.filter(l=>l.ok).length, total = linesInOrder.length;
+  return { correct, total, accuracy: total ? Math.round(correct/total*100) : 0, lines: linesInOrder };
+}
+function practiceSheetText(lines){
+  return lines.map(l=>`${l.ok ? "✓" : "✗"} ${typeof l.n === "number" ? "Q" + l.n : l.n}  you: ${String(l.given || "").trim() || "(blank)"}${l.ok ? "" : `  ·  key: ${l.correct != null ? l.correct : (l.answer || "")}`}`).join("\n");
+}
+
 async function checkPracticeWriting(){
   const W = state.practice.writing;
   const text = (W.draft||"").trim();
@@ -7746,6 +7857,8 @@ async function checkPracticeWriting(){
     const user = `Topic the learner was writing about: ${prompt}\n\nWord count: ${countWords(text)}\n\nWhat they wrote:\n${text}`;
     const raw = await callGemini(practiceWritingRubric(), user, null, null);
     W.report = normalizePracticeReport(parseJSON(raw));
+    savePracticeAttempt("writing", "w:" + text, prompt, text, W.report,
+      { tag:"Free practice · " + (topic.label || "Writing"), prompt });
     showPracticeWritingReport();
     renderPractice();
   }catch(e){
@@ -7924,6 +8037,9 @@ async function checkPracticeSpeaking(){
     const raw = await callGemini(practiceSpeakingRubric(), user, null, null);
     P.report = normalizePracticeReport(parseJSON(raw));
     P.report.__text = answers.map(a=>a.text).join("\n\n");
+    savePracticeAttempt("speaking", "s:" + set.id + ":" + P.report.__text, set.label,
+      answers.map(a=>`[Q${a.n}. ${a.q}]\n${a.text}`).join("\n\n"), P.report,
+      { title:"Free practice · " + set.label, questions: answers.map(a=>a.q) });
     showPracticeSpeakingReport();
     renderPractice();
   }catch(e){
@@ -8006,9 +8122,14 @@ function markPracticeListening(){
     if(q.type === "mc" && Array.isArray(q.options)) ok = user !== undefined && parseInt(user) === q.answer;
     else ok = checkGap(user, Array.isArray(q.answer) ? q.answer : []);
     if(ok) correct++;
-    lines[q.n] = { ok, correct: listeningAnswerText(q) };
+    lines[q.n] = { ok, correct: listeningAnswerText(q),
+                   given: (q.type === "mc" && Array.isArray(q.options)) ? optionText(q.options, user) : typedAnswer(user) };
   });
   P.result = { correct, total, lines };
+  const ordered = part.questions.map(q=>Object.assign({ n:q.n, answer:listeningAnswerText(q) }, lines[q.n]));
+  savePracticeAttempt("listening", "l:" + part.title + JSON.stringify(P.answers), part.title,
+    practiceSheetText(ordered), practiceSheet(ordered),
+    { parts: [paperSnapshot({ id:part.id, title:part.title, context:part.context, script:part.script, questions:part.questions })] });
   renderPractice();
 }
 
@@ -8019,7 +8140,7 @@ function markPracticeListening(){
    stated in so many words, the last the writer's purpose or an implication —
    so a student can see where their reading stops holding up. Generated on
    demand, kept in this browser (not the exam: generating one never replaces
-   the exam passages), and, like everything in Free practice, never uploaded.
+   the exam passages). A marked set goes to the history like any other practice.
    ========================================================================= */
 const PRACTICE_READING_KEY = "practice-reading-sets";
 const PRACTICE_READING_MAX = 12;
@@ -8327,9 +8448,12 @@ function markPracticeReadingSet(){
     else if(q.type === "mc"){ ok = v !== undefined && v !== "" && parseInt(v, 10) === q.a; shown = `${String.fromCharCode(65+q.a)}. ${q.options[q.a]}`; }
     else { ok = checkGap(v, q.a); shown = q.a[0]; }
     if(ok) correct++;
-    lines[q.n] = { ok, correct: shown };
+    lines[q.n] = { ok, correct: shown, given: q.type === "mc" ? optionText(q.options.map((o,j)=>`${String.fromCharCode(65+j)}. ${o}`), v) : typedAnswer(v) };
   });
   P.result = { correct, total: set.questions.length, lines };
+  const ordered = set.questions.map(q=>Object.assign({ n:q.n }, lines[q.n]));
+  savePracticeAttempt("reading", "rl:" + set.id + JSON.stringify(P.answers), set.title,
+    practiceSheetText(ordered), practiceSheet(ordered), { ladder: paperSnapshot(set) });
   renderPractice();
 }
 
@@ -8357,7 +8481,7 @@ function practiceLadderResultHTML(set, res){
         ${set.questions.map(q=>`<span class="${res.lines[q.n] && res.lines[q.n].ok ? "ok" : "no"}" title="Question ${q.n}${q.skill ? " — " + escapeXml(q.skill) : ""}">${q.n}</span>`).join("")}
       </div>
       <div class="lad-scale"><span>fácil</span><span>difícil</span></div>
-      <p class="pr-note">${hardestRight ? `La pregunta más difícil que acertaste fue la ${hardestRight}. ` : ""}Práctica libre: no es una banda ni un nivel, y no cuenta para tu panel.</p>
+      <p class="pr-note">${hardestRight ? `La pregunta más difícil que acertaste fue la ${hardestRight}. ` : ""}Práctica libre: no es una banda ni un nivel, y no cambia tus bandas.</p>
     </div>`;
 }
 
@@ -8367,34 +8491,38 @@ function markPracticeReading(){
   const g = (pg.groups||[])[0];
   let correct = 0, total = 0;
   const lines = {};
-  const mark = (key, ok, shown) => { total++; if(ok) correct++; lines[key] = { ok, correct: shown }; };
+  const ordered = [];
+  const mark = (key, ok, shown, given, n) => { total++; if(ok) correct++; lines[key] = { ok, correct: shown }; ordered.push({ n, ok, correct: shown, given }); };
 
   if(g.type === "heading"){
     Object.entries(g.key||{}).forEach(([pname, targetIdx])=>{
       const v = P.answers[`heading-${pname}`];
-      mark(`heading-${pname}`, v !== undefined && parseInt(v) === targetIdx, `${targetIdx} · ${(g.options||[])[targetIdx] || ""}`);
+      mark(`heading-${pname}`, v !== undefined && parseInt(v) === targetIdx, `${targetIdx} · ${(g.options||[])[targetIdx] || ""}`, headingText(g, v), `Para ${pname}`);
     });
   } else if(g.type === "tfng"){
     (g.items||[]).forEach((item,i)=>{
       const v = P.answers[`tfng-${i}`];
-      mark(`tfng-${i}`, !!v && v.trim().toUpperCase() === String(item.a).trim().toUpperCase(), item.a);
+      mark(`tfng-${i}`, !!v && v.trim().toUpperCase() === String(item.a).trim().toUpperCase(), item.a, typedAnswer(v), g.qStart+i);
     });
   } else if(g.type === "completion"){
     (g.items||[]).forEach((item,i)=>{
-      mark(`comp-${i}`, checkGap(P.answers[`comp-${i}`], item.a||[]), (item.a||[])[0] || "—");
+      mark(`comp-${i}`, checkGap(P.answers[`comp-${i}`], item.a||[]), (item.a||[])[0] || "—", typedAnswer(P.answers[`comp-${i}`]), g.qStart+i);
     });
   } else if(g.type === "matchinfo"){
     (g.items||[]).forEach((item,i)=>{
       const v = P.answers[`match-${i}`];
-      mark(`match-${i}`, v !== undefined && String(v).trim().toUpperCase() === String(item.a).trim().toUpperCase(), item.a);
+      mark(`match-${i}`, v !== undefined && String(v).trim().toUpperCase() === String(item.a).trim().toUpperCase(), item.a, typedAnswer(v), g.qStart+i);
     });
   } else if(g.type === "mc"){
     (g.items||[]).forEach((item,i)=>{
       const v = P.answers[`mc-${i}`];
-      mark(`mc-${i}`, v !== undefined && parseInt(v) === item.a, (item.options||[])[item.a] || "—");
+      mark(`mc-${i}`, v !== undefined && parseInt(v) === item.a, (item.options||[])[item.a] || "—", optionText(item.options, v), g.qStart+i);
     });
   }
   P.result = { correct, total, lines };
+  savePracticeAttempt("reading", "r:" + pg.title + JSON.stringify(P.answers), pg.title,
+    practiceSheetText(ordered), practiceSheet(ordered),
+    { passages: [paperSnapshot({ id:pg.id, title:pg.title, paras:pg.paras, groups:[g] })] });
   renderPractice();
 }
 
@@ -8479,7 +8607,7 @@ function practiceDrillResultHTML(res){
           <p>${escapeHtml(accuracyVerdict(pct))}</p>
         </div>
       </div>
-      <p class="pr-note">Las respuestas correctas aparecen junto a cada pregunta. Práctica libre: no es una banda ni un nivel, y no cuenta para tu panel.</p>
+      <p class="pr-note">Las respuestas correctas aparecen junto a cada pregunta. Práctica libre: no es una banda ni un nivel, y no cambia tus bandas.</p>
     </div>`;
 }
 
@@ -13898,7 +14026,7 @@ async function initAuth(){
     // tab — left the app looking signed out until a manual reload.
     AUTH.client.auth.onAuthStateChange(async (event, session)=>{
       if(!session){
-        AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.homework=[]; AUTH.students=[];
+        AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.homework=[]; AUTH.students=[]; AUTH.classActivity=[];
         AUTH.submissions=[]; AUTH.historyAllowed=false; AUTH.historyReady=false; AUTH.submissionsLoaded=false;
         AUTH.sharedAI=null; AUTH.sharedAIReason=""; AUTH.sharedAIModel="";
         AUTH.lastError = "";
@@ -14174,7 +14302,7 @@ async function switchRole(role){
 
 async function doSignOut(){
   try{ await AUTH.client.auth.signOut(); }catch(e){}
-  AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.homework=[]; AUTH.students=[];
+  AUTH.user=null; AUTH.profile=null; AUTH.feedback=[]; AUTH.homework=[]; AUTH.students=[]; AUTH.classActivity=[];
   // Their work leaves with them — on a shared computer the next student must
   // not find the last one's essays sitting in the history tab.
   AUTH.submissions=[]; AUTH.historyAllowed=false; AUTH.historyReady=false; AUTH.submissionsLoaded=false;
@@ -14596,7 +14724,7 @@ async function loadStudents(){
 
 async function loadStudentDetail(studentId){
   const { data, error } = await AUTH.client.from("submissions")
-    .select("*").eq("student_id", studentId).order("created_at", { ascending:false }).limit(20);
+    .select("*").eq("student_id", studentId).order("created_at", { ascending:false }).limit(60);
   if(error) throw error;
   return data || [];
 }
@@ -15231,15 +15359,47 @@ function histListeningHTML(sub, m){
   }).join("");
 }
 
+function histIsPractice(sub){ return !!sub && (sub.task === "practice" || (sub.report && sub.report.kind === "practice")); }
+
+// Band for an exam paper, accuracy for practice — which has no band.
+function histScoreText(sub){
+  if(sub.band != null) return fmtBand(sub.band);
+  const a = sub.report && Number(sub.report.accuracy);
+  return isFinite(a) && sub.report.accuracy != null ? `${Math.round(a)}%` : "—";
+}
+
+// The ten-question practice ladder: each rung with its level, the answer given
+// and — where it was wrong — the right one and the reason.
+function histLadderHTML(sub, set){
+  const lines = (sub.report && Array.isArray(sub.report.lines)) ? sub.report.lines : [];
+  const byN = {}; lines.forEach(l=>{ byN[String(l.n)] = l; });
+  return `
+    <div class="hist-mat">
+      <div class="hist-mat-h">Free practice · <span>${histText(set.title)}</span></div>
+      ${set.paras ? `<details class="hist-passage"><summary>Read the passage again</summary>
+        ${Object.entries(set.paras).map(([k,v])=>`<p><b>${histText(k)}</b> ${histText(v)}</p>`).join("")}</details>` : ""}
+      ${(set.questions || []).map(q=>{
+        const l = byN[String(q.n)];
+        const opts = q.type === "mc" && Array.isArray(q.options) ? "  —  " + q.options.map((o,k)=>`${String.fromCharCode(65+k)}) ${o}`).join("   ") : "";
+        return histQRow(`${q.n} · level ${q.level}`, String(q.q || "") + opts, l)
+          + (l && !l.ok && q.why ? `<div class="hist-why">${histText(q.why)}</div>` : "");
+      }).join("")}
+      ${lines.length ? `<div class="lad-bar" style="margin-top:12px;">${(set.questions||[]).map(q=>`<span class="${byN[String(q.n)] && byN[String(q.n)].ok ? "ok" : "no"}">${q.n}</span>`).join("")}</div>
+        <div class="lad-scale"><span>easier</span><span>harder</span></div>` : ""}
+    </div>`;
+}
+
 function histDetailHTML(sub){
   const m = histMaterial(sub);
   const mod = String(sub.module || "").toLowerCase();
+  const practice = histIsPractice(sub);
 
   if(histIsAnswerSheet(sub)){
     const r = sub.report || {};
     const got = Number(r.correct), outOf = Number(r.total);
     const score = isFinite(outOf) && outOf
-      ? `<div class="hist-score">${isFinite(got) ? got : 0} of ${outOf} correct</div>` : "";
+      ? `<div class="hist-score">${isFinite(got) ? got : 0} of ${outOf} correct${practice ? ` — ${Math.round((got||0)/outOf*100)}%` : ""}</div>` : "";
+    if(m && m.ladder) return score + histLadderHTML(sub, m.ladder);
     const combined = m ? (mod === "reading" ? histReadingHTML(sub, m) : mod === "listening" ? histListeningHTML(sub, m) : "") : "";
     if(combined) return score + combined;
     return `${sub.prompt ? `<div class="hist-prompt">${escapeXml(sub.prompt)}</div>` : ""}${histAnswerSheetHTML(sub)}`;
@@ -15248,19 +15408,48 @@ function histDetailHTML(sub){
   const task = m
     ? (mod === "writing" ? histWritingTaskHTML(sub, m) : mod === "speaking" ? histSpeakingTaskHTML(m) : "")
     : "";
+  // Practice is marked for accuracy with corrections, not against the band
+  // descriptors, so it is read back the way it was shown at the time.
+  const body = practice && typeof accuracyCardHTML === "function"
+    ? `${sub.content ? `<div class="hist-said">${escapeXml(sub.content)}</div>` : ""}
+       <div style="margin-top:12px;">${accuracyCardHTML(sub.report || {}, {
+         title: mod === "speaking" ? "Precisión de las respuestas" : mod === "writing" ? "Precisión de la escritura" : "Precisión",
+         extra: practiceCorrectionsHTML(sub.report && sub.report.__text ? sub.report.__text : (sub.content || ""), sub.report || {}) })}</div>`
+    : histReportHTML(sub);
   return `
     ${task || (sub.prompt ? `<div class="hist-prompt">${escapeXml(sub.prompt)}</div>` : "")}
-    ${task ? `<div class="hist-mat-h" style="margin-top:16px;">${mod === "speaking" ? "What you said" : "What you wrote"}</div>` : ""}
-    ${histReportHTML(sub)}`;
+    ${task ? `<div class="hist-mat-h" style="margin-top:16px;">${mod === "speaking" ? "What was said" : "What was written"}</div>` : ""}
+    ${body}`;
 }
+
+// One row of the history, and its body when open. Shared by the student's
+// My history and the teacher's view of a student, so both read the same.
+function histItemHTML(sub, open){
+  const practice = histIsPractice(sub);
+  return `<div class="hist-item${practice ? " practice" : ""}">
+    <div class="hist-sum" data-hid="${escapeXml(sub.id)}">
+      <span class="caret">${open ? "▾" : "▸"}</span>
+      <span class="mod"><i class="sk-dot" style="background:${SKILL_COLORS[String(sub.module).toLowerCase()] || "#98a0b0"}"></i>${histLabel(sub.module)}${practice ? ` · <em>practice</em>` : sub.task ? " · " + escapeXml(sub.task) : ""}</span>
+      <span class="ttl">${escapeXml((sub.prompt || "").slice(0,110)) || "&nbsp;"}</span>
+      <span class="when">${histWhen(sub.created_at)}</span>
+      <span class="bnd${practice ? " pct" : ""}" title="${practice ? "Accuracy (free practice has no band)" : "Band"}">${histScoreText(sub)}</span>
+    </div>
+    ${open ? `<div class="hist-open">${histDetailHTML(sub)}</div>` : ""}
+  </div>`;
+}
+
+// Skill identity colours, fixed in this order everywhere the four skills are
+// told apart (validated for colour-vision deficiency; never used for status).
+const SKILL_COLORS = { listening:"#2a78d6", reading:"#eb6834", writing:"#1baf7a", speaking:"#eda100" };
 
 // Charts need a canvas that is already in the page, so they are drawn after
 // the panel is, and remembered so the next render can release them.
-function drawHistoryCharts(){
+function drawHistoryCharts(list){
   destroyHistoryCharts();
   if(typeof Chart === "undefined") return;       // the figures table still shows
+  const pool = list || AUTH.submissions || [];
   panel.querySelectorAll("canvas[data-hchart]").forEach(cv=>{
-    const sub = (AUTH.submissions || []).find(x=>String(x.id) === cv.dataset.hchart);
+    const sub = pool.find(x=>String(x.id) === cv.dataset.hchart);
     const m = histMaterial(sub);
     if(!m || !m.chartData) return;
     try{ histCharts.push(new Chart(cv, task1ChartConfig(m.chartData, cv.dataset.htype || "bar"))); }
@@ -15296,8 +15485,11 @@ async function renderMyHistory(){
   const all = AUTH.submissions || [];
   const counts = {};
   HIST_MODULES.forEach(m => counts[m] = all.filter(x => String(x.module).toLowerCase() === m).length);
+  counts.practice = all.filter(histIsPractice).length;
   if(histFilter !== "all" && !counts[histFilter]) histFilter = "all";
-  const shown = histFilter === "all" ? all : all.filter(x => String(x.module).toLowerCase() === histFilter);
+  const shown = histFilter === "all" ? all
+    : histFilter === "practice" ? all.filter(histIsPractice)
+    : all.filter(x => String(x.module).toLowerCase() === histFilter);
 
   panel.innerHTML = `
     <p class="section-title">My history</p>
@@ -15306,24 +15498,14 @@ async function renderMyHistory(){
     <div class="hist-filters">
       <button class="hist-chip ${histFilter==="all"?"on":""}" data-hf="all">All · ${all.length}</button>
       ${HIST_MODULES.map(m=>`<button class="hist-chip ${histFilter===m?"on":""}" data-hf="${m}"${counts[m]?"":" disabled style=\"opacity:.45;cursor:default;\""}>${histLabel(m)} · ${counts[m]}</button>`).join("")}
+      <button class="hist-chip ${histFilter==="practice"?"on":""}" data-hf="practice"${counts.practice?"":" disabled style=\"opacity:.45;cursor:default;\""}>Free practice · ${counts.practice}</button>
       <button class="btn ghost small" id="histRefresh" style="margin-left:auto;">Refresh</button>
     </div>
 
-    ${shown.length ? shown.map(sub=>{
-      const open = histOpenId === sub.id;
-      return `<div class="hist-item">
-        <div class="hist-sum" data-hid="${escapeXml(sub.id)}">
-          <span class="caret">${open ? "▾" : "▸"}</span>
-          <span class="mod">${histLabel(sub.module)}${sub.task ? " · " + escapeXml(sub.task) : ""}</span>
-          <span class="ttl">${escapeXml((sub.prompt || "").slice(0,110)) || "&nbsp;"}</span>
-          <span class="when">${histWhen(sub.created_at)}</span>
-          <span class="bnd">${sub.band != null ? fmtBand(sub.band) : "—"}</span>
-        </div>
-        ${open ? `<div class="hist-open">${histDetailHTML(sub)}</div>` : ""}
-      </div>`;
-    }).join("") : `<p class="dash-empty">Nothing here yet.<br>Sit a paper and it will appear the moment it is marked.</p>`}
+    ${shown.length ? shown.map(sub=>histItemHTML(sub, histOpenId === sub.id)).join("")
+      : `<p class="dash-empty">Nothing here yet.<br>Sit a paper, or mark something in Free practice, and it appears here.</p>`}
 
-    <p class="hist-note">Your teacher sees all of this too, and decides whether this page is open to you. Papers you sit in <b>Free practice</b> are not recorded.</p>
+    <p class="hist-note">Your teacher sees all of this too, and decides whether this page is open to you. Free practice shows its accuracy (%) rather than a band; switch <b>Save to my history</b> off in Free practice to practise without it being kept.</p>
   `;
   drawHistoryCharts();
 
@@ -15344,6 +15526,272 @@ async function renderMyHistory(){
     refreshAccountUI();
     await renderMyHistory();
   });
+}
+
+/* =========================================================================
+   CLASS DASHBOARD — how the class is doing, at a glance
+   Built from two sources the teacher can already read: each student's
+   progress row (their bands, and the last 30 band attempts) and the class's
+   submissions from the last 60 days (every paper and every marked practice).
+   Skill colours are fixed (SKILL_COLORS); status colours only ever mean
+   good / warning / critical and always come with an icon and a word.
+   ========================================================================= */
+const SKILLS = ["listening","reading","writing","speaking"];
+const DAY_MS = 864e5;
+const STATUS = { good:"#0ca30c", warning:"#fab219", critical:"#d03b3b" };
+
+async function loadClassActivity(){
+  AUTH.classActivity = [];
+  if(!isTeacher() || !(AUTH.students || []).length) return;
+  const since = new Date(Date.now() - 60*DAY_MS).toISOString();
+  try{
+    const { data, error } = await AUTH.client.from("submissions")
+      .select("student_id,module,task,band,created_at,accuracy:report->>accuracy")
+      .in("student_id", AUTH.students.map(s=>s.id)).gte("created_at", since)
+      .order("created_at", { ascending:false }).limit(3000);
+    if(error) throw error;
+    AUTH.classActivity = data || [];
+  }catch(e){
+    // The dashboard still draws from the bands alone.
+    console.warn("class activity could not be loaded", e);
+    AUTH.classActivity = [];
+  }
+}
+
+function studentBands(s){ return (s && s.progress && s.progress.scores) || {}; }
+function bandMean(sc){
+  const v = SKILLS.map(k=>sc[k]).filter(x=>x != null && isFinite(x)).map(Number);
+  return v.length ? v.reduce((a,b)=>a+b, 0) / v.length : null;
+}
+// The official overall only exists once all four are sat; until then the
+// mean of what has been sat is shown, and marked as partial.
+function studentOverall(s){
+  const sc = studentBands(s);
+  const m = bandMean(sc);
+  if(m == null) return null;
+  const complete = SKILLS.every(k=>sc[k] != null);
+  return { value: complete ? officialRound(m) : Math.round(m*10)/10, complete };
+}
+function studentHistoryRows(s){
+  return ((s && s.progress && s.progress.history) || [])
+    .filter(h=>h && SKILLS.includes(h.module) && isFinite(Number(h.band)))
+    .slice().reverse();                                   // oldest first
+}
+function skillAttempts(s, k){ return studentHistoryRows(s).filter(h=>h.module === k).map(h=>Number(h.band)); }
+function skillDelta(s, k){ const a = skillAttempts(s, k); return a.length >= 2 ? a[a.length-1] - a[a.length-2] : null; }
+// The estimated overall after each attempt: the mean of the latest band in
+// every skill sat so far. A line through raw attempts would mix four skills.
+function overallTrail(s){
+  const latest = {}, out = [];
+  studentHistoryRows(s).forEach(h=>{
+    latest[h.module] = Number(h.band);
+    out.push({ date:h.date, v: Math.round(bandMean(latest)*10)/10 });
+  });
+  return out;
+}
+
+function studentActivity(sid){
+  const rows = (AUTH.classActivity || []).filter(r=>r.student_id === sid);
+  const now = Date.now();
+  const within = (r, d)=> now - new Date(r.created_at).getTime() < d*DAY_MS;
+  const practice = rows.filter(r=>r.task === "practice");
+  const acc = practice.filter(r=>within(r, 30) && r.accuracy != null).map(r=>Number(r.accuracy)).filter(isFinite);
+  return {
+    rows,
+    week: rows.filter(r=>within(r, 7)).length,
+    prevWeek: rows.filter(r=>!within(r, 7) && within(r, 14)).length,
+    weekPractice: practice.filter(r=>within(r, 7)).length,
+    practice30: practice.filter(r=>within(r, 30)),
+    practiceAcc: acc.length ? Math.round(acc.reduce((a,b)=>a+b, 0) / acc.length) : null,
+    last: rows.length ? new Date(rows[0].created_at).getTime() : null
+  };
+}
+function studentLastActive(s){
+  const a = studentActivity(s.id).last;
+  const p = s.progress && s.progress.updated_at ? new Date(s.progress.updated_at).getTime() : null;
+  return Math.max(a || 0, p || 0) || null;
+}
+function daysSince(t){ return t ? Math.floor((Date.now() - t) / DAY_MS) : null; }
+
+// What a teacher should look at first. Colour never stands alone: every flag
+// carries an icon and a word.
+function studentFlags(s){
+  const flags = [];
+  const d = daysSince(studentLastActive(s));
+  if(d == null) flags.push({ tone:"warning", icon:"○", text:"No work yet" });
+  else if(d >= 7) flags.push({ tone:"warning", icon:"◷", text:`Inactive ${d} days` });
+  const t = overallTrail(s);
+  if(t.length >= 3 && t[t.length-1].v <= t[t.length-3].v - 0.5) flags.push({ tone:"critical", icon:"↓", text:"Band falling" });
+  if(t.length >= 3 && t[t.length-1].v >= t[t.length-3].v + 0.5) flags.push({ tone:"good", icon:"↑", text:"Improving" });
+  return flags;
+}
+function flagHTML(f){ return `<span class="dflag ${f.tone}"><i style="color:${STATUS[f.tone]}">${f.icon}</i>${escapeHtml(f.text)}</span>`; }
+
+// Signed change with its direction shown by an arrow in the status colour and
+// the number itself in ink.
+function deltaHTML(d, digits){
+  if(d == null || !isFinite(d) || Math.abs(d) < 0.05) return `<span class="ddelta flat">–</span>`;
+  const up = d > 0;
+  return `<span class="ddelta"><i style="color:${up ? STATUS.good : STATUS.critical}">${up ? "▲" : "▼"}</i>${up ? "+" : "−"}${Math.abs(d).toFixed(digits == null ? 1 : digits)}</span>`;
+}
+
+// A small trend line in the de-emphasis grey, its latest point in the accent.
+function sparklineSVG(vals, w, h){
+  w = w || 84; h = h || 26;
+  if(!vals || vals.length < 2) return `<span class="spark-none">—</span>`;
+  const min = Math.min(...vals), max = Math.max(...vals), span = Math.max(1, max - min);
+  const x = i => 4 + i*(w-8)/(vals.length-1), y = v => h-5 - (v-min)/span*(h-10);
+  const d = vals.map((v,i)=>`${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join("");
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path d="${d}" fill="none" stroke="#9aa3b2" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${x(vals.length-1).toFixed(1)}" cy="${y(vals[vals.length-1]).toFixed(1)}" r="4" fill="#2a78d6" stroke="#fff" stroke-width="2"/></svg>`;
+}
+
+function kpiHTML(label, value, sub){
+  return `<div class="kpi"><span class="kpi-l">${label}</span><b class="kpi-v">${value}</b>${sub ? `<span class="kpi-s">${sub}</span>` : ""}</div>`;
+}
+
+function classOverviewHTML(){
+  const st = AUTH.students || [];
+  const n = st.length;
+  const acts = st.map(s=>studentActivity(s.id));
+  const active = acts.filter(a=>a.week > 0).length;
+  const week = acts.reduce((a,x)=>a + x.week, 0), prev = acts.reduce((a,x)=>a + x.prevWeek, 0);
+  const means = st.map(s=>bandMean(studentBands(s))).filter(v=>v != null);
+  const avg = means.length ? means.reduce((a,b)=>a+b, 0) / means.length : null;
+  const pAcc = [].concat(...acts.map(a=>a.practice30)).map(r=>Number(r.accuracy)).filter(isFinite);
+  const pAvg = pAcc.length ? Math.round(pAcc.reduce((a,b)=>a+b, 0) / pAcc.length) : null;
+  const hw = AUTH.homework || [];
+  const hwDone = hw.filter(h=>h.done_at).length;
+  const weekDelta = week - prev;
+
+  const kpis = `<div class="kpi-row">
+    ${kpiHTML("Class average band", avg == null ? "—" : `${avg.toFixed(1)}<small> ${bandToCEFR(avg)}</small>`, `${means.length} of ${n} with a band`)}
+    ${kpiHTML("Active this week", `${active}<small> of ${n}</small>`, "students with work in the last 7 days")}
+    ${kpiHTML("Work this week", String(week), prev || week ? `${weekDelta === 0 ? "same as" : (weekDelta > 0 ? `<i style="color:${STATUS.good}">▲</i> ${weekDelta} more than` : `<i style="color:${STATUS.critical}">▼</i> ${-weekDelta} fewer than`)} the week before` : "papers and practice")}
+    ${kpiHTML("Practice accuracy", pAvg == null ? "—" : `${pAvg}%`, pAcc.length ? `over ${pAcc.length} marked practice${pAcc.length === 1 ? "" : "s"}, 30 days` : "no marked practice in 30 days")}
+    ${kpiHTML("Homework done", hw.length ? `${Math.round(hwDone/hw.length*100)}%` : "—", hw.length ? `${hwDone} of ${hw.length} tasks` : "no homework set")}
+  </div>`;
+
+  // Class skill profile: one bar per skill on the 0–9 band scale. The point
+  // is which skill needs the class's time, so that one bar is in the accent
+  // and the others recede.
+  const prof = SKILLS.map(k=>{
+    const v = st.map(s=>studentBands(s)[k]).filter(x=>x != null && isFinite(x)).map(Number);
+    const practice = [].concat(...acts.map(a=>a.practice30)).filter(r=>r.module === k).length;
+    return { k, n:v.length, avg: v.length ? v.reduce((a,b)=>a+b, 0)/v.length : null, practice };
+  });
+  const scored = prof.filter(p=>p.avg != null);
+  const weakest = scored.length > 1 ? scored.reduce((a,b)=>b.avg < a.avg ? b : a) : null;
+  const profile = `<div class="dcard">
+    <div class="dcard-h">Class skill profile${weakest ? ` <span>— weakest: ${histLabel(weakest.k)} ${weakest.avg.toFixed(1)}</span>` : ""}</div>
+    ${prof.map(p=>`
+      <div class="sprof" title="${histLabel(p.k)}: ${p.avg == null ? "no bands yet" : p.avg.toFixed(2) + " average from " + p.n + " student" + (p.n === 1 ? "" : "s")}; ${p.practice} practice in 30 days">
+        <span class="sprof-l"><i class="sk-dot" style="background:${SKILL_COLORS[p.k]}"></i>${histLabel(p.k)}</span>
+        <span class="sprof-track">${p.avg == null ? "" : `<span class="sprof-bar${weakest && weakest.k === p.k ? " weak" : ""}" style="width:${(p.avg/9*100).toFixed(1)}%"></span>`}</span>
+        <span class="sprof-v">${p.avg == null ? "—" : p.avg.toFixed(1)}</span>
+        <span class="sprof-n">${p.n} student${p.n === 1 ? "" : "s"} · ${p.practice} practice</span>
+      </div>`).join("")}
+    <div class="sprof-axis"><span>0</span><span>band 9</span></div>
+  </div>`;
+  return kpis + profile;
+}
+
+let rosterSort = "attention";
+function sortedStudents(){
+  const st = (AUTH.students || []).slice();
+  const ov = s => { const o = studentOverall(s); return o ? o.value : -1; };
+  if(rosterSort === "name") st.sort((a,b)=>String(a.full_name||"").localeCompare(String(b.full_name||"")));
+  else if(rosterSort === "band") st.sort((a,b)=>ov(b) - ov(a));
+  else if(rosterSort === "active") st.sort((a,b)=>studentActivity(b.id).week - studentActivity(a.id).week);
+  else st.sort((a,b)=>{
+    // Needs attention: flagged first (falling, then inactive), then lowest band.
+    const w = s => studentFlags(s).reduce((m,f)=>Math.max(m, f.tone === "critical" ? 2 : f.tone === "warning" ? 1 : 0), 0);
+    return (w(b) - w(a)) || (ov(a) - ov(b));
+  });
+  return st;
+}
+
+function activityStripHTML(rows){
+  const days = 28, today = new Date(); today.setHours(0,0,0,0);
+  const counts = new Array(days).fill(0), prac = new Array(days).fill(0);
+  rows.forEach(r=>{
+    const d = new Date(r.created_at); d.setHours(0,0,0,0);
+    const i = days - 1 - Math.round((today - d) / DAY_MS);
+    if(i >= 0 && i < days){ counts[i]++; if(r.task === "practice") prac[i]++; }
+  });
+  const step = c => c === 0 ? "a0" : c === 1 ? "a1" : c === 2 ? "a2" : c <= 4 ? "a3" : "a4";
+  const cells = counts.map((c,i)=>{
+    const d = new Date(today.getTime() - (days-1-i)*DAY_MS);
+    const label = d.toLocaleDateString("en-GB",{weekday:"short", day:"2-digit", month:"short"});
+    return `<span class="act ${step(c)}" title="${label}: ${c ? c + " piece" + (c === 1 ? "" : "s") + " of work" + (prac[i] ? ` (${prac[i]} practice)` : "") : "nothing"}"></span>`;
+  }).join("");
+  const total = counts.reduce((a,b)=>a+b, 0), activeDays = counts.filter(Boolean).length;
+  return `<div class="act-strip">${cells}</div>
+    <div class="act-foot"><span>4 weeks ago</span><span class="act-key">less <i class="act a0"></i><i class="act a1"></i><i class="act a2"></i><i class="act a3"></i><i class="act a4"></i> more</span><span>today</span></div>
+    <p class="dnote">${total} piece${total === 1 ? "" : "s"} of work on ${activeDays} of the last 28 days.</p>`;
+}
+
+function studentSkillTilesHTML(s){
+  const sc = studentBands(s);
+  return `<div class="stile-row">${SKILLS.map(k=>{
+    const a = skillAttempts(s, k);
+    const best = a.length ? Math.max(...a) : null;
+    return `<div class="stile">
+      <span class="stile-l"><i class="sk-dot" style="background:${SKILL_COLORS[k]}"></i>${histLabel(k)}</span>
+      <b class="stile-v">${sc[k] != null ? fmtBand(sc[k]) : "—"}</b>
+      <span class="stile-s">${deltaHTML(skillDelta(s, k))} <span>vs last attempt</span></span>
+      <span class="stile-s">${best != null ? `best ${fmtBand(best)} · ` : ""}${a.length} attempt${a.length === 1 ? "" : "s"}</span>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+function practiceSummaryHTML(sid){
+  const a = studentActivity(sid);
+  const p = a.practice30;
+  if(!p.length) return `<p class="dnote">No marked practice in the last 30 days.</p>`;
+  const accs = p.slice().reverse().map(r=>Number(r.accuracy)).filter(isFinite);
+  return `<div class="psum">
+      <div><span class="kpi-l">Average accuracy</span><b class="kpi-v">${a.practiceAcc != null ? a.practiceAcc + "%" : "—"}</b></div>
+      <div><span class="kpi-l">Accuracy, session by session</span>${sparklineSVG(accs, 150, 34)}</div>
+    </div>
+    <div class="psum-sk">${SKILLS.map(k=>{
+      const c = p.filter(r=>r.module === k).length;
+      return `<span><i class="sk-dot" style="background:${SKILL_COLORS[k]}"></i>${histLabel(k)} <b>${c}</b></span>`;
+    }).join("")}</div>`;
+}
+
+// The student's bands over time, one line per skill in its fixed colour.
+function drawStudentBandChart(s){
+  const cv = document.getElementById("stuBandChart");
+  if(!cv || typeof Chart === "undefined") return;
+  const rows = studentHistoryRows(s);
+  const vals = rows.map(r=>Number(r.band));
+  const lo = Math.max(0, Math.floor(Math.min(...vals)) - 1);
+  const chart = new Chart(cv, {
+    type:"line",
+    data:{
+      labels: rows.map(r=>new Date(r.date).toLocaleDateString("en-GB",{day:"2-digit", month:"short"})),
+      datasets: SKILLS.filter(k=>rows.some(r=>r.module === k)).map(k=>({
+        label: histLabel(k),
+        data: rows.map(r=>r.module === k ? Number(r.band) : null),
+        borderColor: SKILL_COLORS[k], backgroundColor: SKILL_COLORS[k],
+        borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, pointBorderColor: "#fff", pointBorderWidth: 2,
+        spanGaps: true, tension: 0
+      }))
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:"nearest", intersect:false },
+      plugins:{
+        legend:{ position:"top", align:"start", labels:{ usePointStyle:true, boxWidth:8, color:"#131b2e", font:{ size:11.5 } } },
+        tooltip:{ callbacks:{ label: c => `${c.dataset.label}: band ${Number(c.parsed.y).toFixed(1)}` } }
+      },
+      scales:{
+        y:{ min: lo, max: 9, ticks:{ stepSize: 1, color:"#5b6478", font:{ size:10.5 } }, grid:{ color:"rgba(19,27,46,.08)" }, border:{ display:false } },
+        x:{ ticks:{ color:"#5b6478", font:{ size:10 }, maxRotation:0, autoSkip:true, maxTicksLimit:8 }, grid:{ display:false } }
+      }
+    }
+  });
+  histCharts.push(chart);
 }
 
 async function renderClassDashboard(){
@@ -15372,6 +15820,7 @@ async function renderClassDashboard(){
       </div>
       <button class="btn secondary small" id="refreshClassBtn">Refresh</button>
     </div>
+    <div id="classOverview"></div>
     <div id="rosterArea"><p class="dash-empty">Loading your class…</p></div>
     <div id="studentDetailArea"></div>
     <div id="audioLibArea"></div>
@@ -15399,11 +15848,14 @@ async function renderClassDashboard(){
   document.getElementById("refreshClassBtn").addEventListener("click", async ()=>{
     await loadStudents();
     await loadTeacherHomework();
+    await loadClassActivity();
     drawRoster();
+    if(classSelectedStudent) openStudent(classSelectedStudent);
     drawAudioLibraryManager(true);
   });
   await loadStudents();
   await loadTeacherHomework();
+  await loadClassActivity();
   drawRoster();
   drawAudioLibraryManager(false);
 }
@@ -15492,54 +15944,93 @@ async function drawAudioLibraryManager(reload){
 
 function drawRoster(){
   const area = document.getElementById("rosterArea");
+  const ov = document.getElementById("classOverview");
   if(!area) return;
   if(!AUTH.students.length){
+    if(ov) ov.innerHTML = "";
     area.innerHTML = `<p class="dash-empty">No students yet.<br>Share your class code above — when they create an account with it, they appear here automatically.</p>`;
     return;
   }
+  if(ov) ov.innerHTML = classOverviewHTML();
+  const cell = (s, k) => {
+    const v = studentBands(s)[k];
+    return v == null ? `<td class="band muted">—</td>` : `<td class="band">${fmtBand(v)}<br>${deltaHTML(skillDelta(s, k))}</td>`;
+  };
   area.innerHTML = `
+    <div class="roster-head">
+      <div class="dcard-h" style="margin:0;">Students <span>(${AUTH.students.length})</span></div>
+      <label class="roster-sort">Sort by
+        <select id="rosterSort" class="gen-select">
+          <option value="attention" ${rosterSort==="attention"?"selected":""}>Needs attention first</option>
+          <option value="band" ${rosterSort==="band"?"selected":""}>Overall band, high to low</option>
+          <option value="active" ${rosterSort==="active"?"selected":""}>Most active this week</option>
+          <option value="name" ${rosterSort==="name"?"selected":""}>Name</option>
+        </select>
+      </label>
+    </div>
+    <div class="roster-scroll">
     <table class="roster">
       <tr>
-        <th>Student</th><th class="band">Listening</th><th class="band">Reading</th>
-        <th class="band">Writing</th><th class="band">Speaking</th><th class="band">Homework</th><th class="band">History</th><th>Last activity</th>
+        <th>Student</th><th class="band">Overall</th>
+        ${SKILLS.map(k=>`<th class="band"><i class="sk-dot" style="background:${SKILL_COLORS[k]}"></i>${histLabel(k).slice(0,1)}<span class="th-full">${histLabel(k).slice(1)}</span></th>`).join("")}
+        <th class="band">Trend</th><th class="band">This week</th><th class="band">Practice</th><th class="band">Homework</th><th class="band">History</th><th>Last active</th>
       </tr>
-      ${AUTH.students.map(s=>{
-        const sc = (s.progress && s.progress.scores) || {};
-        const cell = v => v==null ? `<td class="band" style="color:var(--slate);">—</td>` : `<td class="band">${fmtBand(v)}</td>`;
-        const when = s.progress && s.progress.updated_at ? new Date(s.progress.updated_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) : "—";
+      ${sortedStudents().map(s=>{
+        const o = studentOverall(s);
+        const a = studentActivity(s.id);
+        const trail = overallTrail(s).slice(-12).map(t=>t.v);
         const hw = (AUTH.homework || []).filter(h=>h.student_id === s.id);
         const open = hw.filter(h=>!h.done_at).length;
-        return `<tr class="clickable" data-sid="${s.id}">
-          <td><span class="stu-name">${escapeXml(s.full_name||"(no name)")}</span><br><span class="stu-mail">${escapeXml(s.email||"")}</span></td>
-          ${cell(sc.listening)}${cell(sc.reading)}${cell(sc.writing)}${cell(sc.speaking)}
-          <td class="band" style="font-family:'IBM Plex Mono',monospace;font-size:12px;${open?"color:var(--coral);font-weight:700;":"color:var(--slate);"}">${
-            hw.length ? `${hw.length-open}/${hw.length}` : "—"}</td>
-          <td class="band">${
-            studentHistoryOn(s)
+        const last = studentLastActive(s);
+        const flags = studentFlags(s);
+        return `<tr class="clickable${classSelectedStudent === s.id ? " sel" : ""}" data-sid="${s.id}">
+          <td><span class="stu-name">${escapeXml(s.full_name||"(no name)")}</span><br><span class="stu-mail">${escapeXml(s.email||"")}</span>
+            ${flags.length ? `<div class="dflags">${flags.map(flagHTML).join("")}</div>` : ""}</td>
+          <td class="band ov">${o ? `${o.value.toFixed(1)}<small>${o.complete ? bandToCEFR(o.value) : "partial"}</small>` : `<span class="muted">—</span>`}</td>
+          ${SKILLS.map(k=>cell(s, k)).join("")}
+          <td class="band">${sparklineSVG(trail)}</td>
+          <td class="band">${a.week ? `<b>${a.week}</b><small>${a.weekPractice ? `${a.weekPractice} practice` : "papers"}</small>` : `<span class="muted">0</span>`}</td>
+          <td class="band">${a.practiceAcc != null ? `<b>${a.practiceAcc}%</b><small>${a.practice30.length} in 30 d</small>` : `<span class="muted">—</span>`}</td>
+          <td class="band mono ${open ? "hw-open" : "muted"}">${hw.length ? `${hw.length-open}/${hw.length}` : "—"}</td>
+          <td class="band">${studentHistoryOn(s)
               ? `<span class="hist-state yes">${s.history_override===true?"On · set":"On"}</span>`
-              : `<span class="hist-state no">${s.history_override===false?"Off · set":"Off"}</span>`
-          }</td>
-          <td style="font-size:12px;color:var(--slate);">${when}</td>
+              : `<span class="hist-state no">${s.history_override===false?"Off · set":"Off"}</span>`}</td>
+          <td class="last">${last ? new Date(last).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}) + `<small>${daysSince(last) === 0 ? "today" : daysSince(last) + " d ago"}</small>` : `<span class="muted">—</span>`}</td>
         </tr>`;
       }).join("")}
-    </table>`;
+    </table></div>
+    <p class="dnote">Overall is the official average once all four skills are sat, and the mean of those sat until then ("partial"). Arrows compare each skill with that student's previous attempt. Trend is their estimated overall after each attempt; Practice is their average accuracy in Free practice over 30 days.</p>`;
   area.querySelectorAll("tr.clickable").forEach(tr=>{
     tr.addEventListener("click", ()=>openStudent(tr.dataset.sid));
   });
+  const so = document.getElementById("rosterSort");
+  if(so) so.addEventListener("change", ()=>{ rosterSort = so.value; drawRoster(); });
 }
 
-async function openStudent(sid){
+// A student's work is fetched once per selection; opening one piece of it
+// redraws the panel from memory rather than asking the server again.
+const studentSubsCache = {};
+let teacherOpenSub = null;
+
+async function openStudent(sid, fromCache){
   const s = AUTH.students.find(x=>x.id===sid);
   if(!s) return;
-  if(sid !== classSelectedStudent) hwEditingId = null;
+  if(sid !== classSelectedStudent){ hwEditingId = null; teacherOpenSub = null; }
   const hwForStudent = (AUTH.homework || []).filter(h=>h.student_id === sid);
   classSelectedStudent = sid;
+  document.querySelectorAll("#rosterArea tr.clickable").forEach(tr=>tr.classList.toggle("sel", tr.dataset.sid === sid));
   const area = document.getElementById("studentDetailArea");
-  area.innerHTML = `<div class="stu-detail"><p class="dash-empty">Loading ${escapeXml(s.full_name||"student")}…</p></div>`;
-  let subs = [];
-  try{ subs = await loadStudentDetail(sid); }
-  catch(e){ console.error(e); }
-  const sc = (s.progress && s.progress.scores) || {};
+  let subs = fromCache ? studentSubsCache[sid] : null;
+  if(!subs){
+    area.innerHTML = `<div class="stu-detail"><p class="dash-empty">Loading ${escapeXml(s.full_name||"student")}…</p></div>`;
+    subs = [];
+    try{ subs = await loadStudentDetail(sid); }
+    catch(e){ console.error(e); }
+    studentSubsCache[sid] = subs;
+  }
+  destroyHistoryCharts();
+  const bandRows = studentHistoryRows(s);
+  const flags = studentFlags(s);
   area.innerHTML = `
     <div class="stu-detail">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
@@ -15548,9 +16039,22 @@ async function openStudent(sid){
           <span class="stu-mail">${escapeXml(s.email||"")}</span>
           <div style="margin-top:6px;"><button class="btn ghost small" id="removeStudentBtn">Remove from class</button></div>
         </div>
-        <div style="display:flex;gap:14px;flex-wrap:wrap;">
-          ${["listening","reading","writing","speaking"].map(m=>`
-            <div class="metric">${m[0].toUpperCase()+m.slice(1)}<b>${sc[m]!=null?fmtBand(sc[m]):"—"}</b></div>`).join("")}
+        ${flags.length ? `<div class="dflags">${flags.map(flagHTML).join("")}</div>` : ""}
+      </div>
+
+      ${studentSkillTilesHTML(s)}
+
+      <div class="dgrid">
+        <div class="dcard">
+          <div class="dcard-h">Band history <span>— every scored paper, by skill</span></div>
+          ${bandRows.length >= 2 ? `<div class="dchart"><canvas id="stuBandChart"></canvas></div>`
+            : `<p class="dnote">${bandRows.length ? "One scored paper so far — the chart starts with the second." : "No scored papers yet."}</p>`}
+        </div>
+        <div class="dcard">
+          <div class="dcard-h">Activity <span>— papers and practice, last 4 weeks</span></div>
+          ${activityStripHTML(studentActivity(sid).rows)}
+          <div class="dcard-h" style="margin-top:16px;">Free practice <span>— last 30 days</span></div>
+          ${practiceSummaryHTML(sid)}
         </div>
       </div>
 
@@ -15570,18 +16074,8 @@ async function openStudent(sid){
         <span id="stuHistStatus" style="font-size:12px;"></span>
       </div>
 
-      <div class="feedback-label" style="margin-top:18px;">Recent submissions</div>
-      ${subs.length ? subs.map(x=>`
-        <div class="sub-card">
-          <div class="sub-head">
-            <span class="sub-tag">${escapeXml(x.module)}${x.task?" · "+escapeXml(x.task):""}</span>
-            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--slate);">
-              ${x.band!=null?`Band ${fmtBand(x.band)} · `:""}${new Date(x.created_at).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
-            </span>
-          </div>
-          ${x.prompt?`<div style="font-size:12px;color:var(--slate);margin-bottom:6px;font-style:italic;">${escapeXml(x.prompt.slice(0,200))}</div>`:""}
-          <div class="sub-body">${escapeXml(x.content||"(no text)")}</div>
-        </div>`).join("") : `<p class="dash-empty" style="padding:14px;">No submissions yet.</p>`}
+      <div class="feedback-label" style="margin-top:18px;">Their work <span style="text-transform:none;letter-spacing:0;color:var(--slate);font-family:inherit;">— papers and Free practice, newest first; open one to see the task, their answer and the marking</span></div>
+      <div id="stuWork">${subs.length ? subs.map(x=>histItemHTML(x, teacherOpenSub === x.id)).join("") : `<p class="dash-empty" style="padding:14px;">No submissions yet.</p>`}</div>
 
       <div class="feedback-label" style="margin-top:18px;">Send feedback &amp; tips</div>
       <textarea class="fb-send" id="fbMessage" placeholder="Write a note for ${escapeXml((s.full_name||'this student').split(' ')[0])} — it appears on their home page and under their bell."></textarea>
@@ -15625,6 +16119,16 @@ async function openStudent(sid){
           </ul>` : `<p style="font-size:12.5px;color:var(--slate);margin:10px 0 0;">No homework set for this student yet.</p>`}
       </div>
     </div>`;
+  // Task 1 charts inside opened work first (that clears old charts), then the
+  // band history on top of them.
+  drawHistoryCharts(subs);
+  if(bandRows.length >= 2) drawStudentBandChart(s);
+  area.querySelectorAll("#stuWork [data-hid]").forEach(el=>el.addEventListener("click", ()=>{
+    teacherOpenSub = (teacherOpenSub === el.dataset.hid) ? null : el.dataset.hid;
+    const y = window.scrollY;
+    openStudent(sid, true).then(()=>window.scrollTo({ top:y }));
+  }));
+
   document.querySelectorAll("#stuHistSeg button").forEach(b=>b.addEventListener("click", async ()=>{
     const pick = b.dataset.sh;
     if(pick === studentHistorySetting(s)) return;
