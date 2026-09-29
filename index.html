@@ -1655,6 +1655,16 @@ textarea.essay{
 .hist-note{font-size:11.5px;color:var(--slate);line-height:1.6;margin:12px 0 0;}
 .hist-locked{background:#fff;border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:0 12px 12px 0;padding:18px 20px;margin-top:18px;font-size:13.5px;line-height:1.75;color:var(--slate);}
 .hist-locked b{color:var(--ink);}
+.t1-box{max-width:980px;}
+.t1-box.t1-chart{max-width:680px;}
+.t1-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.t1-bank{max-width:100%;flex:1;min-width:220px;font-size:12.5px;}
+.t1-svg{width:100%;height:auto;display:block;font-family:inherit;}
+.t1-maps{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.t1-map-fig{margin:0;}
+.t1-map-fig figcaption{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.06em;text-align:center;color:var(--ink);margin-bottom:4px;}
+.t1-map-place{text-align:center;font-size:12px;color:var(--slate);margin:8px 0 0;font-style:italic;}
+@media(max-width:700px){.t1-maps{grid-template-columns:1fr;}}
 .pr-gen-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
 .pr-gen-row input{flex:1;min-width:220px;}
 .pr-passage b.pr-para{font-family:'IBM Plex Mono',monospace;color:var(--brass);margin-right:6px;}
@@ -4443,13 +4453,37 @@ WRITING THE FEEDBACK:
 - Never mention CEFR levels (A1-C2) anywhere in your output. You award IELTS bands only; the app derives any CEFR label itself.
 - The "summary" must be consistent with the awarded bands: name the strongest criterion, the weakest, and the single highest-value fix.`;
 
+/* What a good answer to THIS Task 1 must do. The descriptors are the same for
+   every visual, but what "a clear overview" and "key features" mean is not:
+   for a process it is every stage in order, for maps it is the changes. */
+function task1ExaminerNote(){
+  const k = task1Kind();
+  if(k === "process"){
+    const cyc = WRITING.task1.process && WRITING.task1.process.cycle;
+    return `THIS TASK 1 IS A PROCESS DIAGRAM${cyc ? " (a continuous cycle)" : ""}. Judge Task Achievement against the stages given with the task:
+- An overview must state what the process is and its extent — how many stages, where it ${cyc ? "begins and that it repeats as a cycle" : "starts and where it ends"}. Following the descriptors, without a clear overview Task Achievement cannot go above band 5.
+- Every stage must be covered, in the correct order. Stages that are missing, merged beyond recognition, reordered or invented are inaccurate or inadequately covered key features.
+- There are no figures to compare, so do not ask for comparisons; do reward accurate sequencing language (first, next, once…, after which, finally) and, for a man-made process, appropriate use of the passive.`;
+  }
+  if(k === "map"){
+    const md = WRITING.task1.map || {};
+    const dates = (md.maps || []).map(m=>m.label).join(" and ");
+    return `THIS TASK 1 IS ${md.indoor ? "A PAIR OF FLOOR PLANS" : "A SET OF MAPS"} (${dates}). Judge Task Achievement against the features given with the task:
+- An overview must summarise the most significant overall changes (e.g. the area became more residential / more commercial, green space was lost). Following the descriptors, without a clear overview Task Achievement cannot go above band 5.
+- Key features are the changes between the dates — what was built, demolished, replaced, extended, reduced, moved or converted — and what stayed the same. Report them accurately and compare the maps rather than describing each one separately.
+- Location language (to the north of, opposite, next to, in the south-west corner) must match the positions given; wrong locations are inaccuracies.
+- Tense must fit the dates: past forms between two past dates; past and present (perfect) between a past date and now; future forms (will be, is planned to be) for a planned or projected map.`;
+  }
+  return `THIS TASK 1 IS A CHART OR TABLE. Judge accuracy against the data given with the task: figures, trends and comparisons that are misreported are inaccuracies, and a clear overview of the main trends or differences is required for band 6 and above in Task Achievement.`;
+}
+
 function writingRubric(task){
   const isTask1 = task === "task1";
   const setKey = isTask1 ? "writing_task1" : "writing_task2";
   const first = isTask1 ? "Task Achievement" : "Task Response";
   return `You are an experienced, calibrated IELTS Academic Writing examiner marking ${isTask1 ? "TASK 1 (a report describing a visual)" : "TASK 2 (an argumentative essay)"}. Score against the four official criteria: ${first}, Coherence & Cohesion, Lexical Resource, Grammatical Range & Accuracy.
 
-OFFICIAL BAND DESCRIPTORS — award the band whose wording actually matches the evidence.
+${isTask1 ? task1ExaminerNote() + "\n\n" : ""}OFFICIAL BAND DESCRIPTORS — award the band whose wording actually matches the evidence.
 
 ${descriptorPromptBlock(setKey)}
 
@@ -10441,6 +10475,504 @@ function showReadingResult(){
 
 let task1Chart=null;
 let chart3D=null;
+/* =========================================================================
+   WRITING TASK 1 — PROCESSES AND MAPS
+   Task 1 is not only charts. Two other visuals turn up in the real paper:
+
+   PROCESS  something man-made (recycling glass) or natural (the water cycle),
+            with a start and an end — or a loop, for a cycle. The answer needs
+            an overview and every stage, in order.
+   MAP      the same place at two dates: two past dates (1966 and 2016), a
+            past date and now, or now and a plan (2032). Outdoors — a town, a
+            campus — or indoors, as a floor plan. The answer compares them.
+
+   Both are drawn here as SVG from plain data, so a generated task and a
+   built-in one look the same and nothing needs a chart library.
+   ========================================================================= */
+
+// The kind of Task 1 a WRITING.task1 object holds. Older saved exams have no
+// "kind" and are charts.
+function task1Kind(t1){
+  const t = t1 || (typeof WRITING !== "undefined" ? WRITING.task1 : null) || {};
+  if(t.kind === "process" || t.process) return "process";
+  if(t.kind === "map" || t.map) return "map";
+  return "chart";
+}
+function task1HasVisual(t1){
+  const t = t1 || WRITING.task1 || {};
+  const k = task1Kind(t);
+  return k === "process" ? !!(t.process && t.process.steps && t.process.steps.length)
+       : k === "map" ? !!(t.map && t.map.maps && t.map.maps.length)
+       : !!t.chartData;
+}
+
+let svgUid = 0;
+// SVG has no text wrapping; this breaks on words to a rough character budget.
+function svgWrap(text, maxChars, maxLines){
+  const words = String(text || "").split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = "";
+  words.forEach(w=>{
+    if(!cur) cur = w;
+    else if((cur + " " + w).length <= maxChars) cur += " " + w;
+    else { lines.push(cur); cur = w; }
+  });
+  if(cur) lines.push(cur);
+  if(maxLines && lines.length > maxLines){
+    const kept = lines.slice(0, maxLines);
+    kept[maxLines-1] = kept[maxLines-1].replace(/\s*\S*$/, "") + "…";
+    return kept;
+  }
+  return lines;
+}
+function svgLines(lines, x, y, lh, attrs){
+  return lines.map((l,i)=>`<text x="${x}" y="${y + i*lh}" ${attrs}>${escapeXml(l)}</text>`).join("");
+}
+
+/* ---- process ----
+   A line of stages snakes left-to-right, then right-to-left, four to a row;
+   a cycle sits on an ellipse with the last stage leading back to the first. */
+function buildProcessSVG(p){
+  const steps = (p && Array.isArray(p.steps)) ? p.steps : [];
+  if(!steps.length) return "";
+  const id = "pa" + (++svgUid);
+  const ink = "#131b2e", accent = p.natural ? "#2f6f62" : "#8a6c11";
+  const defs = `<defs><marker id="${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${accent}"/></marker></defs>`;
+  const box = (x, y, w, h, s, i, isEnd)=>{
+    const label = svgWrap(s.label, Math.floor(w/7.4), 2);
+    const detail = svgWrap(s.detail || "", Math.floor(w/5.9), 3);
+    const top = y + 30;
+    return `<g>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="#fff" stroke="${accent}" stroke-width="${isEnd ? 2.4 : 1.4}"/>
+      <circle cx="${x+16}" cy="${y+16}" r="11" fill="${accent}"/>
+      <text x="${x+16}" y="${y+20}" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">${i+1}</text>
+      ${svgLines(label, x + w/2 + 8, y + 20, 13, `text-anchor="middle" font-size="12" font-weight="700" fill="${ink}"`)}
+      ${svgLines(detail, x + w/2, top + (label.length-1)*13 + 6, 12, `text-anchor="middle" font-size="10" fill="#4a5468"`)}
+    </g>`;
+  };
+  const title = p.title ? `<text x="50%" y="22" text-anchor="middle" font-size="14" font-weight="700" fill="${ink}">${escapeXml(p.title)}</text>` : "";
+
+  if(p.cycle){
+    const n = steps.length, W = 680, H = 520, cx = W/2, cy = H/2 + 14, rx = 240, ry = 172, bw = 150, bh = 84;
+    const pts = steps.map((_,i)=>{ const a = -Math.PI/2 + i*2*Math.PI/n; return [cx + rx*Math.cos(a), cy + ry*Math.sin(a)]; });
+    const arrows = pts.map((pt,i)=>{
+      const q = pts[(i+1)%n];
+      const dx = q[0]-pt[0], dy = q[1]-pt[1], len = Math.hypot(dx,dy) || 1;
+      // Leave each box at its edge: the fraction of the segment that lies
+      // inside a box, plus a few pixels of air.
+      const edge = Math.min(Math.abs(dx) > 1e-6 ? (bw/2)/Math.abs(dx) : Infinity,
+                            Math.abs(dy) > 1e-6 ? (bh/2)/Math.abs(dy) : Infinity);
+      const s = Math.min(0.45, edge + 8/len);
+      const x1 = pt[0] + dx*s, y1 = pt[1] + dy*s, x2 = q[0] - dx*s, y2 = q[1] - dy*s;
+      // bowed outwards, so the loop reads as a loop
+      const mx = (x1+x2)/2, my = (y1+y2)/2, ox = (mx-cx)*0.07, oy = (my-cy)*0.07;
+      return `<path d="M${x1.toFixed(1)},${y1.toFixed(1)} Q${(mx+ox).toFixed(1)},${(my+oy).toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)}" fill="none" stroke="${accent}" stroke-width="2" marker-end="url(#${id})"/>`;
+    }).join("");
+    const boxes = pts.map((pt,i)=>box(pt[0]-bw/2, pt[1]-bh/2, bw, bh, steps[i], i, false)).join("");
+    const centre = `<text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="12" fill="#6a7385" font-style="italic">${p.natural ? "a natural cycle" : "a continuous cycle"}</text>
+      <text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="11" fill="#6a7385">${n} stages</text>`;
+    return `<svg class="t1-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${escapeXml(p.title || "Process diagram")}">${defs}${title}${arrows}${centre}${boxes}</svg>`;
+  }
+
+  const n = steps.length, cols = Math.min(4, n), rows = Math.ceil(n/cols);
+  const bw = 138, bh = 92, gx = 40, gy = 46, pad = 18, top = 44;
+  const W = pad*2 + cols*bw + (cols-1)*gx, H = top + rows*bh + (rows-1)*gy + 30;
+  const pos = steps.map((_,i)=>{
+    const r = Math.floor(i/cols), c0 = i % cols, c = (r % 2 === 0) ? c0 : (cols-1-c0);
+    return [pad + c*(bw+gx), top + r*(bh+gy), r];
+  });
+  let arrows = "";
+  for(let i=0;i<n-1;i++){
+    const [x,y,r] = pos[i], [x2,y2,r2] = pos[i+1];
+    if(r === r2){
+      const ltr = x2 > x;
+      const ax = ltr ? x+bw+3 : x-3, bx = ltr ? x2-3 : x2+bw+3, yy = y + bh/2;
+      arrows += `<line x1="${ax}" y1="${yy}" x2="${bx}" y2="${yy}" stroke="${accent}" stroke-width="2" marker-end="url(#${id})"/>`;
+    }else{
+      arrows += `<line x1="${x+bw/2}" y1="${y+bh+3}" x2="${x2+bw/2}" y2="${y2-3}" stroke="${accent}" stroke-width="2" marker-end="url(#${id})"/>`;
+    }
+  }
+  const boxes = steps.map((s,i)=>box(pos[i][0], pos[i][1], bw, bh, s, i, i===0 || i===n-1)).join("");
+  const ends = `<text x="${pos[0][0]+bw/2}" y="${pos[0][1]-6}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${accent}" letter-spacing="1">START</text>
+    <text x="${pos[n-1][0]+bw/2}" y="${pos[n-1][1]+bh+14}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${accent}" letter-spacing="1">END</text>`;
+  return `<svg class="t1-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${escapeXml(p.title || "Process diagram")}">${defs}${title}${arrows}${boxes}${ends}</svg>`;
+}
+
+/* ---- maps ----
+   Each map is a 10 × 10 grid: x runs west to east, y north to south. Features
+   are rectangles; roads and rivers are simply long thin ones. Ground-cover
+   (water, fields, parks) is drawn first, roads over it, buildings on top. */
+const MAP_STYLES = {
+  water:    { fill:"#bcd9ee", stroke:"#6f9fc4", layer:0 },
+  farmland: { fill:"#efe3b8", stroke:"#c2ad6a", layer:0 },
+  park:     { fill:"#cfe6c4", stroke:"#6a9b58", layer:0 },
+  trees:    { fill:"#b3d6a3", stroke:"#5d8c4c", layer:0, dots:true },
+  sports:   { fill:"#d9eed2", stroke:"#6a9b58", layer:1 },
+  beach:    { fill:"#f3e6c4", stroke:"#c9b27a", layer:0 },
+  square:   { fill:"#efe9dc", stroke:"#b5a88a", layer:1 },
+  road:     { fill:"#a4a9ae", stroke:"#6b7075", layer:2, road:true },
+  path:     { fill:"#e9dfc9", stroke:"#b39f78", layer:2, road:true, dash:true },
+  railway:  { fill:"#6b6f76", stroke:"#3f4247", layer:2, road:true, rail:true },
+  bridge:   { fill:"#c7c1b3", stroke:"#6b6457", layer:3 },
+  "car park":{ fill:"#e3e5e8", stroke:"#8c9096", layer:3 },
+  building: { fill:"#ddd5c3", stroke:"#8a7f66", layer:4 },
+  house:    { fill:"#ecd5c4", stroke:"#a4775a", layer:4 },
+  shop:     { fill:"#f2d9a8", stroke:"#b08a3c", layer:4 },
+  office:   { fill:"#d3dbe6", stroke:"#6f819b", layer:4 },
+  school:   { fill:"#e6d6ee", stroke:"#8a6aa0", layer:4 },
+  hospital: { fill:"#f4d0d0", stroke:"#b05a5a", layer:4 },
+  factory:  { fill:"#cfcac2", stroke:"#6c665c", layer:4 },
+  hotel:    { fill:"#f0d3e2", stroke:"#a25d80", layer:4 },
+  room:     { fill:"#f4efe4", stroke:"#8a7f66", layer:4 },
+  corridor: { fill:"#e6e6e2", stroke:"#a3a39c", layer:2 },
+  stairs:   { fill:"#d9d6cf", stroke:"#7c776c", layer:4, hatch:true },
+  entrance: { fill:"#cfe0d8", stroke:"#4f8a73", layer:4 }
+};
+function mapStyle(type){
+  const t = String(type || "").toLowerCase().trim();
+  if(MAP_STYLES[t]) return MAP_STYLES[t];
+  if(/river|lake|sea|pond|canal/.test(t)) return MAP_STYLES.water;
+  if(/wood|forest|tree/.test(t)) return MAP_STYLES.trees;
+  if(/field|farm/.test(t)) return MAP_STYLES.farmland;
+  if(/garden|green/.test(t)) return MAP_STYLES.park;
+  if(/rail|train|track/.test(t)) return MAP_STYLES.railway;
+  if(/street|road|lane|avenue/.test(t)) return MAP_STYLES.road;
+  if(/foot|walk|cycle|path/.test(t)) return MAP_STYLES.path;
+  if(/park(ing)?$|car/.test(t)) return MAP_STYLES["car park"];
+  if(/sport|pitch|court|golf|pool/.test(t)) return MAP_STYLES.sports;
+  if(/home|housing|flat|apartment|residential/.test(t)) return MAP_STYLES.house;
+  if(/store|market|cafe|café|restaurant|shopping/.test(t)) return MAP_STYLES.shop;
+  if(/college|university|library|classroom/.test(t)) return MAP_STYLES.school;
+  if(/clinic|medical|health/.test(t)) return MAP_STYLES.hospital;
+  if(/desk|zone|area|section|hall/.test(t)) return MAP_STYLES.room;
+  return MAP_STYLES.building;
+}
+
+function buildMapSVG(m, indoor){
+  const C = 44, pad = 26, G = 10, W = G*C + pad*2, H = G*C + pad*2 + 6;
+  const id = "mp" + (++svgUid);
+  const feats = (m.features || []).map((f,i)=>({ f, s: mapStyle(f.type), i }))
+    .sort((a,b)=> a.s.layer - b.s.layer || a.i - b.i);
+  const rects = feats.map(({f, s})=>{
+    const x = pad + f.x*C, y = pad + f.y*C, w = f.w*C, h = f.h*C;
+    const thin = Math.min(f.w, f.h) <= 1 && s.road;
+    let extra = "";
+    if(s.rail){
+      const horiz = f.w >= f.h;
+      extra = horiz
+        ? `<line x1="${x}" y1="${y+h/2}" x2="${x+w}" y2="${y+h/2}" stroke="#fff" stroke-width="2" stroke-dasharray="6 6"/>`
+        : `<line x1="${x+w/2}" y1="${y}" x2="${x+w/2}" y2="${y+h}" stroke="#fff" stroke-width="2" stroke-dasharray="6 6"/>`;
+    }
+    if(s.dots){
+      for(let gx=0; gx<f.w; gx++) for(let gy=0; gy<f.h; gy++){
+        extra += `<circle cx="${x+gx*C+C/2}" cy="${y+gy*C+C/2}" r="7" fill="#8fbf7a" stroke="#5d8c4c" stroke-width="1"/>`;
+      }
+    }
+    if(s.hatch){
+      for(let k=8;k<w;k+=8) extra += `<line x1="${x+k}" y1="${y+2}" x2="${x+k}" y2="${y+h-2}" stroke="${s.stroke}" stroke-width="0.8"/>`;
+    }
+    const maxChars = Math.max(6, Math.floor(w/6.3));
+    const fs = (w < 70 || h < 40) ? 9.5 : 11;
+    const lines = svgWrap(f.name, maxChars, Math.max(1, Math.floor(h/13)));
+    const ty = y + h/2 - (lines.length-1)*fs*0.6 + fs*0.35;
+    const vertical = thin && f.h > f.w && lines.length === 1 && f.name.length*6.3 > w;
+    const label = vertical
+      ? `<text x="${x+w/2}" y="${y+h/2}" transform="rotate(-90 ${x+w/2} ${y+h/2})" text-anchor="middle" dominant-baseline="middle" font-size="${fs}" font-weight="600" fill="#1f2433">${escapeXml(f.name)}</text>`
+      : svgLines(lines, x + w/2, ty, fs*1.2, `text-anchor="middle" font-size="${fs}" font-weight="600" fill="#1f2433" paint-order="stroke" stroke="rgba(255,255,255,.7)" stroke-width="2.5"`);
+    return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${s.road ? 2 : 5}" fill="${s.fill}" stroke="${s.stroke}" stroke-width="1.2" ${s.dash ? `stroke-dasharray="4 3"` : ""}/>${extra}${label}</g>`;
+  }).join("");
+  const frame = `<rect x="${pad}" y="${pad}" width="${G*C}" height="${G*C}" fill="${indoor ? "#faf8f3" : "#f7f5ee"}" stroke="#131b2e" stroke-width="${indoor ? 3 : 1.4}"/>`;
+  const compass = indoor ? "" : `<g transform="translate(${W-pad-18},${pad+22})"><circle r="14" fill="#fff" stroke="#131b2e"/><path d="M0,-10 L5,6 L0,2 L-5,6 z" fill="#131b2e"/><text y="-17" text-anchor="middle" font-size="10" font-weight="700" fill="#131b2e">N</text></g>`;
+  return `<svg class="t1-svg t1-map" viewBox="0 0 ${W} ${H}" role="img" aria-label="${escapeXml(m.label || "Map")}">${frame}${rects}${compass}</svg>`;
+}
+
+function buildMapsHTML(md){
+  const maps = (md && Array.isArray(md.maps)) ? md.maps : [];
+  return `<div class="t1-maps">${maps.map(m=>`
+      <figure class="t1-map-fig">
+        <figcaption>${escapeHtml(m.label || "")}</figcaption>
+        ${buildMapSVG(m, !!md.indoor)}
+      </figure>`).join("")}</div>
+    ${md.place ? `<p class="t1-map-place">${escapeHtml(md.place)}</p>` : ""}`;
+}
+
+// Where on the grid a feature sits, in the words an answer would use.
+function mapWhere(f){
+  const cx = f.x + f.w/2, cy = f.y + f.h/2;
+  const ns = cy < 3.4 ? "north" : cy > 6.6 ? "south" : "";
+  const ew = cx < 3.4 ? "west" : cx > 6.6 ? "east" : "";
+  if(f.w >= 8) return ns ? `across the ${ns}` : "across the middle";
+  if(f.h >= 8) return ew ? `down the ${ew} side` : "down the middle";
+  return (ns && ew) ? `in the ${ns}-${ew}` : (ns || ew) ? `in the ${ns || ew}` : "in the centre";
+}
+
+/* The visual as text, for the AI examiner and coach. They used to be given the
+   prompt alone, so a figure, a stage or a change could be misreported and
+   nobody would notice; now they see what the candidate saw. */
+function task1VisualText(t1){
+  const t = t1 || WRITING.task1 || {};
+  const k = task1Kind(t);
+  if(k === "process"){
+    const p = t.process || {};
+    return `PROCESS DIAGRAM — ${p.title || ""} (${p.natural ? "natural" : "man-made"}, ${p.cycle ? "a continuous cycle: the last stage leads back to the first" : "linear: a clear start and end"}; ${(p.steps||[]).length} stages):\n`
+      + (p.steps || []).map((s,i)=>`${i+1}. ${s.label}${s.detail ? " — " + s.detail : ""}`).join("\n");
+  }
+  if(k === "map"){
+    const md = t.map || {};
+    return `MAPS — ${md.place || ""}${md.indoor ? " (an indoor floor plan)" : ""}. Grid: x 0–10 west→east, y 0–10 north→south.\n`
+      + (md.maps || []).map(m=>`${m.label}:\n` + (m.features || []).map(f=>`- ${f.name} (${f.type}) ${mapWhere(f)} [x ${f.x}–${f.x+f.w}, y ${f.y}–${f.y+f.h}]`).join("\n")).join("\n");
+  }
+  const cd = t.chartData || {};
+  return `CHART DATA — categories/labels: ${(cd.labels || []).join(", ")}\n`
+    + (cd.series || []).map(s=>`${s.label}: ${(s.data || []).join(", ")}`).join("\n");
+}
+
+// What every Writing call to the AI is told about the task.
+function writingTaskContext(task){
+  const base = `Task prompt: ${WRITING[task].prompt}`;
+  if(task !== "task1" || !task1HasVisual()) return base;
+  return `${base}\n\nThe visual the candidate was given, as data (judge the accuracy of what they report against this):\n${task1VisualText()}`;
+}
+
+/* A generated Task 1 is checked here before it replaces anything: a process
+   with two stages, a map with one date or a chart whose series do not match
+   its labels would be a task nobody can answer well. Fixable slips — a type
+   named differently, a coordinate off the grid — are fixed instead. */
+function normalizeTask1(t1){
+  if(!t1 || typeof t1 !== "object") throw new Error("Task 1 is missing");
+  const out = { tag: String(t1.tag || "Writing Task 1 · 20 minutes · at least 150 words"), prompt: String(t1.prompt || "").trim() };
+  if(!out.prompt) throw new Error("Task 1 has no prompt");
+  const k = task1Kind(t1);
+  if(k === "process"){
+    const p = t1.process || {};
+    const steps = (Array.isArray(p.steps) ? p.steps : []).map(s=>typeof s === "string" ? { label:s } : s)
+      .filter(s=>s && String(s.label || s.name || "").trim())
+      .map(s=>({ label:String(s.label || s.name).trim(), detail:String(s.detail || s.description || "").trim() }));
+    if(steps.length < 4 || steps.length > 12) throw new Error(`the process had ${steps.length} stages (4–12 needed)`);
+    out.kind = "process";
+    out.process = { title:String(p.title || "").trim(), natural:!!p.natural, cycle:!!p.cycle, steps };
+    return out;
+  }
+  if(k === "map"){
+    const md = t1.map || {};
+    const maps = (Array.isArray(md.maps) ? md.maps : []).map(m=>({
+      label:String((m && (m.label || m.date || m.year)) || "").trim(),
+      features:(m && Array.isArray(m.features) ? m.features : []).filter(f=>f && String(f.name || "").trim()).map(f=>{
+        const num = (v, d)=>{ const n = Number(v); return isFinite(n) ? n : d; };
+        let w = Math.max(0.5, Math.min(10, num(f.w, 2))), h = Math.max(0.5, Math.min(10, num(f.h, 1)));
+        let x = Math.max(0, Math.min(10 - w, num(f.x, 0))), y = Math.max(0, Math.min(10 - h, num(f.y, 0)));
+        return { name:String(f.name).trim(), type:String(f.type || "building").toLowerCase().trim(), x, y, w, h };
+      })
+    }));
+    if(maps.length < 2 || maps.length > 3) throw new Error(`there were ${maps.length} maps (2 or 3 needed)`);
+    maps.forEach((m,i)=>{
+      if(!m.label) throw new Error(`map ${i+1} has no date`);
+      if(m.features.length < 3) throw new Error(`map ${i+1} has only ${m.features.length} features`);
+    });
+    out.kind = "map";
+    out.map = { place:String(md.place || "").trim(), indoor:!!md.indoor, maps };
+    return out;
+  }
+  const cd = t1.chartData || {};
+  const labels = Array.isArray(cd.labels) ? cd.labels.map(String) : [];
+  const series = (Array.isArray(cd.series) ? cd.series : []).filter(s=>s && Array.isArray(s.data));
+  if(!labels.length || !series.length) throw new Error("the chart had no data");
+  series.forEach(s=>{ if(s.data.length !== labels.length) throw new Error(`the series "${s.label}" does not have one value per label`); });
+  out.kind = "chart";
+  out.chartData = { labels, series:series.map(s=>({ label:String(s.label || ""), data:s.data.map(Number), color:s.color })) };
+  return out;
+}
+
+/* ---- the Task 1 bank ----
+   Ready-made tasks, so a student can practise every kind of visual without a
+   key or a wait. The figures are invented for practice. */
+const TASK1_BANK = [
+  { id:"c-internet", group:"Charts & tables", title:"Line graph · Home internet access, 2000–2020", view:"line", task:{
+    prompt:"The chart below shows the percentage of households with home internet access in three regions between 2000 and 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+    chartData:{ labels:["2000","2005","2010","2015","2020"], series:[
+      {label:"Northern Europe", data:[35,58,78,90,96], color:"#2f6f62"},
+      {label:"Southern Asia", data:[2,6,15,34,58], color:"#c9a227"},
+      {label:"Sub-Saharan Africa", data:[1,2,5,14,29], color:"#c1443c"} ] } } },
+  { id:"c-leisure", group:"Charts & tables", title:"Bar chart · Weekly leisure hours by age group", view:"bar", task:{
+    prompt:"The bar chart below shows the average number of hours per week that people in four age groups spent on three leisure activities in 2023. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+    chartData:{ labels:["16–24","25–44","45–64","65+"], series:[
+      {label:"Social media", data:[18,11,7,3], color:"#3567a6"},
+      {label:"Television", data:[9,12,16,24], color:"#c9a227"},
+      {label:"Reading", data:[3,4,6,9], color:"#2f6f62"} ] } } },
+  { id:"c-electricity", group:"Charts & tables", title:"Pie chart · Sources of electricity, 2022", view:"pie", task:{
+    prompt:"The pie chart below shows the sources of the electricity generated in one country in 2022. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+    chartData:{ labels:["2022"], series:[
+      {label:"Natural gas", data:[34], color:"#7a5ea8"}, {label:"Wind", data:[21], color:"#3567a6"},
+      {label:"Nuclear", data:[18], color:"#c1443c"}, {label:"Coal", data:[12], color:"#4a4a4a"},
+      {label:"Solar", data:[9], color:"#c9a227"}, {label:"Hydroelectric", data:[6], color:"#2f8f83"} ] } } },
+  { id:"c-metro", group:"Charts & tables", title:"Table · Underground railways in six cities", view:"table", task:{
+    prompt:"The table below gives information about the underground railway systems in six cities. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+    chartData:{ labels:["Year opened","Route length (km)","Passengers per year (millions)"], series:[
+      {label:"London", data:[1863,394,775], color:"#2f6f62"}, {label:"Paris", data:[1900,199,1191], color:"#c9a227"},
+      {label:"Tokyo", data:[1927,155,1927], color:"#c1443c"}, {label:"Washington DC", data:[1976,126,144], color:"#3567a6"},
+      {label:"Kyoto", data:[1981,11,45], color:"#7a5ea8"}, {label:"Los Angeles", data:[2001,28,50], color:"#d17a2a"} ] } } },
+  { id:"c-temperature", group:"Charts & tables", title:"Line graph · Monthly temperatures in three cities", view:"line", task:{
+    prompt:"The line graph below shows the average monthly temperature, in degrees Celsius, in three cities over one year. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+    chartData:{ labels:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], series:[
+      {label:"Reykjavik", data:[-0.5,0,0.5,3,6,9,11,10,8,4,1,0], color:"#3567a6"},
+      {label:"Cairo", data:[14,15,18,22,25,27,28,28,26,23,19,15], color:"#c1443c"},
+      {label:"Sydney", data:[23,23,22,19,16,14,13,14,16,18,20,22], color:"#2f6f62"} ] } } },
+  { id:"c-transport", group:"Charts & tables", title:"Bar chart · Weekly public transport use, 2005–2025", view:"bar", task:{
+    prompt:"The bar chart below shows the percentage of adults who used public transport at least once a week in five countries in 2005, 2015 and 2025. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+    chartData:{ labels:["Japan","Germany","Brazil","Canada","Australia"], series:[
+      {label:"2005", data:[62,48,35,22,18], color:"#c9a227"},
+      {label:"2015", data:[60,52,41,24,21], color:"#2f6f62"},
+      {label:"2025", data:[57,55,46,29,27], color:"#3567a6"} ] } } },
+
+  { id:"p-glass", group:"Processes", title:"Process (man-made) · Recycling glass bottles", task:{
+    prompt:"The diagram below shows how glass bottles are recycled. Summarise the information by selecting and reporting the main features.",
+    process:{ title:"Recycling glass bottles", natural:false, cycle:false, steps:[
+      {label:"Collection", detail:"used bottles left at bottle banks"},
+      {label:"Transport", detail:"taken by lorry to a cleaning plant"},
+      {label:"Cleaning", detail:"washed with high-pressure water"},
+      {label:"Sorting", detail:"separated into clear, green and brown glass"},
+      {label:"Crushing", detail:"broken into small pieces called cullet"},
+      {label:"Melting", detail:"heated in a furnace at 1,500°C with sand and soda"},
+      {label:"Moulding", detail:"molten glass blown into bottle moulds"},
+      {label:"Distribution", detail:"new bottles filled and delivered to shops"} ] } } },
+  { id:"p-frog", group:"Processes", title:"Process (natural cycle) · The life cycle of the frog", task:{
+    prompt:"The diagram below shows the life cycle of the frog. Summarise the information by selecting and reporting the main features.",
+    process:{ title:"The life cycle of the frog", natural:true, cycle:true, steps:[
+      {label:"Frogspawn", detail:"up to 4,000 eggs laid in water"},
+      {label:"Embryo", detail:"develops inside the egg for 6–21 days"},
+      {label:"Tadpole", detail:"hatches and breathes through gills"},
+      {label:"Tadpole with legs", detail:"back legs at 5 weeks, then front legs"},
+      {label:"Froglet", detail:"tail shrinks and lungs form, about 12 weeks"},
+      {label:"Adult frog", detail:"lives on land, returns to water to breed"} ] } } },
+  { id:"p-chocolate", group:"Processes", title:"Process (man-made) · Producing chocolate", task:{
+    prompt:"The diagram below shows the stages in the production of chocolate. Summarise the information by selecting and reporting the main features.",
+    process:{ title:"From cocoa pod to chocolate bar", natural:false, cycle:false, steps:[
+      {label:"Harvesting", detail:"ripe cocoa pods cut from the trees"},
+      {label:"Fermenting", detail:"beans left in covered boxes for 5–7 days"},
+      {label:"Drying", detail:"spread out in the sun for up to 2 weeks"},
+      {label:"Shipping", detail:"packed in sacks and sent to factories"},
+      {label:"Roasting", detail:"heated to 120–140°C for flavour"},
+      {label:"Grinding", detail:"shells removed; beans crushed into cocoa liquor"},
+      {label:"Mixing", detail:"sugar, milk and cocoa butter added"},
+      {label:"Moulding", detail:"cooled, poured into moulds and wrapped"} ] } } },
+  { id:"p-water", group:"Processes", title:"Process (natural cycle) · The water cycle", task:{
+    prompt:"The diagram below illustrates the water cycle. Summarise the information by selecting and reporting the main features.",
+    process:{ title:"The water cycle", natural:true, cycle:true, steps:[
+      {label:"Evaporation", detail:"the sun heats water in oceans and lakes"},
+      {label:"Transpiration", detail:"plants release water vapour from their leaves"},
+      {label:"Condensation", detail:"vapour cools and forms clouds"},
+      {label:"Precipitation", detail:"water falls as rain, snow or hail"},
+      {label:"Run-off", detail:"water flows over land into rivers"},
+      {label:"Infiltration", detail:"water soaks into the ground as groundwater"},
+      {label:"Collection", detail:"rivers and groundwater return to the sea"} ] } } },
+
+  { id:"m-trentville", group:"Maps", title:"Maps (two past dates) · Trentville town centre, 1966 and 2016", task:{
+    prompt:"The diagrams below show the features of the town centre of Trentville in 1966 and compare them to the changes that could be seen in 2016. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+    map:{ place:"Trentville town centre", indoor:false, maps:[
+      { label:"1966", features:[
+        {name:"Railway", type:"railway", x:0, y:0, w:10, h:1},
+        {name:"Railway station", type:"building", x:5, y:1, w:3, h:2},
+        {name:"Terraced houses", type:"house", x:0, y:1, w:3, h:2},
+        {name:"Shops", type:"shop", x:8, y:1, w:2, h:3},
+        {name:"Station Road", type:"road", x:4, y:1, w:1, h:3},
+        {name:"Main Street", type:"road", x:0, y:4, w:10, h:1},
+        {name:"Church", type:"building", x:0, y:5, w:2, h:2},
+        {name:"Market square", type:"square", x:4, y:5, w:3, h:2},
+        {name:"Park", type:"park", x:0, y:7, w:4, h:3},
+        {name:"Farmland", type:"farmland", x:5, y:7, w:5, h:3} ] },
+      { label:"2016", features:[
+        {name:"Railway", type:"railway", x:0, y:0, w:10, h:1},
+        {name:"Railway station", type:"building", x:5, y:1, w:3, h:2},
+        {name:"Car park", type:"car park", x:0, y:1, w:3, h:2},
+        {name:"Offices", type:"office", x:8, y:1, w:2, h:3},
+        {name:"Station Road", type:"road", x:4, y:1, w:1, h:3},
+        {name:"Main Street (pedestrians only)", type:"path", x:0, y:4, w:10, h:1},
+        {name:"Church", type:"building", x:0, y:5, w:2, h:2},
+        {name:"Shopping centre", type:"shop", x:4, y:5, w:3, h:2},
+        {name:"Bus station", type:"building", x:8, y:5, w:2, h:2},
+        {name:"Park", type:"park", x:0, y:7, w:2, h:3},
+        {name:"Leisure centre", type:"sports", x:2, y:7, w:2, h:3},
+        {name:"Housing estate", type:"house", x:5, y:7, w:5, h:3} ] } ] } } },
+  { id:"m-merrowdale", group:"Maps", title:"Maps (past and present) · Merrowdale village, 1995 and today", task:{
+    prompt:"The maps below show the village of Merrowdale in 1995 and today. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+    map:{ place:"Merrowdale village", indoor:false, maps:[
+      { label:"1995", features:[
+        {name:"Farmland", type:"farmland", x:0, y:0, w:4, h:3},
+        {name:"Post office", type:"shop", x:5, y:1, w:2, h:2},
+        {name:"Cottages", type:"house", x:7, y:0, w:3, h:3},
+        {name:"River Merrow", type:"water", x:0, y:4, w:10, h:1},
+        {name:"Bridge", type:"bridge", x:4, y:4, w:1, h:1},
+        {name:"Main road", type:"road", x:4, y:0, w:1, h:4},
+        {name:"Main road", type:"road", x:4, y:5, w:1, h:5},
+        {name:"Primary school", type:"school", x:1, y:6, w:2, h:2},
+        {name:"Village hall", type:"building", x:1, y:8, w:2, h:2},
+        {name:"Woodland", type:"trees", x:5, y:5, w:5, h:5} ] },
+      { label:"Today", features:[
+        {name:"New housing", type:"house", x:0, y:0, w:4, h:3},
+        {name:"Café", type:"shop", x:5, y:1, w:2, h:2},
+        {name:"Cottages", type:"house", x:7, y:0, w:3, h:3},
+        {name:"River Merrow", type:"water", x:0, y:4, w:10, h:1},
+        {name:"Bridge", type:"bridge", x:4, y:4, w:1, h:1},
+        {name:"Footbridge", type:"path", x:8, y:4, w:1, h:1},
+        {name:"Main road", type:"road", x:4, y:0, w:1, h:4},
+        {name:"Main road", type:"road", x:4, y:5, w:1, h:5},
+        {name:"Primary school (extended)", type:"school", x:0, y:6, w:4, h:2},
+        {name:"Medical centre", type:"hospital", x:1, y:8, w:2, h:2},
+        {name:"Car park", type:"car park", x:5, y:5, w:2, h:2},
+        {name:"Hotel", type:"hotel", x:5, y:7, w:2, h:3},
+        {name:"Woodland", type:"trees", x:7, y:5, w:3, h:5} ] } ] } } },
+  { id:"m-library", group:"Maps", title:"Floor plans (now and planned) · City library, today and 2032", task:{
+    prompt:"The plans below show the ground floor of a city library at present and how it will look after a renovation planned for 2032. Summarise the information by selecting and reporting the main features, and make comparisons where relevant.",
+    map:{ place:"City library — ground floor", indoor:true, maps:[
+      { label:"Present", features:[
+        {name:"Adult fiction", type:"room", x:0, y:0, w:4, h:4},
+        {name:"Corridor", type:"corridor", x:4, y:0, w:2, h:7},
+        {name:"Reference books", type:"room", x:6, y:0, w:4, h:4},
+        {name:"Children's section", type:"school", x:0, y:4, w:4, h:3},
+        {name:"Study desks", type:"room", x:6, y:4, w:4, h:3},
+        {name:"Reception desk", type:"office", x:3, y:7, w:4, h:2},
+        {name:"Stairs", type:"stairs", x:0, y:8, w:2, h:2},
+        {name:"Toilets", type:"room", x:8, y:8, w:2, h:2},
+        {name:"Entrance", type:"entrance", x:4, y:9, w:2, h:1} ] },
+      { label:"2032 (planned)", features:[
+        {name:"Adult fiction", type:"room", x:0, y:0, w:4, h:2},
+        {name:"Computer zone", type:"office", x:0, y:2, w:4, h:2},
+        {name:"Corridor", type:"corridor", x:4, y:0, w:2, h:7},
+        {name:"Meeting rooms", type:"room", x:6, y:0, w:4, h:4},
+        {name:"Children's section (larger)", type:"school", x:0, y:4, w:4, h:4},
+        {name:"Study desks", type:"room", x:6, y:4, w:4, h:3},
+        {name:"Self-service machines", type:"office", x:4, y:7, w:2, h:2},
+        {name:"Café", type:"shop", x:6, y:7, w:2, h:2},
+        {name:"Stairs", type:"stairs", x:0, y:8, w:2, h:2},
+        {name:"Lift", type:"stairs", x:2, y:8, w:1, h:2},
+        {name:"Toilets", type:"room", x:8, y:8, w:2, h:2},
+        {name:"Entrance", type:"entrance", x:4, y:9, w:2, h:1} ] } ] } } }
+];
+
+function task1TypeLabel(t1){
+  const t = t1 || WRITING.task1 || {};
+  const k = task1Kind(t);
+  if(k === "process") return (t.process && t.process.cycle) ? "Process · cycle" : "Process diagram";
+  if(k === "map") return (t.map && t.map.indoor ? "Floor plans · " : "Maps · ") + (t.map && t.map.maps ? t.map.maps.map(m=>m.label).join(" vs ") : "");
+  return null;
+}
+
+// Swaps in one of the ready-made Task 1s, leaving Task 2 alone.
+function loadTask1FromBank(id){
+  const entry = TASK1_BANK.find(x=>x.id === id);
+  if(!entry) return;
+  const W = state.writing;
+  if((W.drafts.task1 || "").trim() && !confirm("Load a different Task 1?\n\nYour Task 1 answer and its feedback will be cleared.")) return false;
+  WRITING.task1 = Object.assign(normalizeTask1(JSON.parse(JSON.stringify(entry.task))), { bankId: entry.id });
+  if(entry.view) W.chartType = entry.view;
+  W.drafts.task1 = ""; W.hints.task1 = null; W.reports.task1 = null;
+  if(W.grammar) W.grammar.task1 = null;
+  if(W.bandVersions) W.bandVersions.task1 = {};
+  if(W.paraFeedback) delete W.paraFeedback.task1;
+  saveGeneratedContent();
+  return true;
+}
+
 function renderWriting(){
   // Re-rendering the panel (e.g. switching Task 1/2) discards the old canvas;
   // release any live 3D context first so its RAF loop doesn't keep drawing.
@@ -10456,8 +10988,19 @@ function renderWriting(){
     ["line","Line Graph"], ["bar","Bar Chart"], ["pie","Pie Chart"],
     ["table","Table"], ["mindmap","Mind Map"]
   ];
+  // Process and map are kinds of task, not views of a chart: choosing one
+  // decides what the next generated Task 1 is, and leaves the current one be.
+  const TASK_KINDS = [["process","Process diagram"], ["map","Map / floor plan (two dates)"]];
   const gtype = state.writing.chartType || "bars3d";
-  const graphOptions = GRAPH_TYPES.map(([v,l])=>`<option value="${v}" ${v===gtype?"selected":""}>${l}</option>`).join("");
+  const gsel = W.genType || gtype;
+  const graphOptions = `<optgroup label="Chart / graph">${GRAPH_TYPES.map(([v,l])=>`<option value="${v}" ${v===gsel?"selected":""}>${l}</option>`).join("")}</optgroup>`
+    + `<optgroup label="Other Task 1 types">${TASK_KINDS.map(([v,l])=>`<option value="${v}" ${v===gsel?"selected":""}>${l}</option>`).join("")}</optgroup>`;
+  const t1Kind = task1Kind();
+  const t1Tag = task1TypeLabel() || (GRAPH_TYPES.find(g=>g[0]===gtype)||["","chart"])[1];
+  const bankId = WRITING.task1 && WRITING.task1.bankId;
+  const bankGroups = [...new Set(TASK1_BANK.map(x=>x.group))];
+  const bankOptions = `<option value="">— ${TASK1_BANK.length} ready-made Task 1s: charts, processes, maps —</option>`
+    + bankGroups.map(g=>`<optgroup label="${escapeXml(g)}">${TASK1_BANK.filter(x=>x.group===g).map(x=>`<option value="${x.id}" ${x.id===bankId?"selected":""}>${escapeHtml(x.title)}</option>`).join("")}</optgroup>`).join("");
 
   panel.innerHTML = `
     <p class="section-title">Writing</p>
@@ -10470,10 +11013,10 @@ function renderWriting(){
       <div class="gen-head">
         <div>
           <b>AI Writing Generator (Replaces existing tasks)</b>
-          <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Pick a topic and a Task 1 graph type, then generate a fresh Task 1 + Task 2 exam." : "Add a Gemini API key to enable live prompt generation."}</p>
+          <p style="margin:4px 0 0; font-size:12.5px; color:var(--slate);">${geminiOn ? "Pick a topic and a Task 1 type — a chart, a process or a map — then generate a fresh Task 1 + Task 2 exam." : escapeHtml(geminiMissingMessage()) + " The ready-made Task 1s below work without it."}</p>
         </div>
         <div class="gen-actions">
-          <select id="writingGraphType" title="Task 1 graph type" class="gen-select">${graphOptions}</select>
+          <select id="writingGraphType" title="Task 1 type" class="gen-select">${graphOptions}</select>
           <select id="writingTopic" class="gen-select" ${!geminiOn ? "disabled" : ""}>
             <option value="random">Random Topic</option>
             <option value="Education & Learning">Education & Learning</option>
@@ -10491,6 +11034,16 @@ function renderWriting(){
             <option value="Family & Relationships">Family & Relationships</option>
             <option value="Energy & Natural Resources">Energy & Resources</option>
             <option value="Globalisation & International Affairs">Globalisation</option>
+            <option value="Science, Research & Innovation">Science & Research</option>
+            <option value="Food, Farming & Agriculture">Food & Farming</option>
+            <option value="Sport, Fitness & Leisure">Sport & Leisure</option>
+            <option value="Arts, Museums & Heritage">Arts & Heritage</option>
+            <option value="Water, Waste & Recycling">Water & Recycling</option>
+            <option value="Population, Ageing & Migration">Population & Ageing</option>
+            <option value="Retail, Shopping & Consumer Habits">Shopping & Retail</option>
+            <option value="Manufacturing & Industry">Manufacturing & Industry</option>
+            <option value="Wildlife & Natural World">Wildlife & Nature</option>
+            <option value="Space & Future Technology">Space & Future Tech</option>
           </select>
           <button id="generateWritingBtn" class="btn brass small" ${!geminiOn ? "disabled" : ""}>Generate New Writing Exam</button>
           ${restoreBuiltInBtn()}
@@ -10513,9 +11066,10 @@ function renderWriting(){
       <p style="margin:0 0 14px; font-size:15px; font-weight:500; line-height:1.6;">${WRITING[task].prompt}</p>
       
       ${task==='task1' ? `
-        <div class="chart-box" style="background:#fff;max-width:680px;margin:0 auto 10px;">
-          <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-            <span class="t1-type-tag" id="task1TypeTag">${(GRAPH_TYPES.find(g=>g[0]===gtype)||["","chart"])[1]}</span>
+        <div class="chart-box t1-box t1-${t1Kind}" style="background:#fff;margin:0 auto 10px;">
+          <div class="t1-toolbar">
+            <select id="t1Bank" class="gen-select t1-bank" title="Load a ready-made Task 1">${bankOptions}</select>
+            <span class="t1-type-tag" id="task1TypeTag">${escapeHtml(t1Tag)}</span>
           </div>
           <div id="task1VisualHost"><canvas id="task1Canvas" height="240"></canvas></div>
         </div>
@@ -10578,12 +11132,12 @@ function renderWriting(){
   // the draw throws, and everything after it in this function used to be lost
   // with it — hints, the saved report, the mobile shortcut. The panel is worth
   // more than the picture.
-  if(task==="task1" && WRITING.task1.chartData) {
+  if(task==="task1" && task1HasVisual()) {
     try{ renderTask1Visual(); }
     catch(err){
       console.error("Task 1 visual failed to draw", err);
       const host = document.getElementById("task1VisualHost");
-      if(host) host.innerHTML = `<p style="font-size:12.5px;color:var(--slate);margin:0;">The chart could not be drawn (the charting library did not load). The task prompt above still describes the data.</p>`;
+      if(host) host.innerHTML = `<p style="font-size:12.5px;color:var(--slate);margin:0;">The visual could not be drawn${task1Kind() === "chart" ? " (the charting library did not load)" : ""}. The task prompt above still describes it.</p>`;
     }
   }
 
@@ -10593,12 +11147,26 @@ function renderWriting(){
   const gtSel = document.getElementById("writingGraphType");
   if(gtSel){
     gtSel.addEventListener("change", ()=>{
-      state.writing.chartType = gtSel.value;
-      const tag = document.getElementById("task1TypeTag");
-      if(tag){ const m = GRAPH_TYPES.find(g=>g[0]===gtSel.value); tag.textContent = m ? m[1] : ""; }
-      if(state.writing.activeTask === "task1" && WRITING.task1.chartData) renderTask1Visual();
+      const v = gtSel.value;
+      W.genType = v;
+      // A chart view also redraws the chart on screen; a process or map only
+      // sets what the generator will write next.
+      if(GRAPH_TYPES.some(g=>g[0]===v)){
+        state.writing.chartType = v;
+        if(task1Kind() === "chart"){
+          const tag = document.getElementById("task1TypeTag");
+          if(tag){ const m = GRAPH_TYPES.find(g=>g[0]===v); tag.textContent = m ? m[1] : ""; }
+          if(state.writing.activeTask === "task1" && WRITING.task1.chartData) renderTask1Visual();
+        }
+      }
     });
   }
+  const bankSel = document.getElementById("t1Bank");
+  if(bankSel) bankSel.addEventListener("change", ()=>{
+    if(!bankSel.value) return;
+    if(loadTask1FromBank(bankSel.value) === false){ bankSel.value = (WRITING.task1 && WRITING.task1.bankId) || ""; return; }
+    renderWriting();
+  });
 
   document.getElementById("hintBtn").addEventListener("click", ()=>requestWritingHint(task));
   document.getElementById("grammarBtn").addEventListener("click", ()=>requestGrammarCheck(task));
@@ -10621,9 +11189,10 @@ async function generateNewWritingWithAI() {
   const topic = topicSel ? topicSel.value : "random";
   const themed = topic && topic !== "random";
   const graphSel = document.getElementById("writingGraphType");
-  const graphType = graphSel ? graphSel.value : (state.writing.chartType || "bars3d");
-  // Render the generated Task 1 in exactly the chosen graph type.
-  state.writing.chartType = graphType;
+  const graphType = graphSel ? graphSel.value : (state.writing.genType || state.writing.chartType || "bars3d");
+  const kind = graphType === "process" || graphType === "map" ? graphType : "chart";
+  // Render a generated chart in exactly the chosen view.
+  if(kind === "chart") state.writing.chartType = graphType;
   genProgressShow("writingGen", themed ? `Writing a new "${topic}" exam…` : "Writing a new Task 1 + Task 2 exam context…");
 
   const themeLine = themed
@@ -10638,16 +11207,30 @@ async function generateNewWritingWithAI() {
     line:    `The Task 1 visual is a LINE graph over time. Use 4-6 sequential years as labels and 2-4 series showing clear trends. Word the task1 prompt like "The line graph below shows…".`,
     pie:     `The Task 1 visual is a PIE chart. Provide 3-5 series that are parts of a single whole; the LAST value of each series must be a percentage and the last values must sum to about 100. Use a single time point (one or two labels). Word the task1 prompt like "The pie chart below shows the proportion of…".`,
     table:   `The Task 1 visual is a TABLE of figures. Use 3-6 labels (columns) and 2-4 series (rows) with clear, comparable numbers. Word the task1 prompt like "The table below shows…".`,
-    mindmap: `The Task 1 visual is a summary diagram. Use 3-5 series, each with a clear starting and ending value so trends are visible. Word the task1 prompt like "The diagram below shows…".`
+    mindmap: `The Task 1 visual is a summary diagram. Use 3-5 series, each with a clear starting and ending value so trends are visible. Word the task1 prompt like "The diagram below shows…".`,
+    process: `The Task 1 visual is a PROCESS DIAGRAM. Choose, to suit the theme, either a MAN-MADE process (manufacturing, recycling, producing energy or food, treating water…) or a NATURAL one (a life cycle, the formation of something, a natural cycle). It has 6 to 10 stages in order. A process with a clear beginning and end is "cycle": false; one whose last stage leads back to the first (a life cycle, the water cycle) is "cycle": true. Each stage has a short "label" (1-4 words) and a "detail" (up to 12 words, with a concrete figure where natural: a temperature, a time, a quantity). Word the task1 prompt like "The diagram below shows how… / the stages in… / the life cycle of…", followed by "Summarise the information by selecting and reporting the main features."`,
+    map: `The Task 1 visual is two MAPS of the same place at two different dates. Pick ONE of these three patterns at random: (a) two dates in the past, e.g. 1966 and 2016; (b) a past date and the present, labelled e.g. "1995" and "Today"; (c) the present and a planned or projected future, labelled e.g. "Present" and "2032 (planned)". The place may be outdoors — a town centre, a village, a campus, a park, a coastline, an industrial area — or indoors as a floor plan (a library, a museum, an office, a school), in which case set "indoor": true. Each map is drawn on a 10 x 10 grid: x from 0 to 10 runs west to east, y from 0 to 10 runs north to south. Every feature is a rectangle {"name","type","x","y","w","h"} with w and h at least 1 that stays inside the grid; roads, paths, railways and rivers are long thin rectangles (w or h = 1); features must not overlap, apart from a road or bridge crossing a river. Give each map 6 to 12 features. Allowed types: building, house, shop, office, school, hospital, factory, hotel, park, trees, farmland, water, beach, sports, square, road, path, railway, bridge, car park, and for floor plans room, corridor, stairs, entrance. Keep what did not change in the SAME position on both maps, and make 4 to 7 clear changes (things built, demolished, replaced, extended, reduced, moved, or converted) so there is a real comparison to make. Word the task1 prompt like "The maps below show… in [date] and [date]" (or "The plans below show…" for a floor plan) followed by "Summarise the information by selecting and reporting the main features, and make comparisons where relevant."`
   };
   const graphHint = GRAPH_DATA_HINTS[graphType] || GRAPH_DATA_HINTS.bar;
-
-  const prompt = `Create a completely new IELTS Academic Writing exam containing both Task 1 and Task 2.
-${themeLine}
-${graphHint}
-You must return a raw JSON object matching this exact schema shape:
-{
-  "task1": {
+  const task1Schema = kind === "process"
+    ? `"task1": {
+    "tag": "Writing Task 1 · 20 minutes · at least 150 words",
+    "prompt": "The diagram below shows how...",
+    "kind": "process",
+    "process": { "title": "Short title", "natural": false, "cycle": false,
+      "steps": [ {"label": "Collection", "detail": "used bottles collected from bins"}, {"label": "...", "detail": "..."} ] }
+  }`
+    : kind === "map"
+    ? `"task1": {
+    "tag": "Writing Task 1 · 20 minutes · at least 150 words",
+    "prompt": "The maps below show...",
+    "kind": "map",
+    "map": { "place": "Name of the place", "indoor": false, "maps": [
+      { "label": "1966", "features": [ {"name": "Main Street", "type": "road", "x": 0, "y": 4, "w": 10, "h": 1}, {"name": "Market square", "type": "square", "x": 4, "y": 5, "w": 3, "h": 2} ] },
+      { "label": "2016", "features": [ {"name": "Main Street", "type": "road", "x": 0, "y": 4, "w": 10, "h": 1}, {"name": "Shopping centre", "type": "shop", "x": 4, "y": 5, "w": 3, "h": 2} ] }
+    ] }
+  }`
+    : `"task1": {
     "tag": "Writing Task 1 · 20 minutes · at least 150 words",
     "prompt": "The bar/line chart below shows...",
     "chartData": {
@@ -10657,31 +11240,48 @@ You must return a raw JSON object matching this exact schema shape:
         {"label": "Group B", "data": [15, 25, 35, 45], "color": "#c9a227"}
       ]
     }
-  },
+  }`;
+
+  const prompt = `Create a completely new IELTS Academic Writing exam containing both Task 1 and Task 2.
+${themeLine}
+${graphHint}
+You must return a raw JSON object matching this exact schema shape:
+{
+  ${task1Schema},
   "task2": {
     "tag": "Writing Task 2 · 40 minutes · at least 250 words",
     "prompt": "Detailed Task 2 prompt opinion/discussion statement..."
   }
 }
-Follow the graph-type guidance above when populating chartData. Give every series a distinct hex "color", and make sure every series has exactly one number per label. Return ONLY raw JSON.`;
+${kind === "chart" ? `Follow the graph-type guidance above when populating chartData. Give every series a distinct hex "color", and make sure every series has exactly one number per label.` : `Follow the Task 1 guidance above exactly.`} Return ONLY raw JSON.`;
 
+  // Checked before anything is replaced, and asked again with the reason when
+  // it does not hold up — a process with three stages or a map with one date
+  // would be a task nobody could answer well.
   try {
-    const rawText = await callGemini("You output raw JSON models for application prompts.", prompt, null, null);
-    const parsedObj = parseJSON(rawText);
-    if(parsedObj.task1 && parsedObj.task2) {
-      WRITING = parsedObj;
-      saveGeneratedContent();
-      genProgressDone("writingGen", "Done — new Task 1 and Task 2 ready.");
-      alert("✨ Success! Writing Task 1 and Task 2 prompts re-generated successfully.");
-      state.writing.drafts = {task1:"", task2:""};
-      state.writing.hints = {task1:null, task2:null};
-      state.writing.reports = {task1:null, task2:null};
-      state.writing.grammar = {task1:null, task2:null};
-      state.writing.bandVersions = {task1:{}, task2:{}};
-      renderWriting();
-    } else {
-      throw new Error("Missing required structure layers.");
+    let parsedObj = null, lastProblem = "";
+    for(let attempt=1; attempt<=3 && !parsedObj; attempt++){
+      if(attempt > 1) genProgressSet("writingGen", 20 + attempt*20, `The first draft was not usable (${lastProblem}) — trying again (${attempt}/3)…`);
+      try{
+        const correction = lastProblem ? `\n\nYour previous attempt was rejected because ${lastProblem}. Fix that this time.` : "";
+        const obj = parseJSON(await callGemini("You output raw JSON models for application prompts.", prompt + correction, null, null));
+        if(!obj || !obj.task1 || !obj.task2 || !String(obj.task2.prompt || "").trim()) throw new Error("Task 1 or Task 2 was missing");
+        const t1 = normalizeTask1(obj.task1);
+        if(task1Kind(t1) !== kind) throw new Error(`a ${task1Kind(t1)} was written instead of a ${kind}`);
+        parsedObj = { task1: t1, task2: { tag: String(obj.task2.tag || "Writing Task 2 · 40 minutes · at least 250 words"), prompt: String(obj.task2.prompt).trim() } };
+      }catch(err){ lastProblem = err.message || String(err); }
     }
+    if(!parsedObj) throw new Error(lastProblem);
+    WRITING = parsedObj;
+    saveGeneratedContent();
+    genProgressDone("writingGen", "Done — new Task 1 and Task 2 ready.");
+    alert("✨ Success! Writing Task 1 and Task 2 prompts re-generated successfully.");
+    state.writing.drafts = {task1:"", task2:""};
+    state.writing.hints = {task1:null, task2:null};
+    state.writing.reports = {task1:null, task2:null};
+    state.writing.grammar = {task1:null, task2:null};
+    state.writing.bandVersions = {task1:{}, task2:{}};
+    renderWriting();
   } catch (error) {
     console.error(error);
     genProgressHide("writingGen");
@@ -10700,9 +11300,17 @@ function disposeTask1ChartJS(){
 }
 
 function renderTask1Visual(){
-  const cd = WRITING.task1.chartData;
   const host = document.getElementById("task1VisualHost");
-  if(!host || !cd) return;
+  if(!host) return;
+  const kind = task1Kind();
+  if(kind !== "chart"){
+    disposeTask1Chart3D();
+    disposeTask1ChartJS();
+    host.innerHTML = kind === "process" ? buildProcessSVG(WRITING.task1.process) : buildMapsHTML(WRITING.task1.map);
+    return;
+  }
+  const cd = WRITING.task1.chartData;
+  if(!cd) return;
   const type = state.writing.chartType || "bars3d";
 
   // Tear down whichever renderer is currently mounted.
@@ -11280,7 +11888,7 @@ async function requestWritingHint(task){
   btn.disabled = true;
   try{
     const sys = `You are a supportive IELTS Writing coach. Never rewrite the student's sentences for them. Give exactly 3 short, specific, actionable tips to raise the band score of the current draft, tied to concrete moments in their text where possible. Respond ONLY with raw JSON: {"tips":["","",""]}`;
-    const user = `Task prompt: ${WRITING[task].prompt}\n\nStudent draft:\n${draft}`;
+    const user = `${writingTaskContext(task)}\n\nStudent draft:\n${draft}`;
     const text = await callGemini(sys, user, null, null);
     const json = parseJSON(text);
     W.hints[task] = json.tips;
@@ -11327,7 +11935,7 @@ async function requestParagraphFeedback(task){
   btn.disabled = true;
   try{
     const numbered = paras.map((p,i)=>`Paragraph ${i+1}:\n${p}`).join("\n\n");
-    const user = `Task prompt: ${WRITING[task].prompt}\n\n${numbered}`;
+    const user = `${writingTaskContext(task)}\n\n${numbered}`;
     const text = await callGemini(WRITING_PARAGRAPH_RUBRIC, user, null, null);
     const json = parseJSON(text);
     W.paraFeedback[task] = { paragraphs: paras, feedback: json.paragraphs || [] };
@@ -11389,7 +11997,7 @@ async function requestWritingScore(task){
   btn.innerHTML = `<span class="loader"><span></span><span></span><span></span></span>`;
   btn.disabled = true;
   try{
-    const user = `Task prompt: ${WRITING[task].prompt}\n\nWord count: ${wc} (minimum required: ${minWords})\n\nStudent response:\n${draft}`;
+    const user = `${writingTaskContext(task)}\n\nWord count: ${wc} (minimum required: ${minWords})\n\nStudent response:\n${draft}`;
     if(!geminiAvailable()){
       alert(geminiMissingMessage());
       btn.textContent = original; btn.disabled = false; return;
@@ -11497,7 +12105,7 @@ async function requestGrammarCheck(task){
   btn.disabled = true;
   try{
     const label = task==="task1" ? "Task 1 (academic report)" : "Task 2 (essay)";
-    const user = `This is an IELTS Academic Writing ${label}.\nTask prompt: ${WRITING[task].prompt}\n\nStudent response:\n${draft}`;
+    const user = `This is an IELTS Academic Writing ${label}.\n${writingTaskContext(task)}\n\nStudent response:\n${draft}`;
     const text = await callGemini(WRITING_GRAMMAR_SYS, user, null, null);
     const json = parseJSON(text);
     W.grammar[task] = {
@@ -11590,7 +12198,7 @@ function bandVersionPrompt(task, band, draft){
 
   if(own){
     return `${kind}.
-Task prompt: ${WRITING[task].prompt}
+${writingTaskContext(task)}
 
 This is what the candidate actually wrote:
 """
@@ -11611,7 +12219,7 @@ ${calibration}`;
   }
 
   return `Write a model answer for the following ${kind} that would be awarded EXACTLY IELTS band ${band}.
-Task prompt: ${WRITING[task].prompt}
+${writingTaskContext(task)}
 
 Requirements:
 ${calibration}`;
@@ -13669,6 +14277,11 @@ function writingMaterial(task){
   const w = WRITING[task] || {};
   const m = { tag: w.tag || "", prompt: w.prompt || "" };
   if(task === "task1" && w.chartData) m.chartData = paperSnapshot(w.chartData);
+  if(task === "task1" && (w.process || w.map)){
+    m.kind = task1Kind(w);
+    if(w.process) m.process = paperSnapshot(w.process);
+    if(w.map) m.map = paperSnapshot(w.map);
+  }
   if(task === "task1") m.chartType = (state.writing && state.writing.chartType) || "";
   return m;
 }
@@ -14484,6 +15097,14 @@ function histChartType(t){
 }
 
 function histWritingTaskHTML(sub, m){
+  if(m.process || m.map){
+    return `
+    <div class="hist-mat">
+      <div class="hist-mat-h">The task${m.tag ? ` · <span>${histText(m.tag)}</span>` : ""}</div>
+      <p class="hist-q">${histText(m.prompt)}</p>
+      <div class="hist-visual">${m.process ? buildProcessSVG(m.process) : buildMapsHTML(m.map)}</div>
+    </div>`;
+  }
   const cd = m.chartData;
   const hasChart = !!(cd && Array.isArray(cd.labels) && Array.isArray(cd.series) && cd.series.length);
   let visual = "";

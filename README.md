@@ -74,6 +74,40 @@ Open `index.html` in any modern browser. No build step, no server required.
   hover and a ripple from the point of contact, all of it dropped under
   `prefers-reduced-motion`.
 
+## Writing Task 1 — charts, processes and maps
+
+Task 1 in the real paper is not always a chart, and the app now covers all three
+kinds of visual:
+
+- **Charts and tables** — line, bar, pie, table and mind map, and the 3D views
+  below.
+- **Process diagrams** — something man-made (recycling glass, making chocolate)
+  or natural (the life cycle of the frog, the water cycle), drawn as numbered
+  stages from START to END, or as a loop when it is a cycle. An answer needs an
+  overview and every stage, in order.
+- **Maps and floor plans** — the same place at two dates, in the three patterns
+  the exam uses: two past dates (Trentville town centre, 1966 and 2016), a past
+  date and today, or today and a plan for the future (a library in 2032). Drawn
+  side by side, outdoors with a north arrow or indoors as a floor plan.
+
+**Ready-made Task 1s.** The Task 1 card has a menu of 13 — six charts and
+tables, four processes, three maps — that load instantly and need no AI key.
+Loading one replaces Task 1 only; Task 2 stays.
+
+**Generating one.** In the Writing generator, the Task 1 type menu has *Process
+diagram* and *Map / floor plan* beside the chart types, and there are 26 themes
+to choose from. A generated task is checked before it replaces anything — a
+process needs 4 to 12 stages, a map needs two or three dates with at least three
+features each — and is asked for again, with the reason, when it falls short.
+
+**Marked against what the student saw.** The AI examiner, the hints, the
+paragraph feedback, the grammar check and the model answers are all given the
+visual as data — the chart's figures, the stages in order, or every feature of
+each map with its position — so a misreported figure, a missing stage or a
+change put in the wrong corner is caught. The examiner is also told what this
+kind of Task 1 demands: every stage in order for a process; the changes, the
+location language and a tense that fits the dates for maps.
+
 ## Writing Task 1 — 3D graphic generator
 
 The chart a candidate must describe is rendered with a self-contained
