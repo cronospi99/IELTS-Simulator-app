@@ -27,7 +27,10 @@ Open `index.html` in any modern browser. No build step, no server required.
   inference and the writer's purpose (question 10), each marked with the reason
   it is right and a bar showing how far up the student got before the first
   slip. Generated texts are kept in the browser and never replace the exam.
-  Nothing here touches your dashboard.
+  The Language desk is here too. Nothing here changes a band score, but a
+  signed-in student's marked practice is kept in their history, with its
+  accuracy, for them and their teacher — **Save to my history** in the practice
+  bar switches that off for a session they want to keep to themselves.
 - **Progress** — the overall seal, per-skill cards, skill-profile and
   band-history charts, and the full attempt history.
 - **My history** — the work behind those bands. Every paper the student has sat,
@@ -36,7 +39,8 @@ Open `index.html` in any modern browser. No build step, no server required.
   the Reading passages and Listening sections with every question, their answer
   and — where it was wrong — the key, plus the Listening transcript. Then the
   essay as they wrote it and the Speaking transcripts with the examiner's marks
-  still on them. Filter by paper, open one to read it back. **The teacher decides who gets this tab** — for the whole class
+  still on them. Free practice is there too, with its accuracy (%) instead of a
+  band and its own filter. Filter by paper, open one to read it back. **The teacher decides who gets this tab** — for the whole class
   at once, or for one student against the class (see below).
 - **Listening / Reading** — full question sets with answer keys and auto-marking.
 - **Writing** — Task 1 & Task 2 drafting with word count, AI coaching hints,
@@ -57,13 +61,13 @@ Open `index.html` in any modern browser. No build step, no server required.
   words in green (excellent), yellow (improvable) and red (an error), each with
   a note in Spanish, alongside the strengths, fixes and the justification for
   the bands awarded.
-- **Language desk** — a translator on every skill tab, with verb conjugation
+- **Language desk** — a translator on every skill tab and in Free practice, with verb conjugation
   tables, register-ranked alternative words and collocations (see below).
 - **Accounts, homework and feedback** — students sign in with their teacher's
-  class code and their progress follows them to any device; teachers see the
-  class roster, read every submission, write feedback, set homework for one
-  student or the whole class at once, and choose which students may read their
-  own history back. Students get it on their home page and
+  class code and their progress follows them to any device; teachers get a
+  class dashboard (below), read every paper and every marked practice, write
+  feedback, set homework for one student or the whole class at once, and choose
+  which students may read their own history back. Students get it on their home page and
   under the 🔔 bell, and tick it off when it is done. Password reset and
   "resend the confirmation email" are built in, and a class code typed at
   sign-up survives the email-confirmation step.
@@ -322,6 +326,19 @@ and due date. They get their edit; the teacher's wording survives it.
   module, instructions and a due date. Students tick it off and can leave a note
   back ("found Part 3 hard"), which you see on the tracking list. Edit a task in
   place rather than deleting it — the student's tick and note survive the edit.
+- **The class dashboard:** My class opens on five figures for the whole class —
+  average band, how many students worked this week, how much work came in
+  against the week before, average accuracy in Free practice, and homework done
+  — and a skill profile with the class's weakest skill picked out. The student
+  list shows each student's overall band (official once all four are sat,
+  marked *partial* until then), every skill with its change since the last
+  attempt, a small trend line, this week's work, practice accuracy and homework,
+  and flags anyone inactive for a week, with no work yet, or whose band is
+  falling. Sort it by *needs attention*, band, activity or name. Open a student
+  for their four skills, a band-history chart, four weeks of activity, their
+  practice, and every piece of work — papers and practice — opened the same way
+  the student reads it.
+
 - **The Listening audio library:** **My class → Listening audio library** has one
   column per section. Add recordings to each (several at once is fine; up to
   18 MB a file); a student's **Listening** tab then offers *New test from your
@@ -411,8 +428,9 @@ their own rows and a teacher only their own students'. Never commit the
 > last week's question after a new exam has been generated. No SQL file is
 > needed for this; attempts made before it show the question text only.
 >
-> Papers sat in **Free practice** are never uploaded, by design: that tab is for
-> work nobody is going to mark.
+> Marked **Free practice** is uploaded too, as a submission with `task` =
+> `"practice"` and no band — only its accuracy — unless the student switches
+> **Save to my history** off in the practice bar.
 
 ## Troubleshooting "no content" / generation fails
 
