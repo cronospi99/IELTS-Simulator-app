@@ -79,7 +79,10 @@ The Gemini function is not SQL, but it applies the same idea: it asks Supabase
 whose session it has been sent, reads that user's own profile with their own
 token, and serves only a teacher or a student with a `teacher_id`. It also
 decides the model, so the key's owner — not a student's settings — chooses
-what the key is spent on.
+what the key is spent on. Voices for AI-written Listening tests (`op: "speak"`)
+are for teachers only unless the secret `GEMINI_TTS_STUDENTS` is `on`: the free
+voice quota is small, and a teacher's recordings saved to the library serve the
+whole class for nothing.
 
 ## How each rule is enforced, and why
 

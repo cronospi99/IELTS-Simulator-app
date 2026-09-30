@@ -23,6 +23,15 @@
 //   Optional secret   GEMINI_MODEL   (default gemini-3.5-flash-lite)
 //   Optional secret   GEMINI_MODELS  comma-separated extra models the app may
 //                                    ask for; anything else gets GEMINI_MODEL.
+//   Optional secret   GEMINI_TTS_MODELS  the voice models for AI-voiced
+//                                    Listening tests, tried in order
+//                                    (default gemini-3.1-flash-tts-preview,
+//                                    gemini-2.5-flash-preview-tts).
+//   Optional secret   GEMINI_TTS_STUDENTS = on   lets students make voices too.
+//                                    Off by default: the free voice quota is
+//                                    small (a few tests a day), so the teacher
+//                                    makes the tests and saves them to the
+//                                    class library, where students use them.
 //   With the CLI instead:  supabase functions deploy gemini
 //                          supabase secrets set GEMINI_API_KEY=AIza…
 //
@@ -67,6 +76,34 @@ function pickModel(asked: unknown): string {
   );
   const m = typeof asked === "string" ? asked.trim() : "";
   return allowed.has(m) ? m : fallback;
+}
+
+// The voice models, in the order they are tried. Each has its own quota, so
+// when the first is used up for the day the next still answers.
+const DEFAULT_TTS_MODELS = ["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts"];
+function ttsModels(): string[] {
+  const set = (Deno.env.get("GEMINI_TTS_MODELS") || "").split(",").map((m) => m.trim()).filter(Boolean);
+  return set.length ? set : DEFAULT_TTS_MODELS;
+}
+// Gemini's voices have one-word names ("Kore", "Charon"); anything else is
+// dropped rather than forwarded.
+function voiceName(v: unknown): string {
+  const s = typeof v === "string" ? v.trim() : "";
+  return /^[A-Z][a-z]{2,20}$/.test(s) ? s : "Kore";
+}
+function speechConfig(speakers: unknown): unknown {
+  const list = Array.isArray(speakers) ? speakers.slice(0, 2) : [];
+  if (list.length === 2) {
+    return {
+      multiSpeakerVoiceConfig: {
+        speakerVoiceConfigs: list.map((sp: any) => ({
+          speaker: String(sp && sp.speaker || "").replace(/[^\p{L}\p{N} .'-]/gu, "").slice(0, 40) || "Speaker",
+          voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName(sp && sp.voice) } },
+        })),
+      },
+    };
+  }
+  return { voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName(list[0] && (list[0] as any).voice) } } };
 }
 
 type Caller = { id: string; role: string; teacher_id: string | null };
@@ -143,6 +180,37 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({ contents: body.contents }),
     });
     return passThrough(r, await r.text());
+  }
+
+  // A section of an AI-voiced Listening test, read aloud. Answers with
+  // Google's own response: base64 PCM in candidates[0].content.parts[0].
+  if (op === "speak") {
+    const studentsToo = (Deno.env.get("GEMINI_TTS_STUDENTS") || "").trim().toLowerCase() === "on";
+    if (who.role !== "teacher" && !studentsToo) {
+      return fail(403,
+        "The class's AI voices are made by your teacher, who saves the tests to the class library. You'll hear this test in your device's voice instead.",
+        "tts_teacher_only");
+    }
+    const text = typeof body.text === "string" ? body.text.slice(0, 12000) : "";
+    if (!text.trim()) return fail(400, "Nothing to read aloud.");
+    const payload = JSON.stringify({
+      contents: [{ parts: [{ text }] }],
+      generationConfig: { responseModalities: ["AUDIO"], speechConfig: speechConfig(body.speakers) },
+    });
+    let last: Response | null = null, lastText = "";
+    for (const model of ttsModels()) {
+      const r = await fetch(`${GEMINI_BASE}/models/${encodeURIComponent(model)}:generateContent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: payload,
+      });
+      const t = await r.text();
+      if (r.ok) return passThrough(r, t);
+      last = r; lastText = t;
+      // A model this key cannot use, or whose quota is spent: try the next.
+      if (r.status !== 404 && r.status !== 429 && r.status !== 400) break;
+    }
+    return passThrough(last as Response, lastText);
   }
 
   return fail(400, "Unknown request.");
