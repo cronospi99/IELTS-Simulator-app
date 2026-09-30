@@ -1163,6 +1163,15 @@ hr.rule{border:none;border-top:1px solid var(--line);margin:26px 0;}
   font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .audio-player .info{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--paper-2);flex:1;min-width:180px;}
+.aud-seek{flex:1 1 100%;min-width:0;display:flex;align-items:center;gap:10px;order:5;}
+.aud-seek input[type=range]{flex:1;width:0;min-width:0;height:6px;margin:0;-webkit-appearance:none;appearance:none;border-radius:999px;cursor:pointer;
+  background:linear-gradient(to right,var(--brass) var(--pct,0%),var(--ink-2) var(--pct,0%));}
+.aud-seek input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--paper);border:3px solid var(--brass);}
+.aud-seek input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--paper);border:3px solid var(--brass);}
+.aud-seek input[type=range]:focus-visible{outline:2px solid var(--brass-2);outline-offset:4px;}
+.aud-skip{background:var(--ink-2);color:var(--paper);border:1px solid var(--paper-line);border-radius:999px;padding:6px 11px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;cursor:pointer;flex-shrink:0;}
+.aud-skip:hover{border-color:var(--brass);color:var(--brass-2);}
+.aud-time{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--paper-2);min-width:36px;text-align:center;font-variant-numeric:tabular-nums;}
 .audio-player .rate select{
   background:var(--ink-2);color:var(--paper);border:1px solid var(--paper-line);border-radius:6px;padding:4px 8px;font-size:12px;
 }
@@ -2545,6 +2554,8 @@ textarea.essay{
     background-position:calc(100% - 16px) 18px,calc(100% - 11px) 18px;
   }
   .audio-upload-row{gap:8px;}
+  .aud-seek{gap:6px;}
+  .aud-skip{padding:6px 8px;}
   .audio-upload-row input[type=file]{max-width:100%;}
   .transcript-card{padding:14px;font-size:14px;max-height:300px;border-radius:14px;}
 
@@ -9433,6 +9444,7 @@ function renderListening(){
           <b>Audio Track</b> <span class="audio-source-note ${playable?'real':''}">${trackNote[0]}</span><br>
           <span style="opacity:.7;">${trackNote[1]}</span>
         </div>
+        ${(voice === "gemini" || voice === "file") ? audioSeekRowHTML(part.id) : ""}
         <div class="rate">
           <select data-rate="${part.id}">
             <option value="1">1.0x Speed</option>
@@ -9466,6 +9478,16 @@ function renderListening(){
       <hr class="rule">
     `;
     container.appendChild(block);
+  });
+
+  container.querySelectorAll("[data-skip]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const pid = parseInt(b.dataset.pid);
+      seekListening(pid, listeningPos(pid) + Number(b.dataset.skip));
+    });
+  });
+  container.querySelectorAll("input[data-seek]").forEach(r=>{
+    r.addEventListener("input", ()=>seekListening(parseInt(r.dataset.seek), Number(r.value)));
   });
 
   container.querySelectorAll(".playbtn").forEach(b=>{
@@ -9764,6 +9786,7 @@ function measureListeningAudioDurations(){
     probe.onloadedmetadata = ()=>{
       const d = Number(probe.duration);
       L.audioDur[pid] = (isFinite(d) && d > 0) ? Math.round(d) : 0;
+      paintListeningSeek(Number(pid));
       const t = state.timers.listening;
       if(t && !t.started){ t.total = listeningTimerTotal(); t.left = t.total; }
       paintExamTimers();
@@ -9784,13 +9807,14 @@ function toggleListeningAudio(pid){
     return;
   }
   if(activeAudioEl && activeListeningAudio && activeListeningAudio.partId === pid){
+    rememberListeningPos();
     activeAudioEl.pause();
     activeAudioEl = null;
     activeListeningAudio = null;
     renderListening();
     return;
   }
-  if(activeAudioEl) activeAudioEl.pause();
+  if(activeAudioEl){ rememberListeningPos(); activeAudioEl.pause(); }
   state.listening.playedParts[pid] = true;
   // The Listening paper is timed by its audio, so playing a section starts the
   // clock if the candidate has not started it themselves.
@@ -9806,12 +9830,81 @@ function toggleListeningAudio(pid){
   }else{
     audio = new Audio(`data:${custom.mime};base64,${custom.b64}`);
     audio.playbackRate = audioRate;
-    audio.onended = ended;
+    // Carry on from where it was paused, or from where the bar was dragged.
+    const L = state.listening;
+    const from = (L.audioPos && L.audioPos[pid]) || 0;
+    if(from > 0) audio.currentTime = from;
+    audio.onloadedmetadata = ()=>{
+      if(from > 0 && Math.abs(audio.currentTime - from) > 0.5) audio.currentTime = from;
+      paintListeningSeek(pid);
+    };
+    audio.ontimeupdate = ()=>paintListeningSeek(pid);
+    audio.onended = ()=>{ if(L.audioPos) L.audioPos[pid] = 0; ended(); };
     audio.play().catch(err=>console.error(err));
   }
   activeAudioEl = audio;
   activeListeningAudio = { partId: pid };
   renderListening();
+}
+
+/* ---- the progress bar and ±5 s ----
+   A section's position lives on the playing <audio> while it plays, and in
+   state.listening.audioPos when it is paused, so pausing resumes rather than
+   restarting, and the bar can be dragged before pressing play. */
+function listeningDuration(pid){
+  const a = activeListeningAudio && activeListeningAudio.partId === pid ? activeAudioEl : null;
+  const d = a && isFinite(a.duration) && a.duration > 0 ? a.duration : Number((state.listening.audioDur || {})[pid]);
+  return isFinite(d) && d > 0 ? d : 0;
+}
+function listeningPos(pid){
+  const a = activeListeningAudio && activeListeningAudio.partId === pid ? activeAudioEl : null;
+  if(a && typeof a.currentTime === "number") return a.currentTime;
+  return (state.listening.audioPos || {})[pid] || 0;
+}
+function rememberListeningPos(){
+  if(!activeAudioEl || !activeListeningAudio || typeof activeAudioEl.currentTime !== "number") return;
+  const L = state.listening;
+  L.audioPos = L.audioPos || {};
+  L.audioPos[activeListeningAudio.partId] = activeAudioEl.ended ? 0 : activeAudioEl.currentTime;
+}
+function seekListening(pid, t){
+  const dur = listeningDuration(pid);
+  const to = Math.max(0, dur ? Math.min(dur, t) : t);
+  const a = activeListeningAudio && activeListeningAudio.partId === pid ? activeAudioEl : null;
+  if(a && typeof a.currentTime === "number") a.currentTime = to;
+  else{
+    const L = state.listening;
+    L.audioPos = L.audioPos || {};
+    L.audioPos[pid] = to;
+  }
+  paintListeningSeek(pid, to);
+}
+function fmtClock(sec){
+  sec = Math.max(0, Math.floor(sec || 0));
+  return `${Math.floor(sec/60)}:${String(sec % 60).padStart(2, "0")}`;
+}
+// Updates the bar in place: re-rendering the panel on every tick would fight
+// with a thumb being dragged and with answers being typed.
+function paintListeningSeek(pid, pos){
+  const r = document.querySelector(`input[data-seek="${pid}"]`);
+  if(!r) return;
+  const dur = listeningDuration(pid), at = pos == null ? listeningPos(pid) : pos;
+  if(dur){ r.max = dur.toFixed(1); r.disabled = false; }
+  if(document.activeElement !== r || pos != null) r.value = at.toFixed(1);
+  r.style.setProperty("--pct", dur ? `${Math.min(100, at/dur*100)}%` : "0%");
+  const cur = document.querySelector(`[data-cur="${pid}"]`), tot = document.querySelector(`[data-dur="${pid}"]`);
+  if(cur) cur.textContent = fmtClock(at);
+  if(tot) tot.textContent = dur ? fmtClock(dur) : "–:––";
+}
+function audioSeekRowHTML(pid){
+  const dur = listeningDuration(pid), at = listeningPos(pid);
+  return `<div class="aud-seek">
+      <button type="button" class="aud-skip" data-skip="-5" data-pid="${pid}" title="Back 5 seconds" aria-label="Back 5 seconds">⟲ 5s</button>
+      <span class="aud-time" data-cur="${pid}">${fmtClock(at)}</span>
+      <input type="range" min="0" max="${dur ? dur.toFixed(1) : 0}" step="0.1" value="${at.toFixed(1)}" data-seek="${pid}" aria-label="Position in section ${pid}" style="--pct:${dur ? Math.min(100, at/dur*100) : 0}%">
+      <span class="aud-time" data-dur="${pid}">${dur ? fmtClock(dur) : "–:––"}</span>
+      <button type="button" class="aud-skip" data-skip="5" data-pid="${pid}" title="Forward 5 seconds" aria-label="Forward 5 seconds">5s ⟳</button>
+    </div>`;
 }
 
 const LISTENING_GEN_RUBRIC = `You are an experienced IELTS Listening test writer. You are given the REAL audio recording for ONE section of an IELTS Listening test. Listen to the audio carefully and do two things: (1) produce a faithful transcript of what is said; (2) write exactly 10 IELTS-style questions that can be answered ONLY from this audio. Use a natural mix of these two question types: "gap" (a sentence/form/note completion item; the "answer" field is an array of accepted answers, all lowercase, each NO MORE THAN TWO WORDS AND/OR A NUMBER, including reasonable spelling variants like "15"/"fifteen") and "mc" (multiple choice with exactly 3 options; the "answer" field is the 0-based index of the correct option). Questions must follow the order of the audio.
