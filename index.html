@@ -1664,6 +1664,22 @@ textarea.essay{
 .t1-map-fig{margin:0;}
 .t1-map-fig figcaption{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.06em;text-align:center;color:var(--ink);margin-bottom:4px;}
 .t1-map-place{text-align:center;font-size:12px;color:var(--slate);margin:8px 0 0;font-style:italic;}
+.t1-cv{position:relative;height:300px;}
+.aivoice-status{font-size:12px;color:var(--slate);margin:10px 0 0;line-height:1.55;}
+.aivoice-status:empty{display:none;}
+.t1-gen{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-2px 0 12px;padding:9px 11px;border:1px dashed var(--line);border-radius:12px;background:var(--paper);}
+.t1-gen-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:700;}
+.t1-gen select{font-size:12.5px;max-width:230px;}
+.t1-gen-note{font-size:11.5px;color:var(--slate);flex:1;min-width:160px;}
+.t1-cv-tall{height:340px;}
+.t1-chart-title{text-align:center;font-weight:700;font-size:13.5px;color:var(--ink);margin:0 0 6px;}
+.t1-pies{display:grid;gap:12px;}
+.t1-pies-2{grid-template-columns:1fr 1fr;}
+.t1-pies-3{grid-template-columns:1fr 1fr 1fr;}
+.t1-pie{position:relative;height:300px;}
+.hist-pies{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.t1-table caption{caption-side:top;text-align:left;font-size:12.5px;font-weight:600;color:var(--slate);padding:0 0 6px;}
+@media(max-width:700px){.t1-pies-2,.t1-pies-3{grid-template-columns:1fr;}.t1-pie{height:260px;}}
 @media(max-width:700px){.t1-maps{grid-template-columns:1fr;}}
 .pr-gen-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
 .pr-gen-row input{flex:1;min-width:220px;}
@@ -9313,7 +9329,7 @@ function renderListening(){
   const genReady = [1,2,3,4].filter(i=>L.genAudio[i]).length;
   panel.innerHTML = `
     <p class="section-title">Listening Mock Examination</p>
-    <p class="section-sub">Four sections, 40 questions — the official IELTS Listening structure. This app plays <b>real audio files only</b> (no synthetic text-to-speech): attach the official recording you own under each section, press play once, and answer as you listen.</p>
+    <p class="section-sub">Four sections, 40 questions — the official IELTS Listening structure. Play each section once and answer as you listen — from your class library, from recordings you attach, or from a new test written and read aloud by AI voices.</p>
     ${examTimerBarHTML("listening")}
     <div id="timeoutNoteHost"></div>
     ${trCard("listening")}
@@ -9322,6 +9338,8 @@ function renderListening(){
     </div>
 
     ${classLibCardHTML(geminiOn)}
+
+    ${aiVoiceCardHTML(geminiOn)}
 
     <div class="gen-card" style="margin-bottom:24px;">
       <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);">${AUTH.enabled ? "Option 2 · optional, your own files" : "Option 1 · works now"}</span><br>
@@ -9395,6 +9413,12 @@ function renderListening(){
     const played = L.playedParts[part.id];
     const isPlaying = activeListeningAudio && activeListeningAudio.partId === part.id;
     const custom = L.customAudio && L.customAudio[part.id];
+    const voice = listeningPartVoice(part);
+    const playable = voice !== "none";
+    const trackNote = voice === "gemini" ? ["AI voices (Gemini)", `Recorded with ${escapeHtml((part.voices || []).join(" & ") || "Gemini voices")}${part.accent ? " · " + escapeHtml(part.accent) : ""}`]
+      : voice === "browser" ? ["Your device's voice", "Read aloud by this device's speech engine — less natural than a recording"]
+      : custom ? ["Official recording attached", "Playing your attached audio file"]
+      : ["No audio attached", "Attach the official recording below to enable playback"];
     const transcriptOpen = !!L.transcriptOpen[part.id];
 
     const block = document.createElement("div");
@@ -9404,10 +9428,10 @@ function renderListening(){
       <p style="font-size:13.5px;color:var(--slate);margin:0 0 14px;line-height:1.6;">${part.context || ""}</p>
       
       <div class="audio-player">
-        <button class="playbtn" data-pid="${part.id}" ${!custom ? 'style="opacity:.35;cursor:not-allowed;"' : ''}>${isPlaying ? "⏸" : "▶"}</button>
+        <button class="playbtn" data-pid="${part.id}" ${!playable ? 'style="opacity:.35;cursor:not-allowed;"' : ''}>${isPlaying ? "⏸" : "▶"}</button>
         <div class="info">
-          <b>Audio Track</b> <span class="audio-source-note ${custom?'real':''}">${custom ? "Official recording attached" : "No audio attached"}</span><br>
-          <span style="opacity:.7;">${custom ? "Playing your attached audio file" : "Attach the official recording below to enable playback"}</span>
+          <b>Audio Track</b> <span class="audio-source-note ${playable?'real':''}">${trackNote[0]}</span><br>
+          <span style="opacity:.7;">${trackNote[1]}</span>
         </div>
         <div class="rate">
           <select data-rate="${part.id}">
@@ -9509,6 +9533,10 @@ function renderListening(){
   if(genBtn) genBtn.addEventListener("click", generateNewListeningWithAI);
   const clGen = document.getElementById("classLibGenerateBtn");
   if(clGen) clGen.addEventListener("click", generateListeningFromClassLib);
+  const aiBtn = document.getElementById("aiVoiceBtn");
+  if(aiBtn) aiBtn.addEventListener("click", generateAIVoicedListening);
+  const aiSave = document.getElementById("aiVoiceSaveBtn");
+  if(aiSave) aiSave.addEventListener("click", saveAIListeningToLibrary);
   const clRef = document.getElementById("classLibRefreshBtn");
   if(clRef) clRef.addEventListener("click", ()=>refreshClassLibrary(false));
   // First visit: read the library in the background and redraw when it lands.
@@ -9749,7 +9777,9 @@ function measureListeningAudioDurations(){
 
 function toggleListeningAudio(pid){
   const custom = state.listening.customAudio && state.listening.customAudio[pid];
-  if(!custom){
+  const part = (LISTENING.parts || []).find(p=>p.id === pid);
+  const inBrowser = !custom && part && listeningPartVoice(part) === "browser";
+  if(!custom && !inBrowser){
     alert("No audio is attached to this section yet. Attach the official recording you own using the control below the player.");
     return;
   }
@@ -9765,14 +9795,20 @@ function toggleListeningAudio(pid){
   // The Listening paper is timed by its audio, so playing a section starts the
   // clock if the candidate has not started it themselves.
   startExamTimer("listening");
-  const audio = new Audio(`data:${custom.mime};base64,${custom.b64}`);
-  audio.playbackRate = audioRate;
-  audio.onended = ()=>{
+  const ended = ()=>{
     activeAudioEl = null;
     activeListeningAudio = null;
     renderListening();
   };
-  audio.play().catch(err=>console.error(err));
+  let audio;
+  if(inBrowser){
+    audio = speakPartInBrowser(part, audioRate, ()=>{ if(activeAudioEl === audio) ended(); });
+  }else{
+    audio = new Audio(`data:${custom.mime};base64,${custom.b64}`);
+    audio.playbackRate = audioRate;
+    audio.onended = ended;
+    audio.play().catch(err=>console.error(err));
+  }
   activeAudioEl = audio;
   activeListeningAudio = { partId: pid };
   renderListening();
@@ -9936,6 +9972,414 @@ async function generateNewListeningWithAI(){
     genProgressHide("listeningGen");
     if(status) status.textContent = "Generation failed — check your Gemini key and audio files, then try again.";
   }
+}
+
+/* =========================================================================
+   AI-VOICED LISTENING TESTS — no audio files needed
+   The AI writes the four sections (script + 10 questions each), then Gemini's
+   speech models read each one aloud with natural voices — two voices for the
+   conversations. It costs nothing on the free tier, but that tier allows only
+   a few voiced sections a day per key, so:
+   - the teacher saves the recordings to the class library, and students draw
+     tests from there as they already do, spending no voice quota at all;
+   - when the voices are unavailable (quota spent, or a student on the class
+     key), the section is read by the device's own speech engine instead —
+     less natural, never broken.
+   ========================================================================= */
+const TTS_VOICES = {
+  female: ["Kore","Aoede","Leda","Callirrhoe","Despina","Erinome","Autonoe","Laomedeia"],
+  male:   ["Charon","Puck","Orus","Iapetus","Algenib","Schedar","Enceladus","Alnilam"]
+};
+const TTS_OWN_MODELS = ["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts"];
+const LISTENING_AI_ACCENTS = { british:"British English", australian:"Australian English", american:"North American English", mixed:null };
+const LISTENING_AI_MIXED = ["British English","Australian English","British English","North American English"];
+
+const LISTENING_AI_PLANS = [
+  { n:1, speakers:2, words:"450-550", brief:"a conversation between TWO people in an everyday social context — for example someone phoning to book, enquire, register, rent or report something. One of them gives details the other notes down: a name that is SPELLED OUT letter by letter, a phone number or postcode, a date, prices, times, an address.", qs:"mostly form / note completion (gap), with at most 2 multiple-choice items" },
+  { n:2, speakers:1, words:"500-600", brief:"a MONOLOGUE in an everyday social context — for example a guide introducing a place or tour, a radio announcement about local facilities, or someone explaining arrangements for an event.", qs:"a mix of multiple choice and sentence / note completion" },
+  { n:3, speakers:2, words:"550-650", brief:"a conversation between TWO people in an educational setting — a student and a tutor, or two students — discussing an assignment, a research project, a presentation or a course. They give opinions, agree and disagree, and change their minds.", qs:"mostly multiple choice about opinions, reasons and decisions, plus some completion" },
+  { n:4, speakers:1, words:"550-650", brief:"an academic LECTURE on a specific subject (science, history, environment, psychology, business…), delivered by one lecturer, with a clear structure: introduction, two or three main points with examples and figures, a conclusion.", qs:"mostly note / summary completion (gap), with at most 3 multiple-choice items" }
+];
+
+function listeningScriptPrompt(plan, accent, topic){
+  const startN = (plan.n-1)*10 + 1;
+  return `Write Section ${plan.n} of a brand-new IELTS Listening test. It will be read aloud by a speech engine, so write ONLY what is spoken.
+Section ${plan.n} is ${plan.brief}
+Length: ${plan.words} words of speech. Accent of the speakers: ${accent}. ${topic ? `Topic or setting to use: "${topic}".` : "Choose a fresh, realistic setting."}
+Speakers: exactly ${plan.speakers === 2 ? "TWO, each with a first name and a gender" : "ONE, with a first name and a gender"}. ${plan.speakers === 2 ? `In the script, EVERY line starts with the speaker's first name and a colon ("Anna: …"). Use no other speaker names, no narrator, no stage directions.` : `The script is the monologue as plain paragraphs, with no name at the start of lines and no stage directions.`}
+Then write exactly 10 questions, numbered ${startN} to ${startN+9}, in the order the answers are heard: ${plan.qs}. Include the natural IELTS distractors — a speaker correcting themselves, a detail that is mentioned and then changed, an option that is mentioned but rejected.
+ANSWER RULES — a broken answer makes the question impossible to mark:
+- "gap": "answer" is an array of accepted answers, all lowercase, each NO MORE THAN TWO WORDS AND/OR A NUMBER, and each one appearing WORD FOR WORD in the script (include number variants like "15" and "fifteen"). No "options" field.
+- "mc": "options" is exactly 3 strings and "answer" is the 0-based index of the correct one.
+Respond ONLY with raw JSON in this exact shape:
+{"title":"Section ${plan.n} — short descriptive title","context":"One sentence telling the candidate what they will hear and what to do.","speakers":[{"name":"Anna","gender":"female"}${plan.speakers === 2 ? `,{"name":"Mark","gender":"male"}` : ""}],"script":"the full script","questions":[{"n":${startN},"type":"gap","label":"Surname: ___","answer":["cole"]},{"n":${startN+1},"type":"mc","label":"Question text","options":["A","B","C"],"answer":0}]}`;
+}
+
+// Loose text for "is this answer really in the script?"
+function lsNorm(t){ return String(t || "").toLowerCase().replace(/[’']/g, "").replace(/[^a-z0-9]+/g, " ").trim(); }
+
+function normalizeAIListeningSection(obj, plan){
+  if(!obj || typeof obj !== "object") throw new Error("the reply was not a JSON object");
+  let script = String(obj.script || obj.transcript || "").replace(/\r/g, "").trim();
+  const words = script.split(/\s+/).filter(Boolean).length;
+  if(words < 250) throw new Error(`the script was only ${words} words long`);
+  let speakers = (Array.isArray(obj.speakers) ? obj.speakers : [])
+    .map(s=>({ name:String(s && s.name || "").trim().split(/\s+/)[0].replace(/[^\p{L}'-]/gu, ""), gender: /^f/i.test(String(s && s.gender || "")) ? "female" : "male" }))
+    .filter(s=>s.name);
+  if(plan.speakers === 2){
+    // Every line must belong to one of the two speakers; a line without a
+    // name continues the previous speaker.
+    const names = speakers.slice(0, 2).map(s=>s.name);
+    const lines = script.split(/\n+/).map(l=>l.trim()).filter(Boolean);
+    const found = [];
+    lines.forEach(l=>{ const m = /^([\p{L}'-]+)\s*:/u.exec(l); if(m && !found.includes(m[1])) found.push(m[1]); });
+    if(found.length < 2) throw new Error("the conversation did not mark who is speaking");
+    if(found.length > 2) throw new Error(`the conversation had ${found.length} speakers (${found.join(", ")}) — exactly two are needed`);
+    if(names.length < 2 || !found.every(f=>names.includes(f))){
+      speakers = found.map((f, i)=>({ name:f, gender:(speakers.find(s=>s.name === f) || {}).gender || (i ? "male" : "female") }));
+    }
+    let who = found[0];
+    script = lines.map(l=>{
+      const m = /^([\p{L}'-]+)\s*:\s*(.*)$/u.exec(l);
+      if(m && found.includes(m[1])){ who = m[1]; return `${who}: ${m[2]}`; }
+      return `${who}: ${l}`;
+    }).join("\n");
+    if(speakers[0].gender === speakers[1].gender && Math.random() < 0.5) speakers[1].gender = speakers[0].gender === "female" ? "male" : "female";
+  }else{
+    script = script.split(/\n+/).map(l=>l.replace(/^[\p{L}'-]+\s*:\s*/u, "").trim()).filter(Boolean).join("\n");
+    speakers = [speakers[0] || { name:"Speaker", gender: Math.random() < 0.5 ? "female" : "male" }];
+  }
+  const qs = Array.isArray(obj.questions) ? obj.questions : [];
+  if(qs.length !== 10) throw new Error(`there were ${qs.length} questions, not 10`);
+  const startN = (plan.n-1)*10 + 1;
+  const bad = [];
+  qs.forEach((q, i)=>{ if(!normalizeListeningQuestion(q, startN + i)) bad.push(startN + i); });
+  if(bad.length) throw new Error(`question(s) ${bad.join(", ")} had no usable answer`);
+  // A gap answer that is never said cannot be heard.
+  const hay = " " + lsNorm(script) + " ", hayTight = hay.replace(/ /g, "");
+  const unheard = qs.filter(q=>q.type === "gap" && !q.answer.some(a=>{
+    const v = lsNorm(a);
+    return v && (hay.includes(" " + v + " ") || (/\d/.test(v) && hayTight.includes(v.replace(/ /g, ""))));
+  })).map(q=>q.n);
+  if(unheard.length) throw new Error(`the answer to question(s) ${unheard.join(", ")} is not said in the script`);
+  return {
+    id: plan.n,
+    title: String(obj.title || `Section ${plan.n}`).trim(),
+    context: String(obj.context || "").trim(),
+    script, questions: qs, speakers, ai: true
+  };
+}
+
+async function writeListeningSection(plan, accent, topic, onRetry){
+  let lastProblem = "";
+  for(let attempt=1; attempt<=3; attempt++){
+    if(attempt > 1 && onRetry) onRetry(attempt, lastProblem);
+    try{
+      const fix = lastProblem ? `\n\nYour previous attempt was rejected because ${lastProblem}. Fix that this time.` : "";
+      const text = await callGemini("You are an experienced IELTS Listening test writer. You output raw JSON only.", listeningScriptPrompt(plan, accent, topic) + fix, null, null);
+      return normalizeAIListeningSection(parseJSON(text), plan);
+    }catch(e){ lastProblem = e.message || String(e); }
+  }
+  throw new Error(`Section ${plan.n}: ${lastProblem}`);
+}
+
+// Gemini's voices, one per speaker, never the same voice twice in a section.
+function pickTTSVoices(speakers){
+  const used = new Set();
+  return speakers.map(s=>{
+    const pool = TTS_VOICES[s.gender === "female" ? "female" : "male"].filter(v=>!used.has(v));
+    const v = pool[Math.floor(Math.random()*pool.length)];
+    used.add(v);
+    return { speaker:s.name, voice:v };
+  });
+}
+
+function ttsTextFor(part, accent){
+  if(part.speakers.length === 2){
+    const [a, b] = part.speakers.map(s=>s.name);
+    return `Read this recorded IELTS Listening conversation between ${a} and ${b}. Both speak naturally with ${accent} accents, at the steady, clear pace of an exam recording, with short natural pauses between turns:\n\n${part.script}`;
+  }
+  return `Read this recorded IELTS Listening ${part.id === 4 ? "lecture" : "talk"} aloud with a natural ${accent} accent, at the steady, clear pace of an exam recording, pausing briefly between paragraphs:\n\n${part.script}`;
+}
+
+// Gemini returns raw 16-bit PCM; a WAV header makes it playable and storable.
+function pcmToWavB64(pcmB64, rate){
+  const pcm = Uint8Array.from(atob(pcmB64), c=>c.charCodeAt(0));
+  const buf = new ArrayBuffer(44 + pcm.length), v = new DataView(buf);
+  const str = (o, s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); };
+  str(0, "RIFF"); v.setUint32(4, 36 + pcm.length, true); str(8, "WAVE");
+  str(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate*2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  str(36, "data"); v.setUint32(40, pcm.length, true);
+  new Uint8Array(buf, 44).set(pcm);
+  let bin = "";
+  const bytes = new Uint8Array(buf);
+  for(let i=0;i<bytes.length;i+=0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i+0x8000));
+  return btoa(bin);
+}
+
+function ttsError(message, code, wait){ const e = new Error(message); e.code = code; e.wait = wait || 0; return e; }
+
+// One voiced section. Throws with .code "teacher_only" | "quota" | "wait"
+// (with .wait seconds) | "failed", so the caller knows whether to wait,
+// fall back to the device's voice, or stop.
+async function callGeminiTTS(text, speakers){
+  const route = geminiRoute();
+  if(route === "none") throw ttsError(geminiMissingMessage(), "failed");
+  let res, bodyText = "";
+  if(route === "shared"){
+    res = await sharedAIFetch({ op:"speak", text, speakers });
+    if(!res.ok){
+      bodyText = await res.text().catch(()=> "");
+      let j = null; try{ j = JSON.parse(bodyText); }catch(e){}
+      const code = j && j.error && j.error.code;
+      if(code === "tts_teacher_only") throw ttsError(j.error.message, "teacher_only");
+      if(res.status === 400 && /unknown request/i.test(bodyText)) throw ttsError("The class's AI service is an older version without voices — your teacher redeploys supabase/functions/gemini (see the README).", "quota");
+    }
+  }else{
+    const key = (state.settings.geminiKey || "").trim();
+    const speechConfig = speakers.length === 2
+      ? { multiSpeakerVoiceConfig:{ speakerVoiceConfigs: speakers.map(s=>({ speaker:s.speaker, voiceConfig:{ prebuiltVoiceConfig:{ voiceName:s.voice } } })) } }
+      : { voiceConfig:{ prebuiltVoiceConfig:{ voiceName:speakers[0].voice } } };
+    for(const model of TTS_OWN_MODELS){
+      try{
+        res = await fetch(`${GEMINI_BASE}/models/${model}:generateContent`, {
+          method:"POST",
+          headers:{ "Content-Type":"application/json", "x-goog-api-key": key },
+          body: JSON.stringify({ contents:[{ parts:[{ text }] }], generationConfig:{ responseModalities:["AUDIO"], speechConfig } })
+        });
+      }catch(netErr){ throw ttsError("Network error reaching Gemini.", "failed"); }
+      if(res.ok) break;
+      bodyText = await res.text().catch(()=> "");
+      if(res.status !== 404 && res.status !== 429 && res.status !== 400) break;
+    }
+  }
+  if(!res.ok){
+    if(!bodyText) bodyText = await res.text().catch(()=> "");
+    if(res.status === 429){
+      const m = /"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/.exec(bodyText) || /retry in (\d+(?:\.\d+)?)s/i.exec(bodyText);
+      const wait = m ? Math.ceil(Number(m[1])) : 0;
+      if(/PerDay/i.test(bodyText) || !wait || wait > 90) throw ttsError("Today's free quota for AI voices is used up.", "quota");
+      throw ttsError(`The voice model asks to wait ${wait}s.`, "wait", wait);
+    }
+    if(res.status === 404 || res.status === 400) throw ttsError("This key cannot use Gemini's voice models. " + friendlyGeminiError(res.status, bodyText), "quota");
+    throw ttsError(friendlyGeminiError(res.status, bodyText), "failed");
+  }
+  const data = await res.json();
+  const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+  const inl = parts.map(p=>p.inlineData || p.inline_data).find(Boolean);
+  if(!inl || !inl.data) throw ttsError("The voice model returned no audio.", "failed");
+  const mime = String(inl.mimeType || inl.mime_type || "");
+  if(/wav/i.test(mime)) return { b64: inl.data, mime:"audio/wav" };
+  const rate = Number((/rate=(\d+)/.exec(mime) || [])[1]) || 24000;
+  return { b64: pcmToWavB64(inl.data, rate), mime:"audio/wav" };
+}
+
+/* ---- the device's own voice ----
+   Reads a section line by line, a different installed English voice per
+   speaker where the device has them. The shim it returns stands in for an
+   <audio> element, so the player's pause/stop code works unchanged. */
+function browserVoicesFor(part){
+  const all = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+  const en = all.filter(v=>/^en[-_]/i.test(v.lang || ""));
+  const byPref = en.slice().sort((a,b)=>{
+    const rank = v=>(/GB|AU|IE|NZ/i.test(v.lang) ? 0 : 1) + (/natural|neural|google|online/i.test(v.name) ? 0 : 0.5);
+    return rank(a) - rank(b);
+  });
+  const femaleRe = /female|woman|samantha|karen|serena|moira|tessa|fiona|libby|sonia|hazel|susan|kate|zira|aria|jenny|natasha|clara|emma|amy|olivia/i;
+  const maleRe = /\bmale\b|daniel|arthur|oliver|george|ryan|william|guy|thomas|james|lee|rishi|david|mark|alex|fred/i;
+  const used = new Set();
+  return (part.speakers || [{ name:"Speaker", gender:"female" }]).map(s=>{
+    const re = s.gender === "female" ? femaleRe : maleRe;
+    const v = byPref.find(x=>!used.has(x) && re.test(x.name)) || byPref.find(x=>!used.has(x)) || byPref[0] || null;
+    if(v) used.add(v);
+    return { name:s.name, voice:v, pitch: v && re.test(v.name) ? 1 : (s.gender === "female" ? 1.15 : 0.85) };
+  });
+}
+
+function speakPartInBrowser(part, rate, onend){
+  const synth = window.speechSynthesis;
+  const shim = { stopped:false, playbackRate:rate, pause(){ this.stopped = true; try{ synth.cancel(); }catch(e){} } };
+  const voices = browserVoicesFor(part);
+  const lines = String(part.script || "").split(/\n+/).map(l=>l.trim()).filter(Boolean);
+  // Short utterances: some browsers cut a long one off after ~15 seconds.
+  const queue = [];
+  lines.forEach(l=>{
+    let who = voices[0], text = l;
+    const m = /^([\p{L}'-]+)\s*:\s*(.*)$/u.exec(l);
+    if(m && voices.length > 1){ const f = voices.find(v=>v.name === m[1]); if(f){ who = f; text = m[2]; } }
+    (text.match(/[^.!?]+[.!?]+["')\]]*|[^.!?]+$/g) || [text]).forEach(sentence=>{ if(sentence.trim()) queue.push({ who, text:sentence.trim() }); });
+  });
+  let i = 0;
+  const next = ()=>{
+    if(shim.stopped) return;
+    if(i >= queue.length){ onend(); return; }
+    const q = queue[i++];
+    const u = new SpeechSynthesisUtterance(q.text);
+    if(q.who.voice){ u.voice = q.who.voice; u.lang = q.who.voice.lang; } else u.lang = "en-GB";
+    u.pitch = q.who.pitch; u.rate = 0.95 * (shim.playbackRate || 1);
+    u.onend = ()=>setTimeout(next, 180);
+    u.onerror = ()=>setTimeout(next, 50);
+    synth.speak(u);
+  };
+  try{ synth.cancel(); }catch(e){}
+  // Chrome lists its voices a moment after the page loads.
+  if(!synth.getVoices().length){
+    let started = false;
+    const go = ()=>{ if(started) return; started = true; const v = browserVoicesFor(part); voices.forEach((x,k)=>{ x.voice = v[k] && v[k].voice; }); next(); };
+    synth.addEventListener("voiceschanged", go, { once:true });
+    setTimeout(go, 700);
+  }else next();
+  return shim;
+}
+
+function listeningPartVoice(part){
+  const custom = state.listening.customAudio && state.listening.customAudio[part.id];
+  if(custom) return custom.ai ? "gemini" : "file";
+  return part && part.ai && part.script && window.speechSynthesis ? "browser" : "none";
+}
+
+async function generateAIVoicedListening(){
+  const L = state.listening;
+  if(!geminiAvailable()){ alert(geminiMissingMessage()); return; }
+  const btn = document.getElementById("aiVoiceBtn");
+  const status = document.getElementById("aiVoiceStatus");
+  const setStatus = t => { const el = document.getElementById("aiVoiceStatus"); if(el) el.textContent = t; };
+  const accentSel = document.getElementById("aiVoiceAccent");
+  const accentKey = accentSel ? accentSel.value : "british";
+  const topic = ((document.getElementById("aiVoiceTopic") || {}).value || "").trim().slice(0, 120);
+  L.aiVoiceAccent = accentKey; L.aiVoiceTopic = topic;
+  if(activeAudioEl){ activeAudioEl.pause(); activeAudioEl = null; activeListeningAudio = null; }
+  if(btn) btn.disabled = true;
+  genProgressShow("aiVoiceGen", "Writing Section 1…");
+  try{
+    // 1. The four scripts and their questions.
+    const parts = [];
+    for(const plan of LISTENING_AI_PLANS){
+      const accent = LISTENING_AI_ACCENTS[accentKey] || LISTENING_AI_MIXED[plan.n-1];
+      genProgressSet("aiVoiceGen", (plan.n-1)*10, `Writing Section ${plan.n} of 4 — script and 10 questions…`);
+      const part = await writeListeningSection(plan, accent, topic, (a, why)=>genProgressSet("aiVoiceGen", null, `Section ${plan.n}: the draft was not usable (${why}) — trying again (${a}/3)…`));
+      part.accent = accent;
+      parts.push(part);
+    }
+    // 2. The voices. A spent quota or a student on the class key is not a
+    //    failure: those sections are read by the device instead.
+    const audio = {};
+    let fallback = "", voiced = 0;
+    for(const part of parts){
+      if(fallback) break;
+      const voices = pickTTSVoices(part.speakers);
+      part.voices = voices.map(v=>v.voice);
+      for(let attempt=1; attempt<=4; attempt++){
+        genProgressSet("aiVoiceGen", 40 + (part.id-1)*15, `Recording Section ${part.id} of 4 with AI voices (${voices.map(v=>v.voice).join(" & ")})…${attempt > 1 ? ` try ${attempt}` : ""}`);
+        try{
+          audio[part.id] = Object.assign(await callGeminiTTS(ttsTextFor(part, part.accent), voices), { ai:true, name:`${part.title}.wav` });
+          voiced++;
+          break;
+        }catch(e){
+          if(e.code === "wait" && attempt < 4){
+            for(let s=e.wait; s>0; s--){
+              genProgressSet("aiVoiceGen", null, `The free voice quota allows a few recordings a minute — waiting ${s}s before Section ${part.id}…`);
+              await new Promise(r=>setTimeout(r, 1000));
+            }
+            continue;
+          }
+          if(e.code === "teacher_only" || e.code === "quota" || e.code === "wait"){ fallback = e.message; break; }
+          if(attempt >= 2){ fallback = e.message; break; }
+        }
+      }
+    }
+    LISTENING.parts = parts;
+    saveGeneratedContent();
+    state.listening = { answers:{}, submitted:false, playedParts:{}, customAudio: audio, audioDur:{}, genAudio: L.genAudio, drive: L.drive, classLib: L.classLib, aiVoiceAccent: L.aiVoiceAccent, aiVoiceTopic: L.aiVoiceTopic, aiVoiceNote: "" };
+    delete state.timers.listening;
+    state.timeUp.listening = false;
+    hideTimeoutBanner();
+    const note = voiced === 4 ? "All four sections are recorded with AI voices."
+      : voiced ? `Sections 1–${voiced} have AI voices; the rest are read by your device's voice. (${fallback})`
+      : `The sections are read by your device's voice. (${fallback})`;
+    state.listening.aiVoiceNote = note;
+    genProgressDone("aiVoiceGen", "Done — a new 40-question test is ready.");
+    renderListening();
+    setStatus(note);
+  }catch(e){
+    console.error(e);
+    genProgressHide("aiVoiceGen");
+    alert("Couldn't write the new Listening test: " + (e.message || String(e)));
+  }finally{
+    const b = document.getElementById("aiVoiceBtn");
+    if(b) b.disabled = !geminiAvailable();
+  }
+}
+
+// The recordings go into the class library as ordinary files, one per section
+// folder, so the whole class can draw tests from them without spending the
+// voice quota again.
+async function saveAIListeningToLibrary(){
+  const owner = audioLibraryOwner();
+  if(!owner || !isTeacher()){ alert("Only the teacher can add recordings to the class library."); return; }
+  const custom = state.listening.customAudio || {};
+  const ids = [1,2,3,4].filter(i=>custom[i] && custom[i].ai);
+  if(!ids.length){ alert("There are no AI-voiced recordings to save yet."); return; }
+  const btn = document.getElementById("aiVoiceSaveBtn");
+  const setStatus = t => { const el = document.getElementById("aiVoiceStatus"); if(el) el.textContent = t; };
+  if(btn) btn.disabled = true;
+  const stamp = new Date().toISOString().slice(0,10);
+  let saved = 0;
+  try{
+    for(const i of ids){
+      const part = LISTENING.parts.find(p=>p.id === i) || {};
+      setStatus(`Saving Section ${i} to the class library…`);
+      const bytes = Uint8Array.from(atob(custom[i].b64), c=>c.charCodeAt(0));
+      if(bytes.length > DRIVE_MAX_BYTES) throw new Error(`Section ${i} is ${(bytes.length/1048576).toFixed(1)} MB — over the library's limit.`);
+      const name = audioSafeName(`AI ${stamp} ${String(part.title || "").replace(/^Section \d+\s*[—-]\s*/, "")}`).slice(0, 80) + ".wav";
+      const { error } = await AUTH.client.storage.from(AUDIO_BUCKET)
+        .upload(`${owner}/section-${i}/${name}`, new Blob([bytes], { type:"audio/wav" }), { contentType:"audio/wav", upsert:true });
+      if(error) throw new Error(error.message || "upload failed");
+      custom[i].saved = true;
+      saved++;
+    }
+    setStatus(`Saved ${saved} recording${saved === 1 ? "" : "s"} to the class library.`);
+    const cl = classLibState(); cl.library = null;
+    refreshClassLibrary(true);
+  }catch(e){
+    console.error(e);
+    alert(`Saved ${saved} of ${ids.length}. The rest could not be saved:\n\n${e.message || e}${/bucket/i.test(e.message || "") ? "\n\nRun supabase/04_audio_library.sql first." : ""}`);
+  }finally{
+    if(btn) btn.disabled = false;
+  }
+}
+
+function aiVoiceCardHTML(geminiOn){
+  const L = state.listening;
+  const custom = L.customAudio || {};
+  const acc = L.aiVoiceAccent || "british";
+  const aiParts = (LISTENING.parts || []).filter(p=>p.ai);
+  const canSave = AUTH.enabled && isTeacher() && audioLibraryOwner() && [1,2,3,4].some(i=>custom[i] && custom[i].ai);
+  const studentOnShared = geminiRoute() === "shared" && !isTeacher();
+  const intro = !geminiOn ? escapeHtml(geminiMissingMessage())
+    : studentOnShared
+      ? "The AI writes four new sections and 40 questions; your device's voice reads them aloud. (Your teacher makes the natural AI-voiced tests and adds them to the class library — Option 1.)"
+      : `The AI writes four new sections — a conversation, a talk, an academic discussion and a lecture — with 40 questions, then Gemini reads them aloud with natural voices, two in the conversations. Free: the voice quota allows a few tests a day; if it runs out, your device's voice reads the rest.${isTeacher() ? " Save the recordings to your class library and your students can use them without spending any quota." : ""}`;
+  return `
+    <div class="gen-card aivoice-card" style="margin-bottom:20px;">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);">New · no audio files needed</span><br>
+      <b>🎙 A new test read by AI voices</b>
+      <p style="margin:6px 0 12px; font-size:12.5px; color:var(--slate); line-height:1.6;">${intro}</p>
+      <div class="drive-actions">
+        <select id="aiVoiceAccent" class="gen-select" title="Accents" ${!geminiOn ? "disabled" : ""}>
+          ${[["british","British accents"],["australian","Australian accents"],["american","North American accents"],["mixed","Mixed, as in the real test"]].map(([v,l])=>`<option value="${v}" ${v===acc?"selected":""}>${l}</option>`).join("")}
+        </select>
+        <input id="aiVoiceTopic" class="gen-select" placeholder="Topic (optional)" value="${escapeXml(L.aiVoiceTopic || "")}" style="min-width:150px;" ${!geminiOn ? "disabled" : ""}>
+        <button class="btn brass small" id="aiVoiceBtn" ${!geminiOn ? "disabled" : ""}>🎙 Write &amp; record a test</button>
+        ${canSave ? `<button class="btn ghost small" id="aiVoiceSaveBtn" title="Adds each section's recording to My class → Listening audio library">💾 Save to class library</button>` : ""}
+      </div>
+      <p class="aivoice-status" id="aiVoiceStatus">${escapeHtml(L.aiVoiceNote || (aiParts.length ? "" : ""))}</p>
+      <div class="gen-progress" id="aiVoiceGenBar" style="display:none;">
+        <div class="gen-progress-track"><div class="gen-progress-fill"></div></div>
+        <div class="gen-progress-label"></div>
+      </div>
+    </div>`;
 }
 
 /* =========================================================================
@@ -10776,20 +11220,58 @@ function mapStyle(type){
   return MAP_STYLES.building;
 }
 
+// Light textures that say what a plot is before its label is read: furrows on
+// farmland, roofs on housing, bays in a car park, ripples on water. Kept pale
+// so the labels stay the thing the eye lands on.
+function mapPatternDefs(id){
+  const P = (name, w, h, body)=>`<pattern id="${id}-${name}" width="${w}" height="${h}" patternUnits="userSpaceOnUse">${body}</pattern>`;
+  return P("farm", 10, 10, `<path d="M0,10 L10,0" stroke="#b39a52" stroke-width="1" opacity=".45"/>`)
+    + P("house", 14, 14, `<rect x="2" y="3" width="8" height="7" fill="none" stroke="#a4775a" stroke-width=".9" opacity=".55"/><path d="M1.5,3.5 L6,0.5 L10.5,3.5" fill="none" stroke="#a4775a" stroke-width=".9" opacity=".55"/>`)
+    + P("water", 16, 9, `<path d="M0,5 q4,-4 8,0 t8,0" fill="none" stroke="#6f9fc4" stroke-width="1" opacity=".6"/>`)
+    + P("beach", 9, 9, `<circle cx="2" cy="2" r=".9" fill="#b89b5c" opacity=".55"/><circle cx="6.5" cy="6" r=".9" fill="#b89b5c" opacity=".55"/>`)
+    + P("park", 26, 26, `<circle cx="6" cy="7" r="3.2" fill="#7fae6a" opacity=".45"/><circle cx="19" cy="18" r="3.2" fill="#7fae6a" opacity=".45"/>`)
+    + P("cars", 9, 22, `<path d="M0,0 L0,9 M0,13 L0,22" stroke="#8c9096" stroke-width="1" opacity=".7"/>`)
+    + P("factory", 16, 10, `<path d="M0,9 L0,4 L8,1 L8,4 L16,1" fill="none" stroke="#6c665c" stroke-width=".9" opacity=".5"/>`)
+    + P("shop", 12, 12, `<path d="M1,4 H11" stroke="#b08a3c" stroke-width="1.6" opacity=".35"/>`)
+    + P("desk", 16, 14, `<rect x="3" y="4" width="10" height="5" fill="none" stroke="#8a7f66" stroke-width=".7" opacity=".45"/>`);
+}
+function mapPatternFor(type, s){
+  const t = String(type || "").toLowerCase();
+  if(s === MAP_STYLES.farmland) return "farm";
+  if(s === MAP_STYLES.house) return "house";
+  if(s === MAP_STYLES.water) return "water";
+  if(s === MAP_STYLES.beach) return "beach";
+  if(s === MAP_STYLES.park) return "park";
+  if(s === MAP_STYLES["car park"]) return "cars";
+  if(s === MAP_STYLES.factory) return "factory";
+  if(s === MAP_STYLES.shop) return "shop";
+  if(s === MAP_STYLES.office && /desk|office/.test(t)) return "desk";
+  return null;
+}
+
 function buildMapSVG(m, indoor){
-  const C = 44, pad = 26, G = 10, W = G*C + pad*2, H = G*C + pad*2 + 6;
+  const C = 44, pad = 26, G = 10, W = G*C + pad*2, H = G*C + pad*2 + (indoor ? 6 : 24);
   const id = "mp" + (++svgUid);
   const feats = (m.features || []).map((f,i)=>({ f, s: mapStyle(f.type), i }))
     .sort((a,b)=> a.s.layer - b.s.layer || a.i - b.i);
+  // Where a road's name can go without landing on the road that crosses it.
+  const lines = feats.filter(({s, f})=>s.road || (s === MAP_STYLES.water && (f.w === 1 || f.h === 1)));
+  const onOtherLine = (self, gx, gy)=>lines.some(({f})=>f !== self && gx >= f.x && gx < f.x + f.w && gy >= f.y && gy < f.y + f.h);
+  const labels = [];
   const rects = feats.map(({f, s})=>{
     const x = pad + f.x*C, y = pad + f.y*C, w = f.w*C, h = f.h*C;
-    const thin = Math.min(f.w, f.h) <= 1 && s.road;
+    const thin = Math.min(f.w, f.h) <= 1 && (s.road || s === MAP_STYLES.water);
     let extra = "";
     if(s.rail){
       const horiz = f.w >= f.h;
       extra = horiz
         ? `<line x1="${x}" y1="${y+h/2}" x2="${x+w}" y2="${y+h/2}" stroke="#fff" stroke-width="2" stroke-dasharray="6 6"/>`
         : `<line x1="${x+w/2}" y1="${y}" x2="${x+w/2}" y2="${y+h}" stroke="#fff" stroke-width="2" stroke-dasharray="6 6"/>`;
+    }else if(s === MAP_STYLES.road && thin){
+      // a centre line, as on a printed map
+      extra = f.w >= f.h
+        ? `<line x1="${x+4}" y1="${y+h/2}" x2="${x+w-4}" y2="${y+h/2}" stroke="#f4f1e8" stroke-width="1.4" stroke-dasharray="9 7"/>`
+        : `<line x1="${x+w/2}" y1="${y+4}" x2="${x+w/2}" y2="${y+h-4}" stroke="#f4f1e8" stroke-width="1.4" stroke-dasharray="9 7"/>`;
     }
     if(s.dots){
       for(let gx=0; gx<f.w; gx++) for(let gy=0; gy<f.h; gy++){
@@ -10799,19 +11281,39 @@ function buildMapSVG(m, indoor){
     if(s.hatch){
       for(let k=8;k<w;k+=8) extra += `<line x1="${x+k}" y1="${y+2}" x2="${x+k}" y2="${y+h-2}" stroke="${s.stroke}" stroke-width="0.8"/>`;
     }
-    const maxChars = Math.max(6, Math.floor(w/6.3));
-    const fs = (w < 70 || h < 40) ? 9.5 : 11;
-    const lines = svgWrap(f.name, maxChars, Math.max(1, Math.floor(h/13)));
-    const ty = y + h/2 - (lines.length-1)*fs*0.6 + fs*0.35;
-    const vertical = thin && f.h > f.w && lines.length === 1 && f.name.length*6.3 > w;
-    const label = vertical
-      ? `<text x="${x+w/2}" y="${y+h/2}" transform="rotate(-90 ${x+w/2} ${y+h/2})" text-anchor="middle" dominant-baseline="middle" font-size="${fs}" font-weight="600" fill="#1f2433">${escapeXml(f.name)}</text>`
-      : svgLines(lines, x + w/2, ty, fs*1.2, `text-anchor="middle" font-size="${fs}" font-weight="600" fill="#1f2433" paint-order="stroke" stroke="rgba(255,255,255,.7)" stroke-width="2.5"`);
-    return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${s.road ? 2 : 5}" fill="${s.fill}" stroke="${s.stroke}" stroke-width="1.2" ${s.dash ? `stroke-dasharray="4 3"` : ""}/>${extra}${label}</g>`;
+    if(s === MAP_STYLES.sports && w >= 60 && h >= 44){
+      // a pitch: outline, halfway line, centre circle
+      const ix = x+7, iy = y+7, iw = w-14, ih = h-14;
+      extra += `<rect x="${ix}" y="${iy}" width="${iw}" height="${ih}" fill="none" stroke="#fff" stroke-width="1.4"/>`
+        + (iw >= ih ? `<line x1="${ix+iw/2}" y1="${iy}" x2="${ix+iw/2}" y2="${iy+ih}" stroke="#fff" stroke-width="1.2"/>` : `<line x1="${ix}" y1="${iy+ih/2}" x2="${ix+iw}" y2="${iy+ih/2}" stroke="#fff" stroke-width="1.2"/>`)
+        + `<circle cx="${ix+iw/2}" cy="${iy+ih/2}" r="${Math.min(iw,ih)/6}" fill="none" stroke="#fff" stroke-width="1.2"/>`;
+    }
+    const pat = mapPatternFor(f.type, s);
+    const texture = pat && !thin ? `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="url(#${id}-${pat})"/>` : "";
+    const fs = (w < 70 || h < 40) ? 10.5 : 12.5;
+    const label = String(f.name || "");
+    if(thin){
+      // Roads and rivers: the name runs along them, at a stretch free of
+      // crossings, and is drawn last so nothing covers it.
+      const horiz = f.w >= f.h, len = horiz ? f.w : f.h;
+      const spots = [0.5, 0.25, 0.75, 0.12, 0.88].map(fr=>Math.floor(fr*len));
+      const at = spots.find(k=>!onOtherLine(f, horiz ? f.x + k : f.x, horiz ? f.y : f.y + k));
+      const k = at == null ? Math.floor(len/2) : at;
+      const cx = horiz ? x + k*C + C/2 : x + w/2, cy = horiz ? y + h/2 : y + k*C + C/2;
+      labels.push(`<text x="${cx}" y="${cy}" ${horiz ? "" : `transform="rotate(-90 ${cx} ${cy})"`} text-anchor="middle" dominant-baseline="middle" font-size="${fs}" font-weight="700" fill="#1f2433" paint-order="stroke" stroke="rgba(255,255,255,.85)" stroke-width="3">${escapeXml(label)}</text>`);
+    }else{
+      const maxChars = Math.max(6, Math.floor(w/(fs*0.58)));
+      const lines2 = svgWrap(label, maxChars, Math.max(1, Math.floor(h/(fs*1.2))));
+      const ty = y + h/2 - (lines2.length-1)*fs*0.6 + fs*0.35;
+      labels.push(svgLines(lines2, x + w/2, ty, fs*1.2, `text-anchor="middle" font-size="${fs}" font-weight="600" fill="#1f2433" paint-order="stroke" stroke="rgba(255,255,255,.85)" stroke-width="3"`));
+    }
+    return `<g><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${s.road ? 2 : 5}" fill="${s.fill}" stroke="${s.stroke}" stroke-width="1.2" ${s.dash ? `stroke-dasharray="4 3"` : ""}/>${texture}${extra}</g>`;
   }).join("");
   const frame = `<rect x="${pad}" y="${pad}" width="${G*C}" height="${G*C}" fill="${indoor ? "#faf8f3" : "#f7f5ee"}" stroke="#131b2e" stroke-width="${indoor ? 3 : 1.4}"/>`;
   const compass = indoor ? "" : `<g transform="translate(${W-pad-18},${pad+22})"><circle r="14" fill="#fff" stroke="#131b2e"/><path d="M0,-10 L5,6 L0,2 L-5,6 z" fill="#131b2e"/><text y="-17" text-anchor="middle" font-size="10" font-weight="700" fill="#131b2e">N</text></g>`;
-  return `<svg class="t1-svg t1-map" viewBox="0 0 ${W} ${H}" role="img" aria-label="${escapeXml(m.label || "Map")}">${frame}${rects}${compass}</svg>`;
+  // A scale bar: two grid squares, a hundred metres.
+  const scale = indoor ? "" : `<g transform="translate(${pad},${pad + G*C + 14})" font-size="10" fill="#131b2e"><rect width="${C}" height="5" fill="#131b2e"/><rect x="${C}" width="${C}" height="5" fill="#fff" stroke="#131b2e" stroke-width=".8"/><text y="-3" x="0">0</text><text y="-3" x="${2*C}" text-anchor="middle">100 m</text></g>`;
+  return `<svg class="t1-svg t1-map" viewBox="0 0 ${W} ${H}" role="img" aria-label="${escapeXml(m.label || "Map")}"><defs>${mapPatternDefs(id)}</defs>${frame}${rects}${labels.join("")}${compass}${scale}</svg>`;
 }
 
 function buildMapsHTML(md){
@@ -10851,7 +11353,7 @@ function task1VisualText(t1){
       + (md.maps || []).map(m=>`${m.label}:\n` + (m.features || []).map(f=>`- ${f.name} (${f.type}) ${mapWhere(f)} [x ${f.x}–${f.x+f.w}, y ${f.y}–${f.y+f.h}]`).join("\n")).join("\n");
   }
   const cd = t.chartData || {};
-  return `CHART DATA — categories/labels: ${(cd.labels || []).join(", ")}\n`
+  return `CHART DATA${cd.title ? " — " + cd.title : ""}${cd.unit ? ` (values in ${cd.unit})` : ""} — categories/labels: ${(cd.labels || []).join(", ")}\n`
     + (cd.series || []).map(s=>`${s.label}: ${(s.data || []).join(", ")}`).join("\n");
 }
 
@@ -10908,6 +11410,8 @@ function normalizeTask1(t1){
   series.forEach(s=>{ if(s.data.length !== labels.length) throw new Error(`the series "${s.label}" does not have one value per label`); });
   out.kind = "chart";
   out.chartData = { labels, series:series.map(s=>({ label:String(s.label || ""), data:s.data.map(Number), color:s.color })) };
+  if(String(cd.unit || "").trim()) out.chartData.unit = String(cd.unit).trim().slice(0, 40);
+  if(String(cd.title || "").trim()) out.chartData.title = String(cd.title).trim().slice(0, 140);
   return out;
 }
 
@@ -11101,6 +11605,625 @@ function loadTask1FromBank(id){
   return true;
 }
 
+/* =========================================================================
+   TASK 1 GENERATOR — no AI, no key, no API
+   Builds a new Task 1 in the browser, in a moment, as often as a student
+   likes: a chart from a bank of realistic subjects (the figures follow trends
+   an answer can describe — rises, falls, peaks, crossings), or a pair of maps
+   laid out on the same grid the AI and the ready-made tasks use, with four to
+   seven real changes between the two dates. A process is not generated here:
+   a made-up process is nonsense, so those come from the bank or from the AI.
+   ========================================================================= */
+const T1G_PALETTE = ["#2f6f62","#c9a227","#c1443c","#3567a6","#7a5ea8","#d17a2a","#2f8f83"];
+const T1G_SUMMARY = "Summarise the information by selecting and reporting the main features, and make comparisons where relevant.";
+
+function t1gInt(a, b){ return a + Math.floor(Math.random()*(b - a + 1)); }
+function t1gPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function t1gShuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; }
+  return a;
+}
+function t1gRound(v, dp){ const f = Math.pow(10, dp || 0); return Math.round(v*f)/f; }
+
+const T1G_COUNTRIES = ["the UK","Canada","Australia","Japan","Brazil","Germany","India","South Africa","New Zealand","Spain","Mexico","Sweden","Italy","Egypt","Indonesia","Chile","France","South Korea","Nigeria","Argentina","Poland","Vietnam","Turkey","Ireland"];
+const T1G_CITIES = ["London","Sydney","Toronto","Tokyo","Berlin","Madrid","Cape Town","Mumbai","Seoul","São Paulo","Dublin","Singapore","Los Angeles","Paris","Rome","Istanbul","Mexico City","Stockholm","Cairo","Buenos Aires"];
+
+/* ---- chart subjects ----
+   Each subject says what is measured, in what unit, over what range, and who
+   the lines or bars are. `who` names the series pool; "countries" and
+   "cities" draw from the lists above. */
+const T1G_TRENDS = [
+  { unit:"%", dp:0, lo:5, hi:95, what:"the percentage of households with a broadband internet connection", who:"countries" },
+  { unit:"%", dp:0, lo:3, hi:60, what:"the percentage of commuters who cycled to work", who:"cities" },
+  { unit:"%", dp:1, lo:2, hi:22, what:"the unemployment rate among young people aged 16–24", who:"countries" },
+  { unit:"%", dp:0, lo:5, hi:80, what:"the proportion of electricity generated from renewable sources", who:"countries" },
+  { unit:"%", dp:0, lo:10, hi:70, what:"the percentage of school leavers who went on to university", who:"countries" },
+  { unit:"%", dp:0, lo:4, hi:45, what:"the percentage of adults classified as obese", who:"countries" },
+  { unit:"%", dp:0, lo:5, hi:60, what:"the percentage of household waste that was recycled", who:"cities" },
+  { unit:"million", dp:1, lo:0.5, hi:18, what:"the number of international tourist arrivals, in millions", who:"countries" },
+  { unit:"million tonnes", dp:0, lo:20, hi:600, what:"carbon dioxide emissions, in millions of tonnes", who:"countries" },
+  { unit:"years", dp:1, lo:58, hi:86, what:"average life expectancy at birth", who:"countries" },
+  { unit:"litres", dp:0, lo:80, hi:420, what:"average daily water consumption per person, in litres", who:"cities" },
+  { unit:"kg", dp:0, lo:5, hi:95, what:"the average amount of meat eaten per person each year, in kilograms", who:"countries" },
+  { unit:"hours", dp:1, lo:0.5, hi:6, what:"the average number of hours a day people spent on {n} activities", who:["Watching TV","Using social media","Reading","Exercising","Gaming","Listening to music"] },
+  { unit:"£", dp:0, lo:5, hi:120, what:"average weekly household spending on {n} categories, in pounds", who:["Food","Transport","Leisure","Energy bills","Eating out","Clothing"] },
+  { unit:"million", dp:1, lo:0.5, hi:40, what:"the number of passengers using {n} airports, in millions", who:["Northfield","Eastport","Kingsway","Harbour City","Westmoor","Ridgeton"] },
+  { unit:"thousand", dp:0, lo:10, hi:400, what:"sales of {n} types of vehicle, in thousands", who:["Petrol cars","Diesel cars","Electric cars","Hybrid cars","Motorbikes","Vans"] },
+  { unit:"%", dp:0, lo:5, hi:70, what:"the percentage of people using {n} sources to get the news", who:["Television","Newspapers","Radio","News websites","Social media"] },
+  { unit:"million", dp:1, lo:1, hi:30, what:"the number of visitors to {n} museums, in millions", who:["Science Museum","Natural History Museum","National Gallery","Maritime Museum","Modern Art Museum"] },
+  { unit:"°C", dp:1, lo:2, hi:31, what:"the average monthly temperature", who:"cities", months:true },
+  { unit:"mm", dp:0, lo:5, hi:320, what:"average monthly rainfall, in millimetres", who:"cities", months:true },
+  { unit:"%", dp:0, lo:2, hi:40, what:"the percentage of the population aged 65 and over", who:"countries" },
+  { unit:"thousand", dp:0, lo:20, hi:900, what:"the number of students enrolled in {n} types of course, in thousands", who:["Engineering","Business","Medicine","Arts","Computing","Law"] },
+  { unit:"$", dp:0, lo:200, hi:4000, what:"average monthly rent for a one-bedroom flat, in US dollars", who:"cities" },
+  { unit:"million tonnes", dp:1, lo:0.5, hi:25, what:"the production of {n} crops, in millions of tonnes", who:["Wheat","Rice","Maize","Potatoes","Soybeans","Barley"] }
+];
+
+const T1G_COMPARE = [
+  { unit:"%", dp:0, lo:5, hi:85, what:"the percentage of men and women who took part in various sports", cats:["Swimming","Running","Football","Cycling","Yoga","Tennis","Gym"], groups:["Men","Women"] },
+  { unit:"hours", dp:1, lo:0.5, hi:12, what:"the average number of hours per week that different age groups spent on {g} activities", cats:["16–24","25–34","35–54","55–64","65+"], groups:["Social media","Television","Reading","Exercise"] },
+  { unit:"%", dp:0, lo:3, hi:70, what:"the reasons people gave for moving house", cats:["Job","Family","Cost","Schools","Retirement","Space"], groups:"years" },
+  { unit:"£", dp:0, lo:10, hi:220, what:"average weekly spending by students and working adults on {c} items", cats:["Rent","Food","Transport","Books","Entertainment","Phone"], groups:["Students","Working adults"] },
+  { unit:"%", dp:0, lo:5, hi:90, what:"the percentage of people in different age groups who owned {g} devices", cats:["16–24","25–44","45–64","65+"], groups:["Smartphone","Laptop","Tablet","Smartwatch"] },
+  { unit:"million", dp:1, lo:0.5, hi:12, what:"the number of overseas visitors to {c} countries, in millions", cats:"countries", groups:"years" },
+  { unit:"%", dp:0, lo:5, hi:95, what:"the proportion of men and women in {c} occupations", cats:["Nursing","Engineering","Teaching","Law","IT","Construction"], groups:["Men","Women"] },
+  { unit:"kg", dp:0, lo:2, hi:140, what:"the average amount of {g} foods eaten per person per year, in kilograms", cats:"countries", groups:["Fruit","Vegetables","Meat","Fish"] },
+  { unit:"%", dp:0, lo:5, hi:75, what:"how students at a university travelled to campus", cats:["Walk","Bus","Car","Bicycle","Train"], groups:"years" },
+  { unit:"thousand", dp:0, lo:5, hi:250, what:"the number of graduates in {c} subjects, in thousands", cats:["Medicine","Law","Engineering","Business","Education","Computing"], groups:["Male","Female"] }
+];
+
+const T1G_SHARES = [
+  { what:"the main sources of electricity", place:"countries", slices:["Coal","Natural gas","Nuclear","Wind","Solar","Hydro"] },
+  { what:"how households spent their income", place:"countries", slices:["Housing","Food","Transport","Leisure","Health","Other"] },
+  { what:"the reasons people gave for travelling abroad", place:"countries", slices:["Holiday","Visiting family","Business","Study","Other"] },
+  { what:"the ways commuters travelled to work", place:"cities", slices:["Car","Bus","Train","Bicycle","Walking","Other"] },
+  { what:"the types of waste produced", place:"cities", slices:["Food","Paper","Plastic","Glass","Metal","Other"] },
+  { what:"the age structure of the population", place:"countries", slices:["0–14","15–24","25–54","55–64","65+"] },
+  { what:"the destination of university graduates six months after finishing", place:"countries", slices:["Full-time work","Part-time work","Further study","Unemployed","Other"] },
+  { what:"water use by sector", place:"countries", slices:["Agriculture","Industry","Households","Energy","Other"] },
+  { what:"the time teenagers spent on different activities in a typical day", place:"countries", slices:["Sleeping","School","Screens","Sport","Homework","Other"] },
+  { what:"how the annual budget was spent", place:["a secondary school","a primary school","a public college"], slices:["Teachers' salaries","Other staff","Buildings","Resources","Technology","Insurance"] }
+];
+
+// The years along a time axis: 5–7 points, at a step that suits a span.
+function t1gYears(){
+  const step = t1gPick([1,2,5,5,10,10]);
+  const n = step >= 10 ? t1gInt(5,6) : t1gInt(5,7);
+  const last = step === 1 ? t1gInt(2012, 2024) : step === 2 ? t1gInt(2010, 2024) : step === 5 ? t1gPick([2010,2015,2020]) : t1gPick([2000,2010,2020]);
+  const out = [];
+  for(let i=n-1;i>=0;i--) out.push(String(last - i*step));
+  return out;
+}
+const T1G_MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// One line with a recognisable shape, between lo and hi.
+function t1gShape(n, lo, hi, shape){
+  const span = hi - lo, a = lo + span*(0.1 + Math.random()*0.35), b = lo + span*(0.55 + Math.random()*0.4);
+  const pts = [];
+  for(let i=0;i<n;i++){
+    const t = n === 1 ? 0 : i/(n-1);
+    let v;
+    switch(shape){
+      case "rise":     v = a + (b-a)*t; break;
+      case "fall":     v = b - (b-a)*t; break;
+      case "surge":    v = a + (b-a)*Math.pow(t, 2.6); break;
+      case "collapse": v = b - (b-a)*Math.pow(t, 0.45); break;
+      case "peak":     v = a + (b-a)*Math.sin(Math.PI*Math.min(1, t*1.15)); break;
+      case "dip":      v = b - (b-a)*Math.sin(Math.PI*Math.min(1, t*1.1))*0.8; break;
+      case "level":    v = (a+b)/2 + (Math.random()-0.5)*span*0.06; break;
+      default:         v = (a+b)/2 + Math.sin(i*1.9 + Math.random())*span*0.18;   // fluctuate
+    }
+    pts.push(Math.max(lo*0.6, v + (Math.random()-0.5)*span*0.04));
+  }
+  return pts;
+}
+// Rough monthly climate for the cities above — coldest and warmest month
+// (°C), driest and wettest month (mm) and when the wettest month falls — so a
+// chart of Cairo's rainfall or Stockholm's winter looks like the real thing.
+const T1G_CLIMATE = {
+  "London":{t:[5,19],r:[40,65,10]}, "Sydney":{t:[13,23],r:[70,130,2]}, "Toronto":{t:[-5,22],r:[55,85,5]},
+  "Tokyo":{t:[6,27],r:[50,230,8]}, "Berlin":{t:[0,19],r:[35,70,6]}, "Madrid":{t:[6,25],r:[10,60,10]},
+  "Cape Town":{t:[13,21],r:[15,95,5]}, "Mumbai":{t:[24,30],r:[1,840,6]}, "Seoul":{t:[-2,26],r:[20,390,6]},
+  "São Paulo":{t:[16,23],r:[40,250,0]}, "Dublin":{t:[5,15],r:[50,80,11]}, "Singapore":{t:[26,28],r:[160,290,11]},
+  "Los Angeles":{t:[14,23],r:[1,90,1]}, "Paris":{t:[5,20],r:[45,65,4]}, "Rome":{t:[8,25],r:[20,115,10]},
+  "Istanbul":{t:[6,24],r:[20,100,11]}, "Mexico City":{t:[14,19],r:[5,170,6]}, "Stockholm":{t:[-2,18],r:[30,70,7]},
+  "Cairo":{t:[14,28],r:[0,6,0]}, "Buenos Aires":{t:[11,25],r:[60,140,2]}
+};
+const T1G_SOUTH = /Sydney|Cape Town|São Paulo|Buenos Aires/;
+// Temperatures and rainfall follow a season, not a trend.
+function t1gSeason(city, rain){
+  const c = T1G_CLIMATE[city] || { t:[5,22], r:[30,90,6] };
+  const [lo, hi] = rain ? c.r : c.t;
+  const peak = rain ? c.r[2] : (T1G_SOUTH.test(city) ? 0 : 6);
+  const sharp = rain && hi > lo*5 ? 2.5 : 1;       // a monsoon, not a gentle swell
+  return T1G_MONTHS.map((_,i)=>{
+    const w = Math.pow((1 + Math.cos((i - peak)/12*2*Math.PI))/2, sharp);
+    return Math.max(rain ? 0 : -30, lo + (hi - lo)*w + (Math.random()-0.5)*(hi - lo)*0.08);
+  });
+}
+
+function t1gSeriesNames(who, n){
+  const pool = who === "countries" ? T1G_COUNTRIES.map(c=>c.replace(/^the /, "the ")) : who === "cities" ? T1G_CITIES : who;
+  return t1gShuffle(pool).slice(0, n);
+}
+// "sales of cars, in thousands" → ["sales of cars", ", measured in thousands"],
+// so the place and the dates can go in the middle of the sentence.
+function t1gSplitUnit(what){
+  const m = /, in ([^,]+)$/.exec(what);
+  return m ? [what.slice(0, m.index), ` (${m[1]})`] : [what, ""];
+}
+function t1gCap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+function t1gSeriesLabel(name){ return t1gCap(name.replace(/^the /, "")); }
+function t1gList(names){
+  const n = names.map(x=>x);
+  return n.length <= 1 ? n.join("") : n.slice(0,-1).join(", ") + " and " + n[n.length-1];
+}
+
+function t1gTrendChart(view){
+  const sub = t1gPick(T1G_TRENDS);
+  const nSer = view === "table" ? t1gInt(3,5) : t1gInt(3,4);
+  const names = t1gSeriesNames(sub.who, sub.months ? Math.min(nSer, 3) : nSer);
+  const labels = sub.months ? T1G_MONTHS.slice() : t1gYears();
+  // Different shapes, so the lines cross and part: the features an overview
+  // is made of. One leader, one riser, one faller at least.
+  const shapes = t1gShuffle(["rise","fall","surge","peak","dip","level","fluctuate","collapse"]);
+  if(!shapes.slice(0, names.length).some(x=>x === "rise" || x === "surge")) shapes[0] = "rise";
+  if(!shapes.slice(0, names.length).some(x=>x === "fall" || x === "collapse" || x === "dip")) shapes[1] = "fall";
+  const series = names.map((nm, i)=>{
+    const raw = sub.months ? t1gSeason(nm, sub.unit === "mm") : t1gShape(labels.length, sub.lo, sub.hi, shapes[i]);
+    const data = raw.map(v=>{ const r = t1gRound(v, sub.dp); return sub.unit === "%" ? Math.min(100, Math.max(0, r)) : r; });
+    return { label: t1gSeriesLabel(nm), data, color: T1G_PALETTE[i % T1G_PALETTE.length] };
+  });
+  const num = ["","one","two","three","four","five"][names.length];
+  const [what, measured] = t1gSplitUnit(sub.what.replace("{n}", num));
+  const whoText = typeof sub.who === "string" ? ` in ${num} ${sub.who}` : "";
+  const span = sub.months ? "over a year" : `between ${labels[0]} and ${labels[labels.length-1]}`;
+  const noun = view === "table" ? "table" : view === "line" || view === "trend3d" ? "line graph" : "chart";
+  const place = sub.months ? ` in ${t1gList(names)}` : whoText;
+  return {
+    prompt: `The ${noun} below shows ${what}${place} ${span}${measured}. ${T1G_SUMMARY}`,
+    chartData: { labels, series, unit: sub.unit, title: t1gCap(what.replace(/^the /, "")) + (sub.months ? "" : `, ${labels[0]}–${labels[labels.length-1]}`) },
+    view
+  };
+}
+
+function t1gCompareChart(view){
+  const sub = t1gPick(T1G_COMPARE);
+  let cats = sub.cats === "countries" ? t1gShuffle(T1G_COUNTRIES).slice(0, t1gInt(4,5)).map(t1gSeriesLabel) : t1gShuffle(sub.cats).slice(0, Math.min(sub.cats.length, t1gInt(4,6)));
+  // Age groups read in order, whatever was drawn.
+  if(sub.cats !== "countries" && /\d/.test(sub.cats[0])) cats = sub.cats.filter(c=>cats.includes(c));
+  let groups;
+  if(sub.groups === "years"){ const y1 = t1gInt(1990, 2008); groups = [String(y1), String(y1 + t1gPick([10,12,15,20]))]; }
+  else groups = sub.groups.length > 3 ? t1gShuffle(sub.groups).slice(0, t1gInt(3,4)) : sub.groups.slice();
+  const series = groups.map((g, gi)=>{
+    const base = cats.map(()=>sub.lo + Math.random()*(sub.hi - sub.lo));
+    return { label: g, data: base.map(v=>t1gRound(v, sub.dp)), color: T1G_PALETTE[gi % T1G_PALETTE.length] };
+  });
+  // A second year moves from the first rather than being unrelated to it.
+  if(sub.groups === "years"){
+    series[1].data = series[0].data.map(v=>t1gRound(Math.max(sub.lo*0.5, v*(0.55 + Math.random()*0.9)), sub.dp));
+  }
+  const words = ["","one","two","three","four","five","six","seven"];
+  const [what, measured] = t1gSplitUnit(sub.what.replace("{c}", words[cats.length]).replace("{g}", words[groups.length]));
+  const noun = view === "table" ? "table" : "bar chart";
+  const when = sub.groups === "years" ? ` in ${groups[0]} and ${groups[1]}` : "";
+  const where = sub.cats === "countries" ? ` in ${words[cats.length]} countries` : ` in ${t1gPick(T1G_COUNTRIES)}`;
+  return {
+    prompt: `The ${noun} below shows ${what}${where}${when}${measured}. ${T1G_SUMMARY}`,
+    chartData: { labels: cats, series, unit: sub.unit, title: t1gCap(what.replace(/^the /, "")) },
+    view
+  };
+}
+
+// Shares that add up to 100 in every year, drifting between them.
+function t1gShareChart(){
+  const sub = t1gPick(T1G_SHARES);
+  // Sometimes one slice fewer, never "Other".
+  const slices = sub.slices.slice();
+  if(slices.length > 5 && Math.random() < 0.5) slices.splice(t1gInt(0, slices.length - 2), 1);
+  const nYears = Math.random() < 0.7 ? 2 : 3;
+  const y1 = t1gInt(1980, 2005), gap = t1gPick([10,15,20]);
+  const labels = Array.from({ length:nYears }, (_,i)=>String(y1 + i*gap));
+  let w = slices.map(()=>0.4 + Math.random()*2);
+  const cols = labels.map((_, yi)=>{
+    if(yi) w = w.map(v=>Math.max(0.05, v*(0.45 + Math.random()*1.2)));
+    const tot = w.reduce((a,b)=>a+b, 0);
+    const pct = w.map(v=>Math.round(v/tot*100));
+    pct[pct.indexOf(Math.max(...pct))] += 100 - pct.reduce((a,b)=>a+b, 0);   // exactly 100
+    return pct;
+  });
+  const place = sub.place === "countries" ? t1gPick(T1G_COUNTRIES) : sub.place === "cities" ? t1gPick(T1G_CITIES) : t1gPick(sub.place);
+  const series = slices.map((nm, i)=>({ label: nm, data: cols.map(c=>c[i]), color: T1G_PALETTE[i % T1G_PALETTE.length] }));
+  return {
+    prompt: `The pie charts below show ${sub.what} ${/school|college/.test(place) ? "at" : "in"} ${place} in ${t1gList(labels)}. ${T1G_SUMMARY}`,
+    chartData: { labels, series, unit:"%", title: t1gCap(sub.what.replace(/^the /, "")) + ` — ${place}` },
+    view: "pie"
+  };
+}
+
+/* ---- maps ----
+   The grid is split by the lines that run right across it — roads, a river,
+   a railway, the coast — into blocks; each block is cut into one to three
+   plots and each plot given a use. The second date then changes four to
+   seven of them the way places really change: farmland built on, a factory
+   turned into flats, a railway line become a cycle path, a road closed to
+   traffic, a building extended over the plot next door. */
+const T1G_PLACES = ["Ashford","Brookvale","Kingsbury","Millbrook","Stonehaven","Hartley","Oakridge","Fenwick","Riverton","Thornbury","Westcliff","Eastwood","Norbury","Linton","Harwich Bay","Pembrey","Castleford","Greyford","Wellmouth","Alderley","Sandown","Bramley","Hollins","Radcliffe"];
+
+const T1G_SCENES = {
+  town: { word:"town centre", roads:"cross", lines:["railway"], old:[
+      ["Houses","house"],["Houses","house"],["Market","square"],["Church","building"],["Factory","factory"],["Cinema","building"],["School","school"],["Shops","shop"],["Park","park"],["Bank","office"],["Post office","office"],["Hotel","hotel"],["Library","school"],["Warehouse","factory"]],
+    swaps:{ house:[["Shopping centre","shop"],["Flats","house"],["Offices","office"],["Car park","car park"]], factory:[["Flats","house"],["Supermarket","shop"],["Offices","office"],["Car park","car park"],["Museum","building"]], square:[["Shopping centre","shop"],["Square","square"],["Car park","car park"]], building:[["Café","shop"],["Offices","office"],["Restaurant","shop"],["Gym","sports"]], park:[["Car park","car park"],["Flats","house"]], school:[["Community centre","building"],["Flats","house"]], shop:[["Restaurants","shop"],["Bank","office"],["Houses","house"]], office:[["Café","shop"],["Hotel","hotel"],["Restaurant","shop"]], hotel:[["Offices","office"],["Flats","house"]] },
+    builds:[["Shopping centre","shop"],["Car park","car park"],["Leisure centre","sports"],["Flats","house"],["Offices","office"],["Health centre","hospital"],["Hotel","hotel"],["Park","park"],["Bus station","building"]] },
+  village: { word:"village", roads:"one", lines:["river"], old:[
+      ["Farmland","farmland"],["Farmland","farmland"],["Woodland","trees"],["Houses","house"],["Houses","house"],["Church","building"],["Village shop","shop"],["Post office","office"],["Pond","water"],["School","school"],["Farm","building"],["Orchard","trees"]],
+    swaps:{ farmland:[["Housing estate","house"],["Golf course","sports"],["Supermarket","shop"],["Solar farm","factory"]], trees:[["Houses","house"],["Car park","car park"],["Park","park"]], house:[["Shops","shop"],["Flats","house"]], shop:[["Café","shop"],["Houses","house"]], office:[["Café","shop"],["Houses","house"]], school:[["Primary school","school"],["Community centre","building"]], building:[["Hotel","hotel"],["Restaurant","shop"],["Holiday cottages","house"]], water:[["Park","park"]] },
+    builds:[["Housing estate","house"],["Health centre","hospital"],["Sports field","sports"],["Car park","car park"],["Supermarket","shop"],["Primary school","school"],["Park","park"],["Retirement home","hospital"]] },
+  coast: { word:"coastal area", roads:"coast", lines:[], old:[
+      ["Fishing huts","building"],["Farmland","farmland"],["Farmland","farmland"],["Woodland","trees"],["Houses","house"],["Harbour office","office"],["Fish market","shop"],["Lighthouse","building"],["Boatyard","factory"],["Hotel","hotel"],["Caravan park","park"]],
+    swaps:{ building:[["Café","shop"],["Restaurants","shop"],["Visitor centre","building"]], farmland:[["Holiday apartments","hotel"],["Golf course","sports"],["Car park","car park"],["Housing","house"]], trees:[["Hotel","hotel"],["Campsite","park"],["Houses","house"]], factory:[["Marina shops","shop"],["Hotel","hotel"],["Apartments","house"]], shop:[["Seafood restaurant","shop"],["Shops","shop"]], park:[["Hotel","hotel"],["Apartments","house"]], house:[["Holiday cottages","house"],["Shops","shop"]], office:[["Café","shop"],["Tourist office","office"]] },
+    builds:[["Hotel","hotel"],["Car park","car park"],["Restaurants","shop"],["Holiday apartments","hotel"],["Tennis courts","sports"],["Surf school","building"],["Aquarium","building"]] },
+  campus: { word:"university campus", roads:"paths", lines:["road-edge"], old:[
+      ["Main hall","building"],["Library","school"],["Science block","school"],["Arts building","school"],["Student housing","house"],["Sports field","sports"],["Car park","car park"],["Refectory","shop"],["Lecture theatre","school"],["Gardens","park"],["Admin office","office"],["Woodland","trees"]],
+    swaps:{ sports:[["Sports centre","sports"],["Student housing","house"]], "car park":[["Engineering block","school"],["Student union","building"],["Multi-storey car park","car park"]], park:[["Research centre","school"],["Café","shop"]], trees:[["Student housing","house"],["Sports centre","sports"]], house:[["New student housing","house"],["Medical centre","hospital"]], shop:[["Food court","shop"],["Library extension","school"]], office:[["Café","shop"],["Welcome centre","office"]], school:[["IT centre","school"],["Lecture theatre","school"]] },
+    builds:[["Sports centre","sports"],["Student housing","house"],["Research centre","school"],["Café","shop"],["Bus stop","building"],["Medical centre","hospital"],["Car park","car park"]] },
+  industrial: { word:"riverside area", roads:"one", lines:["river-h"], old:[
+      ["Factory","factory"],["Warehouses","factory"],["Docks","building"],["Power station","factory"],["Workers' houses","house"],["Railway yard","factory"],["Wasteland","farmland"],["Gasworks","factory"],["Timber yard","factory"],["Offices","office"]],
+    swaps:{ factory:[["Apartments","house"],["Offices","office"],["Art gallery","building"],["Shopping centre","shop"],["Park","park"],["Hotel","hotel"]], building:[["Marina","water"],["Restaurants","shop"],["Museum","building"]], house:[["Apartments","house"],["Cafés","shop"]], farmland:[["Park","park"],["Apartments","house"],["Sports ground","sports"]], office:[["Hotel","hotel"],["Apartments","house"]] },
+    builds:[["Riverside park","park"],["Apartments","house"],["Offices","office"],["Hotel","hotel"],["Car park","car park"],["Concert hall","building"],["Cinema","building"]] }
+};
+
+const T1G_INDOOR = {
+  "a public library": { old:[["Adult fiction","room"],["Non-fiction","room"],["Children's books","school"],["Reference room","room"],["Newspapers","room"],["Reading area","room"],["Office","office"],["Toilets","room"],["Store room","room"],["Help desk","office"]],
+    new:[["Computer room","office"],["Café","shop"],["Study pods","room"],["Children's area","school"],["Self-service machines","office"],["Meeting room","room"],["Quiet study area","room"],["Games zone","room"],["Toilets","room"],["DVDs & audiobooks","room"]] },
+  "a museum": { old:[["Ancient history","room"],["Natural history","room"],["Coins & medals","room"],["Paintings","room"],["Ticket office","office"],["Cloakroom","room"],["Toilets","room"],["Offices","office"],["Store room","room"],["Sculpture hall","room"]],
+    new:[["Interactive gallery","school"],["Gift shop","shop"],["Café","shop"],["Education room","school"],["Temporary exhibitions","room"],["Cinema","room"],["Lockers","room"],["Toilets","room"],["Digital archive","office"],["Children's zone","school"]] },
+  "a secondary school": { old:[["Classroom","school"],["Classroom","school"],["Staff room","office"],["Science lab","school"],["Library","school"],["Head's office","office"],["Toilets","room"],["Store room","room"],["Music room","school"],["Assembly hall","room"]],
+    new:[["Computer lab","office"],["Classroom","school"],["Canteen","shop"],["Study centre","room"],["Science lab","school"],["Counselling room","office"],["Toilets","room"],["Drama studio","room"],["Reception","office"],["Gym","sports"]] },
+  "an office": { old:[["Private offices","office"],["Typing pool","office"],["Filing room","room"],["Manager's office","office"],["Meeting room","room"],["Kitchen","room"],["Toilets","room"],["Store room","room"],["Post room","room"],["Reception","office"]],
+    new:[["Open-plan desks","office"],["Hot desks","office"],["Meeting pods","room"],["Break-out area","room"],["Café","shop"],["Quiet room","room"],["Toilets","room"],["Bike storage","room"],["Video-call booths","room"],["Reception","office"]] },
+  "a sports centre": { old:[["Changing rooms","room"],["Squash courts","sports"],["Weights room","sports"],["Office","office"],["Toilets","room"],["Store room","room"],["Snack bar","shop"],["Sports hall","sports"],["Sauna","room"],["First aid room","hospital"]],
+    new:[["Gym","sports"],["Spin studio","sports"],["Yoga studio","sports"],["Café","shop"],["Changing rooms","room"],["Climbing wall","sports"],["Physio clinic","hospital"],["Toilets","room"],["Kids' play area","school"],["Reception","office"]] },
+  "a community centre": { old:[["Main hall","room"],["Kitchen","room"],["Meeting room","room"],["Office","office"],["Toilets","room"],["Store room","room"],["Games room","room"],["Youth club","school"],["Tea room","shop"],["Craft room","room"]],
+    new:[["Café","shop"],["IT suite","office"],["Dance studio","sports"],["Advice centre","office"],["Toilets","room"],["Nursery","school"],["Meeting rooms","room"],["Kitchen","room"],["Art studio","room"],["Reception","office"]] }
+};
+
+// The dates on the two maps, in one of the three patterns the paper uses.
+function t1gMapDates(from){
+  const pattern = t1gPick(["past","past","now","plan"]);
+  if(pattern === "past"){
+    const a = t1gInt(from || 1950, 1995), b = Math.min(2022, a + t1gPick([15,20,25,30,40]));
+    return { pattern, labels:[String(a), String(b)], text:`in ${a} and ${b}` };
+  }
+  if(pattern === "now"){
+    const a = t1gInt(Math.max(from || 1960, 1960), 2008);
+    return { pattern, labels:[String(a), "Today"], text:`in ${a} and today` };
+  }
+  const b = t1gInt(2030, 2040);
+  return { pattern, labels:["Present", `${b} (planned)`], text:`at present and the plans for its development in ${b}` };
+}
+
+// Cuts a block into 1–3 plots; each cut leaves at least one cell either side.
+function t1gSplit(b, depth){
+  const area = b.w*b.h;
+  if(depth >= 2 || area < 4 || (area <= 6 && Math.random() < 0.5) || (depth === 1 && Math.random() < 0.45)) return [b];
+  const horiz = b._v ? false : b.w > b.h ? false : b.h > b.w ? true : Math.random() < 0.5;
+  delete b._v;
+  if(horiz){
+    if(b.h < 4) return b.w >= 4 && b.h >= 2 ? t1gSplit(Object.assign({}, b, { _v:true }), depth) : [b];
+    const cut = t1gInt(2, b.h - 2);
+    return [...t1gSplit({ x:b.x, y:b.y, w:b.w, h:cut }, depth+1), ...t1gSplit({ x:b.x, y:b.y+cut, w:b.w, h:b.h-cut }, depth+1)];
+  }
+  if(b.w < 4) return [b];
+  const cut = t1gInt(2, b.w - 2);
+  return [...t1gSplit({ x:b.x, y:b.y, w:cut, h:b.h }, depth+1), ...t1gSplit({ x:b.x+cut, y:b.y, w:b.w-cut, h:b.h }, depth+1)];
+}
+
+// Free intervals on one axis once the bands running across it are removed.
+function t1gFree(bands){
+  const taken = new Array(10).fill(false);
+  bands.forEach(([a, len])=>{ for(let i=a;i<a+len;i++) taken[i] = true; });
+  const out = [];
+  let start = -1;
+  for(let i=0;i<=10;i++){
+    if(i < 10 && !taken[i]){ if(start < 0) start = i; }
+    else if(start >= 0){ out.push([start, i - start]); start = -1; }
+  }
+  return out;
+}
+
+function t1gOutdoorMaps(sceneKey){
+  const sc = T1G_SCENES[sceneKey];
+  const place = t1gPick(T1G_PLACES);
+  const infra = [];               // lines across the grid: kept, or changed as a whole
+  const hBands = [], vBands = [];
+  let yTop = 0;                   // the coast takes the northern rows
+  if(sc.roads === "coast"){
+    infra.push({ name:"Sea", type:"water", x:0, y:0, w:10, h:2 });
+    infra.push({ name:"Beach", type:"beach", x:0, y:2, w:10, h:1 });
+    infra.push({ name:"Coast Road", type:"road", x:0, y:3, w:10, h:1 });
+    hBands.push([0,4]); yTop = 4;
+    const v = t1gInt(3,6);
+    infra.push({ name:"Harbour Lane", type:"road", x:v, y:4, w:1, h:6 }); vBands.push([v,1]);
+  }else if(sc.roads === "paths"){
+    const h = t1gInt(4,5), v = t1gInt(3,6);
+    infra.push({ name:"Main walkway", type:"path", x:0, y:h, w:10, h:1 }); hBands.push([h,1]);
+    infra.push({ name:"Footpath", type:"path", x:v, y:0, w:1, h:10 }); vBands.push([v,1]);
+  }else{
+    const h = t1gInt(3,6);
+    infra.push({ name: sceneKey === "village" ? "Main Road" : "High Street", type:"road", x:0, y:h, w:10, h:1 }); hBands.push([h,1]);
+    if(sc.roads === "cross"){
+      const v = t1gInt(3,6);
+      infra.push({ name:"Station Road", type:"road", x:v, y:0, w:1, h:10 }); vBands.push([v,1]);
+    }
+  }
+  (sc.lines || []).forEach(l=>{
+    if(l === "railway" && Math.random() < 0.6){
+      infra.push({ name:"Railway", type:"railway", x:0, y:0, w:10, h:1 }); hBands.push([0,1]);
+    }
+    if(l === "river"){
+      const x = Math.random() < 0.5 ? 0 : 9;
+      infra.push({ name:"River", type:"water", x, y:0, w:1, h:10 }); vBands.push([x,1]);
+    }
+    if(l === "river-h"){
+      // The river takes the place of nothing else: move the road if it is there.
+      const road = infra.find(f=>f.type === "road");
+      const ry = road.y <= 4 ? 7 : 2;
+      infra.push({ name:"River", type:"water", x:0, y:ry, w:10, h:1 }); hBands.push([ry,1]);
+    }
+    if(l === "road-edge"){
+      infra.push({ name:"Ring Road", type:"road", x:0, y:9, w:10, h:1 }); hBands.push([9,1]);
+    }
+  });
+  // A line along an edge must not share its rows with another line.
+  const xs = t1gFree(vBands), ys = t1gFree(hBands).filter(([a])=>a >= yTop);
+  const plots = [];
+  xs.forEach(([x,w])=>ys.forEach(([y,h])=>{ t1gSplit({ x, y, w, h }, 0).forEach(p=>plots.push(p)); }));
+
+  // Old uses: the scene's pool, a few plots left open (they are what gets
+  // built on later).
+  const pool = t1gShuffle(sc.old);
+  const nEmpty = Math.min(2, Math.max(0, plots.length - 8)) + (Math.random() < 0.6 ? 1 : 0);
+  const order = t1gShuffle(plots.map((_,i)=>i));
+  const emptyIdx = new Set(order.slice(0, nEmpty));
+  let pi = 0;
+  const oldUse = plots.map((p, i)=>{
+    if(emptyIdx.has(i)) return null;
+    const u = pool[pi++ % pool.length];
+    return { name:u[0], type:u[1] };
+  });
+
+  // Changes, in random order, until there are five or six.
+  const target = t1gInt(4, 6);
+  const newUse = oldUse.map(u=>u && Object.assign({}, u));
+  const newPlots = plots.map(p=>Object.assign({}, p));
+  const changed = new Set();
+  const newInfra = infra.map(f=>Object.assign({}, f));
+  let changes = 0;
+  // Lines first: one of these at most.
+  const rail = newInfra.find(f=>f.type === "railway");
+  const river = newInfra.find(f=>f.type === "water" && f.name === "River");
+  const high = newInfra.find(f=>f.name === "High Street");
+  const lineChanges = [];
+  if(rail) lineChanges.push(()=>{ rail.name = "Cycle path"; rail.type = "path"; });
+  if(high) lineChanges.push(()=>{ high.name = "High Street (pedestrian)"; high.type = "path"; });
+  if(river && river.w === 1){
+    // The road used to stop at the river; the change carries it over a bridge.
+    const oldRoad = infra.find(f=>f.type === "road" && f.w === 10), road = newInfra.find(f=>f.type === "road" && f.w === 10);
+    if(oldRoad){
+      if(river.x === 0) oldRoad.x = 1;
+      oldRoad.w = 9;
+      road.x = oldRoad.x; road.w = 9;
+      lineChanges.push(()=>{ road.x = 0; road.w = 10; newInfra.push({ name:"Bridge", type:"bridge", x:river.x, y:road.y, w:1, h:1 }); });
+    }
+  }
+  if(lineChanges.length && Math.random() < 0.75){ t1gPick(lineChanges)(); changes++; }
+
+  const kinds = t1gShuffle(["swap","swap","swap","build","build","demolish","extend","swap"]);
+  for(const k of kinds){
+    if(changes >= target) break;
+    const idx = t1gShuffle(plots.map((_,i)=>i)).filter(i=>!changed.has(i));
+    if(k === "build"){
+      const i = idx.find(i=>!newUse[i]);
+      if(i == null) continue;
+      const b = t1gPick(sc.builds);
+      newUse[i] = { name:b[0], type:b[1] }; changed.add(i); changes++;
+    }else if(k === "demolish"){
+      const i = idx.find(i=>newUse[i] && !/Houses|Housing/.test(newUse[i].name));
+      if(i == null) continue;
+      const r = t1gPick([null, null, ["Car park","car park"], ["Square","square"], ["Park","park"]]);
+      newUse[i] = r ? { name:r[0], type:r[1] } : null;
+      changed.add(i); changes++;
+    }else if(k === "extend"){
+      // A plot grows over its empty neighbour in the same block.
+      let done = false;
+      for(const i of idx){
+        if(!newUse[i]) continue;
+        const a = newPlots[i];
+        const j = plots.findIndex((b, jj)=>jj !== i && !changed.has(jj) && !newUse[jj] && !oldUse[jj] &&
+          ((b.y === a.y && b.h === a.h && (b.x === a.x + a.w || b.x + b.w === a.x)) ||
+           (b.x === a.x && b.w === a.w && (b.y === a.y + a.h || b.y + b.h === a.y))));
+        if(j < 0) continue;
+        const b = plots[j];
+        newPlots[i] = { x:Math.min(a.x,b.x), y:Math.min(a.y,b.y), w: a.y === b.y && a.h === b.h ? a.w + b.w : a.w, h: a.x === b.x && a.w === b.w ? a.h + b.h : a.h };
+        newPlots[j] = null;
+        changed.add(i); changed.add(j); changes++; done = true; break;
+      }
+      if(!done) continue;
+    }else{
+      const i = idx.find(i=>newUse[i] && sc.swaps[newUse[i].type]);
+      if(i == null) continue;
+      const opts = sc.swaps[newUse[i].type].filter(o=>o[0] !== newUse[i].name);
+      if(!opts.length) continue;
+      const o = t1gPick(opts);
+      newUse[i] = { name:o[0], type:o[1] }; changed.add(i); changes++;
+    }
+  }
+  const feats = (uses, ps, lines)=>[
+    ...lines.map(f=>Object.assign({}, f)),
+    ...uses.map((u, i)=>u && ps[i] ? Object.assign({ name:u.name, type:u.type }, ps[i]) : null).filter(Boolean)
+  ];
+  const dates = t1gMapDates();
+  const word = sc.word;
+  return {
+    changes,
+    task:{
+      prompt: `The maps below show the ${word} of ${place} ${dates.text}. ${T1G_SUMMARY}`,
+      kind:"map",
+      map:{ place:`${place} — ${word}`, indoor:false, maps:[
+        { label:dates.labels[0], features: feats(oldUse, plots, infra) },
+        { label:dates.labels[1], features: feats(newUse, newPlots, newInfra) } ] }
+    }
+  };
+}
+
+function t1gFloorPlans(){
+  const bName = t1gPick(Object.keys(T1G_INDOOR));
+  const B = T1G_INDOOR[bName];
+  // A corridor right across, the entrance at one end of it, stairs in a corner.
+  const cy = t1gInt(4,5);
+  const westDoor = Math.random() < 0.5;
+  const lines = [
+    { name:"Corridor", type:"corridor", x: westDoor ? 1 : 0, y:cy, w:9, h:1 },
+    { name:"Entrance", type:"entrance", x: westDoor ? 0 : 9, y:cy, w:1, h:1 }
+  ];
+  const stairX = westDoor ? 8 : 0, stairY = Math.random() < 0.5 ? 0 : 8;
+  lines.push({ name:"Stairs", type:"stairs", x:stairX, y:stairY, w:2, h:2 });
+  // Rooms: the space above and below the corridor, less the stairs.
+  const blocks = [];
+  const addBlock = (x, y, w, h)=>{ if(w > 0 && h > 0) blocks.push({ x, y, w, h }); };
+  const top = { y:0, h:cy }, bot = { y:cy+1, h:10-cy-1 };
+  [top, bot].forEach(band=>{
+    const hasStairs = stairY >= band.y && stairY < band.y + band.h;
+    if(!hasStairs){ addBlock(0, band.y, 10, band.h); return; }
+    // Beside the stairs, then the strip above or below them.
+    const sx0 = stairX === 0 ? 2 : 0;
+    addBlock(sx0, band.y, 8, band.h);
+    const rest = band.h - 2;
+    addBlock(stairX, stairY === band.y ? band.y + 2 : band.y, 2, rest);
+  });
+  const rooms = [];
+  blocks.forEach(b=>{
+    // Rooms along a wall: cut across the long side into 2–4 rooms.
+    const n = b.w >= 8 ? t1gInt(2,4) : b.w >= 4 ? t1gInt(1,2) : 1;
+    let x = b.x;
+    for(let k=0;k<n;k++){
+      const left = b.x + b.w - x, spare = left - 2*(n-1-k);
+      const w = k === n-1 ? left : Math.max(2, Math.min(spare, t1gInt(2, 3)));
+      rooms.push({ x, y:b.y, w, h:b.h }); x += w;
+    }
+  });
+  const oldPool = t1gShuffle(B.old), newPool = t1gShuffle(B.new);
+  // Classrooms may repeat; nothing else does.
+  const oldUse = rooms.map((_, i)=>{ const u = oldPool[i % oldPool.length]; return { name:u[0], type:u[1] }; });
+  const newUse = oldUse.map(u=>Object.assign({}, u));
+  const newRooms = rooms.map(r=>Object.assign({}, r));
+  const newLines = lines.map(f=>Object.assign({}, f));
+  const target = t1gInt(4, 6);
+  let changes = 0;
+  const changed = new Set();
+  // The entrance may move to the other end; a lift may appear by the stairs.
+  if(Math.random() < 0.4){
+    const door = newLines.find(f=>f.type === "entrance"), cor = newLines.find(f=>f.type === "corridor");
+    door.x = westDoor ? 9 : 0; cor.x = westDoor ? 0 : 1; changes++;
+  }
+  // Merge two neighbours into one bigger room, once.
+  if(Math.random() < 0.6){
+    const i = rooms.findIndex((r, k)=>k < rooms.length-1 && rooms[k+1].y === r.y && rooms[k+1].h === r.h && rooms[k+1].x === r.x + r.w);
+    if(i >= 0){
+      const used = new Set(newUse.map(x=>x.name));
+      const u = newPool.find(p=>!used.has(p[0])) || newPool[0];
+      newRooms[i] = { x:rooms[i].x, y:rooms[i].y, w:rooms[i].w + rooms[i+1].w, h:rooms[i].h };
+      newRooms[i+1] = null;
+      newUse[i] = { name:u[0], type:u[1] }; changed.add(i); changed.add(i+1); changes++;
+    }
+  }
+  const taken = ()=>new Set(newUse.filter((u,k)=>u && newRooms[k]).map(u=>u.name));
+  for(const i of t1gShuffle(rooms.map((_,k)=>k))){
+    if(changes >= target) break;
+    if(changed.has(i)) continue;
+    const used = taken();
+    const u = newPool.find(p=>!used.has(p[0]));
+    if(!u) break;
+    newUse[i] = { name:u[0], type:u[1] }; changed.add(i); changes++;
+  }
+  const feats = (uses, rs, ls)=>[...ls.map(f=>Object.assign({}, f)), ...uses.map((u, i)=>rs[i] ? Object.assign({ name:u.name, type:u.type }, rs[i]) : null).filter(Boolean)];
+  const dates = t1gMapDates(1985);
+  const bare = bName.replace(/^(a|an) /, "");
+  return {
+    changes,
+    task:{
+      prompt: `The plans below show the ground floor of ${bName} ${dates.text}. ${T1G_SUMMARY}`,
+      kind:"map",
+      map:{ place:`${t1gPick(T1G_PLACES)} ${bare} — ground floor`, indoor:true, maps:[
+        { label:dates.labels[0], features: feats(oldUse, rooms, lines) },
+        { label:dates.labels[1], features: feats(newUse, newRooms, newLines) } ] }
+    }
+  };
+}
+
+// Plots share edges on purpose; two features covering the same cell do not,
+// apart from a bridge on water and the lines themselves where they cross.
+function t1gOverlaps(features){
+  const grid = {};
+  let bad = 0;
+  features.forEach(f=>{
+    const s = mapStyle(f.type);
+    if(s.road || f.type === "bridge" || f.type === "water" && (f.w >= 10 || f.h >= 10)) return;
+    for(let x=f.x;x<f.x+f.w;x++) for(let y=f.y;y<f.y+f.h;y++){
+      const k = x+","+y;
+      if(grid[k]) bad++;
+      grid[k] = true;
+    }
+  });
+  return bad;
+}
+
+const T1G_KINDS = [
+  ["any","🎲 Any kind"],
+  ["line","Line graph"], ["bar","Bar chart"], ["hbar","Horizontal bar chart"], ["pie","Pie charts (2–3 years)"], ["table","Table"],
+  ["map-town","Map · town centre"], ["map-village","Map · village"], ["map-coast","Map · coast"], ["map-campus","Map · campus"], ["map-industrial","Map · riverside / industrial"],
+  ["floor","Floor plan (indoor)"]
+];
+
+// A new Task 1 of the chosen kind, already checked by normalizeTask1.
+function generateTask1Offline(kind){
+  let k = kind && kind !== "any" ? kind : t1gPick(["line","bar","pie","table","hbar","map-town","map-village","map-coast","map-campus","map-industrial","floor","line","bar","pie"]);
+  for(let tries=0; tries<25; tries++){
+    let out;
+    if(k === "floor") out = t1gFloorPlans();
+    else if(k.startsWith("map-")) out = t1gOutdoorMaps(k.slice(4));
+    if(out){
+      const [a, b] = out.task.map.maps;
+      if(out.changes < 4 || t1gOverlaps(a.features) || t1gOverlaps(b.features)) continue;
+      if(a.features.length < 6 || b.features.length < 6 || a.features.length > 16 || b.features.length > 16) continue;
+      return { task: normalizeTask1(out.task), view:null, kind:k };
+    }
+    const c = k === "pie" ? t1gShareChart()
+      : (k === "line" || k === "trend3d") ? t1gTrendChart("line")
+      : k === "table" ? (Math.random() < 0.5 ? t1gTrendChart("table") : t1gCompareChart("table"))
+      : (k === "hbar" || Math.random() < 0.5) ? t1gCompareChart(k) : t1gTrendChart(k);
+    const t = normalizeTask1({ prompt:c.prompt, chartData:c.chartData });
+    return { task:t, view:c.view, kind:k };
+  }
+  throw new Error("Could not lay out a map this time — press Generate again.");
+}
+
+// Swaps in a generated Task 1, leaving Task 2 alone (like the bank).
+function useGeneratedTask1(task, view){
+  const W = state.writing;
+  if((W.drafts.task1 || "").trim() && !confirm("Replace this Task 1 with a new one?\n\nYour Task 1 answer and its feedback will be cleared.")) return false;
+  WRITING.task1 = task;
+  if(view) W.chartType = view;
+  W.drafts.task1 = ""; W.hints.task1 = null; W.reports.task1 = null;
+  if(W.grammar) W.grammar.task1 = null;
+  if(W.bandVersions) W.bandVersions.task1 = {};
+  if(W.paraFeedback) delete W.paraFeedback.task1;
+  saveGeneratedContent();
+  return true;
+}
+
 function renderWriting(){
   // Re-rendering the panel (e.g. switching Task 1/2) discards the old canvas;
   // release any live 3D context first so its RAF loop doesn't keep drawing.
@@ -11113,7 +12236,7 @@ function renderWriting(){
   // the current chart live). Keep this list in sync with renderTask1Visual().
   const GRAPH_TYPES = [
     ["bars3d","3D Bar Chart"], ["trend3d","3D Trend / Area"],
-    ["line","Line Graph"], ["bar","Bar Chart"], ["pie","Pie Chart"],
+    ["line","Line Graph"], ["bar","Bar Chart"], ["hbar","Horizontal Bar Chart"], ["pie","Pie Charts (one per year)"],
     ["table","Table"], ["mindmap","Mind Map"]
   ];
   // Process and map are kinds of task, not views of a chart: choosing one
@@ -11126,6 +12249,9 @@ function renderWriting(){
   const t1Kind = task1Kind();
   const t1Tag = task1TypeLabel() || (GRAPH_TYPES.find(g=>g[0]===gtype)||["","chart"])[1];
   const bankId = WRITING.task1 && WRITING.task1.bankId;
+  const genKind = W.t1GenKind || "any";
+  const genKindOptions = T1G_KINDS.map(([v,l])=>`<option value="${v}" ${v===genKind?"selected":""}>${l}</option>`).join("")
+    + `<option value="process" ${genKind==="process"?"selected":""}>Process diagram</option>`;
   const bankGroups = [...new Set(TASK1_BANK.map(x=>x.group))];
   const bankOptions = `<option value="">— ${TASK1_BANK.length} ready-made Task 1s: charts, processes, maps —</option>`
     + bankGroups.map(g=>`<optgroup label="${escapeXml(g)}">${TASK1_BANK.filter(x=>x.group===g).map(x=>`<option value="${x.id}" ${x.id===bankId?"selected":""}>${escapeHtml(x.title)}</option>`).join("")}</optgroup>`).join("");
@@ -11198,6 +12324,13 @@ function renderWriting(){
           <div class="t1-toolbar">
             <select id="t1Bank" class="gen-select t1-bank" title="Load a ready-made Task 1">${bankOptions}</select>
             <span class="t1-type-tag" id="task1TypeTag">${escapeHtml(t1Tag)}</span>
+          </div>
+          <div class="t1-gen">
+            <span class="t1-gen-label">New Task 1</span>
+            <select id="t1GenKind" class="gen-select" title="What kind of Task 1 to make">${genKindOptions}</select>
+            <button class="btn brass small" id="t1GenBtn" title="Made here in the app: instant, free, no AI needed">🎲 Generate</button>
+            <button class="btn secondary small" id="t1GenAIBtn" ${!geminiOn ? `disabled title="${escapeXml(geminiMissingMessage())}"` : `title="The AI writes it on the topic chosen above — slower, more varied"`}>✨ With AI</button>
+            <span class="t1-gen-note" id="t1GenNote">Only Task 1 changes — Task 2 stays.</span>
           </div>
           <div id="task1VisualHost"><canvas id="task1Canvas" height="240"></canvas></div>
         </div>
@@ -11289,6 +12422,25 @@ function renderWriting(){
       }
     });
   }
+  const t1GenSel = document.getElementById("t1GenKind");
+  if(t1GenSel){
+    t1GenSel.addEventListener("change", ()=>{ W.t1GenKind = t1GenSel.value; });
+    document.getElementById("t1GenBtn").addEventListener("click", ()=>{
+      const k = t1GenSel.value;
+      try{
+        if(k === "process"){
+          // A process cannot be made up by chance: a different one from the bank.
+          const procs = TASK1_BANK.filter(x=>task1Kind(x.task) === "process" && x.id !== bankId);
+          const pick = procs[Math.floor(Math.random()*procs.length)];
+          if(pick && loadTask1FromBank(pick.id) !== false) renderWriting();
+          return;
+        }
+        const r = generateTask1Offline(k);
+        if(useGeneratedTask1(r.task, r.view)) renderWriting();
+      }catch(e){ console.error(e); alert(e.message || String(e)); }
+    });
+    document.getElementById("t1GenAIBtn").addEventListener("click", ()=>generateTask1OnlyWithAI(t1GenSel.value));
+  }
   const bankSel = document.getElementById("t1Bank");
   if(bankSel) bankSel.addEventListener("change", ()=>{
     if(!bankSel.value) return;
@@ -11308,39 +12460,24 @@ function renderWriting(){
   addMobileGeneratorShortcut("writing");
 }
 
-async function generateNewWritingWithAI() {
-  const btn = document.getElementById("generateWritingBtn");
-  const originalText = btn.textContent;
-  btn.textContent = "Generating Prompt...";
-  btn.disabled = true;
-  const topicSel = document.getElementById("writingTopic");
-  const topic = topicSel ? topicSel.value : "random";
-  const themed = topic && topic !== "random";
-  const graphSel = document.getElementById("writingGraphType");
-  const graphType = graphSel ? graphSel.value : (state.writing.genType || state.writing.chartType || "bars3d");
-  const kind = graphType === "process" || graphType === "map" ? graphType : "chart";
-  // Render a generated chart in exactly the chosen view.
-  if(kind === "chart") state.writing.chartType = graphType;
-  genProgressShow("writingGen", themed ? `Writing a new "${topic}" exam…` : "Writing a new Task 1 + Task 2 exam context…");
-
-  const themeLine = themed
-    ? `Both tasks must be based on the theme: "${topic}". The Task 1 chart/data set and the Task 2 discussion statement should each clearly relate to this theme (they need not use identical data).`
-    : `Choose any appropriate, realistic academic theme.`;
-
+/* What the AI is told about the Task 1 it is writing, for the chosen view or
+   kind: the guidance, and the JSON shape to return. Used by the whole-exam
+   generator and by the Task-1-only one. */
+function task1AIParts(graphType, kind){
   // Tailor the Task 1 data + wording to the visual the student chose.
   const GRAPH_DATA_HINTS = {
     bars3d:  `The Task 1 visual is a BAR chart. Use 3-6 labels (categories or years) and 2-4 series to be compared. Word the task1 prompt like "The bar chart below shows…".`,
     bar:     `The Task 1 visual is a BAR chart. Use 3-6 labels (categories or years) and 2-4 series to be compared. Word the task1 prompt like "The bar chart below shows…".`,
     trend3d: `The Task 1 visual is a LINE/area chart over time. Use 4-6 sequential years as labels and 2-4 series showing clear trends. Word the task1 prompt like "The line graph below shows…".`,
     line:    `The Task 1 visual is a LINE graph over time. Use 4-6 sequential years as labels and 2-4 series showing clear trends. Word the task1 prompt like "The line graph below shows…".`,
-    pie:     `The Task 1 visual is a PIE chart. Provide 3-5 series that are parts of a single whole; the LAST value of each series must be a percentage and the last values must sum to about 100. Use a single time point (one or two labels). Word the task1 prompt like "The pie chart below shows the proportion of…".`,
+    pie:     `The Task 1 visual is two or three PIE charts side by side, one per year. The labels are the 2 or 3 years; each series is ONE SLICE (4-6 slices, e.g. "Coal", "Gas"...) and its data holds that slice's percentage in each year, so that in every year the slices add up to exactly 100. Set "unit" to "%". Word the task1 prompt like "The pie charts below show the proportion of… in 1990 and 2020".`,
+    hbar:    `The Task 1 visual is a horizontal BAR chart comparing 4-7 categories (countries, occupations, products…) as labels, with 2-3 series (e.g. two years, or men and women). Word the task1 prompt like "The bar chart below shows…".`,
     table:   `The Task 1 visual is a TABLE of figures. Use 3-6 labels (columns) and 2-4 series (rows) with clear, comparable numbers. Word the task1 prompt like "The table below shows…".`,
     mindmap: `The Task 1 visual is a summary diagram. Use 3-5 series, each with a clear starting and ending value so trends are visible. Word the task1 prompt like "The diagram below shows…".`,
     process: `The Task 1 visual is a PROCESS DIAGRAM. Choose, to suit the theme, either a MAN-MADE process (manufacturing, recycling, producing energy or food, treating water…) or a NATURAL one (a life cycle, the formation of something, a natural cycle). It has 6 to 10 stages in order. A process with a clear beginning and end is "cycle": false; one whose last stage leads back to the first (a life cycle, the water cycle) is "cycle": true. Each stage has a short "label" (1-4 words) and a "detail" (up to 12 words, with a concrete figure where natural: a temperature, a time, a quantity). Word the task1 prompt like "The diagram below shows how… / the stages in… / the life cycle of…", followed by "Summarise the information by selecting and reporting the main features."`,
     map: `The Task 1 visual is two MAPS of the same place at two different dates. Pick ONE of these three patterns at random: (a) two dates in the past, e.g. 1966 and 2016; (b) a past date and the present, labelled e.g. "1995" and "Today"; (c) the present and a planned or projected future, labelled e.g. "Present" and "2032 (planned)". The place may be outdoors — a town centre, a village, a campus, a park, a coastline, an industrial area — or indoors as a floor plan (a library, a museum, an office, a school), in which case set "indoor": true. Each map is drawn on a 10 x 10 grid: x from 0 to 10 runs west to east, y from 0 to 10 runs north to south. Every feature is a rectangle {"name","type","x","y","w","h"} with w and h at least 1 that stays inside the grid; roads, paths, railways and rivers are long thin rectangles (w or h = 1); features must not overlap, apart from a road or bridge crossing a river. Give each map 6 to 12 features. Allowed types: building, house, shop, office, school, hospital, factory, hotel, park, trees, farmland, water, beach, sports, square, road, path, railway, bridge, car park, and for floor plans room, corridor, stairs, entrance. Keep what did not change in the SAME position on both maps, and make 4 to 7 clear changes (things built, demolished, replaced, extended, reduced, moved, or converted) so there is a real comparison to make. Word the task1 prompt like "The maps below show… in [date] and [date]" (or "The plans below show…" for a floor plan) followed by "Summarise the information by selecting and reporting the main features, and make comparisons where relevant."`
   };
-  const graphHint = GRAPH_DATA_HINTS[graphType] || GRAPH_DATA_HINTS.bar;
-  const task1Schema = kind === "process"
+  const schema = kind === "process"
     ? `"task1": {
     "tag": "Writing Task 1 · 20 minutes · at least 150 words",
     "prompt": "The diagram below shows how...",
@@ -11362,6 +12499,8 @@ async function generateNewWritingWithAI() {
     "tag": "Writing Task 1 · 20 minutes · at least 150 words",
     "prompt": "The bar/line chart below shows...",
     "chartData": {
+      "title": "Short chart title",
+      "unit": "%",
       "labels": ["2010", "2012", "2014", "2016"],
       "series": [
         {"label": "Group A", "data": [10, 20, 30, 40], "color": "#2f6f62"},
@@ -11369,6 +12508,82 @@ async function generateNewWritingWithAI() {
       ]
     }
   }`;
+  return { hint: GRAPH_DATA_HINTS[graphType] || GRAPH_DATA_HINTS.bar, schema };
+}
+
+/* Task 1 alone, written by the AI on the topic chosen in the generator above,
+   in the kind chosen next to the visual. Task 2 is left as it is. */
+async function generateTask1OnlyWithAI(sel){
+  if(!geminiAvailable()){ alert(geminiMissingMessage()); return; }
+  const btn = document.getElementById("t1GenAIBtn"), note = document.getElementById("t1GenNote");
+  const topicSel = document.getElementById("writingTopic");
+  const topic = topicSel ? topicSel.value : "random";
+  let k = sel || "any";
+  if(k === "any") k = t1gPick(["line","bar","pie","table","hbar","process","map-town","map-village","map-coast","floor","process","map-campus"]);
+  const graphType = k.startsWith("map-") || k === "floor" ? "map" : k;
+  const kind = graphType === "process" || graphType === "map" ? graphType : "chart";
+  const { hint, schema } = task1AIParts(graphType, kind);
+  const SCENES = { "map-town":"a town centre", "map-village":"a village", "map-coast":"a stretch of coast or a seaside town", "map-campus":"a university or school campus", "map-industrial":"a riverside or industrial area", "floor":"the floor plan of a building (set \"indoor\": true)" };
+  const where = SCENES[k] ? `The place is ${SCENES[k]}.` : "";
+  const theme = topic && topic !== "random" ? `Base it on the theme "${topic}".` : "Choose any realistic academic theme.";
+  const prompt = `Create one new IELTS Academic Writing Task 1 (Task 1 only, no Task 2).
+${theme}
+${hint}
+${where}
+${kind === "chart" ? `Give every series a distinct hex "color", make sure every series has exactly one number per label, and set "unit" to what the numbers measure (%, million, tonnes, £, hours…) and "title" to a short chart title. Make the data realistic, with clear features to describe — a rise, a fall, a peak, a crossing, a biggest and a smallest.` : ""}
+Return a raw JSON object in this exact shape:
+{
+  ${schema}
+}
+Return ONLY raw JSON.`;
+  if(btn){ btn.disabled = true; btn.textContent = "Writing…"; }
+  if(note) note.textContent = "The AI is writing a new Task 1…";
+  try{
+    let task = null, lastProblem = "";
+    for(let attempt=1; attempt<=3 && !task; attempt++){
+      if(attempt > 1 && note) note.textContent = `The first draft was not usable (${lastProblem}) — trying again (${attempt}/3)…`;
+      try{
+        const correction = lastProblem ? `\n\nYour previous attempt was rejected because ${lastProblem}. Fix that this time.` : "";
+        const obj = parseJSON(await callGemini("You output raw JSON models for application prompts.", prompt + correction, null, null));
+        const t1 = normalizeTask1(obj && (obj.task1 || obj));
+        if(task1Kind(t1) !== kind) throw new Error(`a ${task1Kind(t1)} was written instead of a ${kind}`);
+        task = t1;
+      }catch(err){ lastProblem = err.message || String(err); }
+    }
+    if(!task) throw new Error(lastProblem);
+    const view = kind === "chart" ? graphType : null;
+    if(useGeneratedTask1(task, view)) renderWriting();
+    else if(note) note.textContent = "Kept your current Task 1.";
+  }catch(e){
+    console.error(e);
+    if(note) note.textContent = "";
+    alert("Couldn't write a new Task 1: " + (e.message || String(e)) + "\n\nThe 🎲 Generate button works without the AI.");
+  }finally{
+    const b = document.getElementById("t1GenAIBtn");
+    if(b){ b.disabled = !geminiAvailable(); b.textContent = "✨ With AI"; }
+  }
+}
+
+async function generateNewWritingWithAI() {
+  const btn = document.getElementById("generateWritingBtn");
+  const originalText = btn.textContent;
+  btn.textContent = "Generating Prompt...";
+  btn.disabled = true;
+  const topicSel = document.getElementById("writingTopic");
+  const topic = topicSel ? topicSel.value : "random";
+  const themed = topic && topic !== "random";
+  const graphSel = document.getElementById("writingGraphType");
+  const graphType = graphSel ? graphSel.value : (state.writing.genType || state.writing.chartType || "bars3d");
+  const kind = graphType === "process" || graphType === "map" ? graphType : "chart";
+  // Render a generated chart in exactly the chosen view.
+  if(kind === "chart") state.writing.chartType = graphType;
+  genProgressShow("writingGen", themed ? `Writing a new "${topic}" exam…` : "Writing a new Task 1 + Task 2 exam context…");
+
+  const themeLine = themed
+    ? `Both tasks must be based on the theme: "${topic}". The Task 1 chart/data set and the Task 2 discussion statement should each clearly relate to this theme (they need not use identical data).`
+    : `Choose any appropriate, realistic academic theme.`;
+
+  const { hint: graphHint, schema: task1Schema } = task1AIParts(graphType, kind);
 
   const prompt = `Create a completely new IELTS Academic Writing exam containing both Task 1 and Task 2.
 ${themeLine}
@@ -11381,7 +12596,7 @@ You must return a raw JSON object matching this exact schema shape:
     "prompt": "Detailed Task 2 prompt opinion/discussion statement..."
   }
 }
-${kind === "chart" ? `Follow the graph-type guidance above when populating chartData. Give every series a distinct hex "color", and make sure every series has exactly one number per label.` : `Follow the Task 1 guidance above exactly.`} Return ONLY raw JSON.`;
+${kind === "chart" ? `Follow the graph-type guidance above when populating chartData. Give every series a distinct hex "color", make sure every series has exactly one number per label, and set "unit" to what the numbers measure (%, million, tonnes, £, hours…) and "title" to a short chart title.` : `Follow the Task 1 guidance above exactly.`} Return ONLY raw JSON.`;
 
   // Checked before anything is replaced, and asked again with the reason when
   // it does not hold up — a process with three stages or a map with one date
@@ -11424,7 +12639,7 @@ function disposeTask1Chart3D(){
   if(chart3D){ chart3D.dispose(); chart3D = null; }
 }
 function disposeTask1ChartJS(){
-  if(task1Chart){ task1Chart.destroy(); task1Chart = null; }
+  if(task1Chart){ [].concat(task1Chart).forEach(c=>{ try{ c.destroy(); }catch(e){} }); task1Chart = null; }
 }
 
 function renderTask1Visual(){
@@ -11477,8 +12692,17 @@ function renderTask1Visual(){
     return;
   }
 
+  // ---- one pie per year ----
+  if(type === "pie"){
+    const cols = task1PieColumns(cd);
+    host.innerHTML = `${cd.title ? `<p class="t1-chart-title">${escapeHtml(cd.title)}</p>` : ""}<div class="t1-pies t1-pies-${cols.length}">${cols.map(i=>`<div class="t1-pie"><canvas data-t1pie="${i}"></canvas></div>`).join("")}</div>`;
+    const t = Object.assign({}, cd, { title:"" });
+    task1Chart = [...host.querySelectorAll("canvas[data-t1pie]")].map(cv=>new Chart(cv, task1ChartConfig(t, "pie", Number(cv.dataset.t1pie))));
+    return;
+  }
+
   // ---- Chart.js 2D modes ----
-  host.innerHTML = `<canvas id="task1Canvas" height="240"></canvas>`;
+  host.innerHTML = `<div class="t1-cv${type === "hbar" ? " t1-cv-tall" : ""}"><canvas id="task1Canvas"></canvas></div>`;
   drawTask1Chart(cd, type);
 }
 
@@ -11491,59 +12715,121 @@ function buildTaskTable(cd){
     const cells = (s.data||[]).map(v=>`<td>${escapeXml(String(v))}</td>`).join("");
     return `<tr><th scope="row"><span class="t1-swatch" style="background:${escapeXml(color)}"></span>${escapeXml(s.label||"")}</th>${cells}</tr>`;
   }).join("");
-  return `<div class="t1-table-wrap"><table class="t1-table">${head}${rows}</table></div>`;
+  const cap = [cd.title, cd.unit ? `(${cd.unit})` : ""].filter(Boolean).join(" ");
+  return `<div class="t1-table-wrap"><table class="t1-table">${cap ? `<caption>${escapeXml(cap)}</caption>` : ""}${head}${rows}</table></div>`;
 }
 
 function drawTask1Chart(cd, type){
   type = type || "line";
   const ctx = document.getElementById("task1Canvas");
   if(!ctx) return;
-  if(task1Chart) task1Chart.destroy();
+  disposeTask1ChartJS();
   task1Chart = new Chart(ctx, task1ChartConfig(cd, type));
+}
+
+// How many pies a chart's data makes: one per label, up to three. More than
+// that is a time series, and only its latest year is shown.
+function task1PieColumns(cd){
+  const n = (cd && cd.labels || []).length;
+  if(n <= 1) return [0];
+  if(n <= 3) return cd.labels.map((_,i)=>i);
+  return [n-1];
 }
 
 // Shared by the exam and the student's history, so a chart read back later is
 // drawn exactly the way it was drawn on the day.
-function task1ChartConfig(cd, type){
+//
+// A pie shows ONE column of the data: the real paper usually gives two or
+// three pies side by side (one per year), so the caller draws one per label
+// and passes which. `cd.unit` and `cd.title`, when a task has them, go on the
+// axis and above the chart — a Task 1 answer is marked partly on reporting
+// the figures with their units.
+function task1ChartConfig(cd, type, col){
+  const unit = String(cd.unit || "").trim();
+  const pctUnit = unit === "%" || /^per ?cent/i.test(unit);
+  const fmt = v => (v == null || v === "") ? "" : (pctUnit ? `${v}%` : unit && unit.length <= 2 ? `${unit}${v}` : String(v));
+  const titleText = String(cd.title || "").trim();
   if(type === "pie"){
-    // Pie has no time axis, so it summarises the LATEST value of each series.
+    const i = (col == null || col < 0 || col >= cd.labels.length) ? cd.labels.length-1 : col;
+    const values = cd.series.map(s=>Number(s.data[i]) || 0);
+    const total = values.reduce((a,b)=>a+b, 0) || 1;
     return {
       type:"pie",
       data:{
         labels: cd.series.map(s=>s.label),
         datasets: [{
-          data: cd.series.map(s=>s.data[s.data.length-1]),
-          backgroundColor: cd.series.map(s=>s.color || "#131b2e")
+          data: values,
+          backgroundColor: cd.series.map((s,k)=>s.color || C3D_PALETTE[k % C3D_PALETTE.length]),
+          borderColor:"#fff", borderWidth:1.5
         }]
       },
+      // Each slice carries its share, as a printed pie chart does.
+      plugins:[{ id:"t1PieLabels", afterDatasetsDraw(chart){
+        const c = chart.ctx, meta = chart.getDatasetMeta(0);
+        c.save();
+        c.font = "600 11px 'IBM Plex Sans', system-ui, sans-serif";
+        c.textAlign = "center"; c.textBaseline = "middle";
+        meta.data.forEach((arc, k)=>{
+          const v = values[k];
+          if(!v || v/total < 0.035) return;
+          const p = arc.tooltipPosition();
+          const txt = pctUnit || !unit ? `${Math.round(v/total*1000)/10}%` : fmt(v);
+          c.lineWidth = 3; c.strokeStyle = "rgba(0,0,0,.35)"; c.strokeText(txt, p.x, p.y);
+          c.fillStyle = "#fff"; c.fillText(txt, p.x, p.y);
+        });
+        c.restore();
+      } }],
       options:{
         responsive:true,
         maintainAspectRatio:false,
         plugins:{
           legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},
-          title:{display:true,text:`Latest value (${cd.labels[cd.labels.length-1]})`,font:{size:11}}
+          title:{display:true,text:String(cd.labels[i]),font:{size:13,weight:"bold"}},
+          tooltip:{callbacks:{label:(ctx)=>`${ctx.label}: ${fmt(ctx.parsed)}`}}
         }
       }
     };
   }
 
+  const horizontal = type === "hbar";
+  const bars = type === "bar" || horizontal;
+  const many = cd.series.length > 2;
+  const valueAxis = {
+    beginAtZero: bars || cd.series.every(s=>s.data.every(v=>Number(v) >= 0)),
+    title: { display: !!unit, text: unit, font:{ size:11 } },
+    ticks: { callback: v => fmt(v) },
+    grid: { color:"rgba(19,27,46,.08)" }
+  };
   return {
-    type: type === "bar" ? "bar" : "line",
+    type: bars ? "bar" : "line",
     data:{
       labels: cd.labels,
-      datasets: cd.series.map(s=>({
-        label: s.label,
-        data: s.data,
-        borderColor: s.color || "#131b2e",
-        backgroundColor: s.color ? (type==="bar" ? s.color : s.color+"22") : "#131b2e22",
-        tension: 0.15,
-        fill: type !== "bar"
-      }))
+      datasets: cd.series.map((s,k)=>{
+        const color = s.color || C3D_PALETTE[k % C3D_PALETTE.length];
+        return {
+          label: s.label,
+          data: s.data,
+          borderColor: color,
+          backgroundColor: bars ? color : color+"22",
+          tension: 0.15,
+          // Filled areas turn three or more lines into mud.
+          fill: !bars && !many,
+          pointRadius: bars ? 0 : 3.5,
+          pointBackgroundColor: color,
+          borderWidth: bars ? 0 : 2.2
+        };
+      })
     },
     options:{
       responsive: true,
       maintainAspectRatio: false,
-      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}}}
+      indexAxis: horizontal ? "y" : "x",
+      scales: horizontal ? { x: valueAxis, y: { grid:{ display:false } } } : { y: valueAxis, x: { grid:{ display:false } } },
+      plugins:{
+        legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},
+        title:{display:!!titleText,text:titleText,font:{size:13,weight:"bold"}},
+        tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${fmt(horizontal ? ctx.parsed.x : ctx.parsed.y)}`}}
+      }
     }
   };
 }
@@ -15219,7 +16505,7 @@ function histText(v){ return escapeXml(String(v == null ? "" : v).replace(/<[^>]
 // its nearest flat equivalent; the mind map and table are redrawn as they were.
 function histChartType(t){
   if(t === "trend3d" || t === "line") return "line";
-  if(t === "pie") return "pie";
+  if(t === "pie" || t === "hbar") return t;
   if(t === "mindmap" || t === "table") return t;
   return "bar";
 }
@@ -15241,7 +16527,8 @@ function histWritingTaskHTML(sub, m){
     if(t === "mindmap" && typeof buildMindMapSVG === "function"){
       visual = `<div class="hist-visual">${buildMindMapSVG(cd, m.prompt || "")}</div>`;
     }else if(t !== "table"){
-      visual = `<div class="hist-visual hist-chart"><canvas data-hchart="${escapeXml(sub.id)}" data-htype="${t}"></canvas></div>`;
+      const cols = t === "pie" ? task1PieColumns(cd) : [null];
+      visual = `<div class="hist-visual ${cols.length > 1 ? "hist-pies" : ""}">${cols.map(i=>`<div class="hist-chart"><canvas data-hchart="${escapeXml(sub.id)}" data-htype="${t}" ${i == null ? "" : `data-hcol="${i}"`}></canvas></div>`).join("")}</div>`;
     }
     // The figures under the picture: what a Task 1 answer is actually checked
     // against, and still readable if the chart library never loaded.
@@ -15452,7 +16739,8 @@ function drawHistoryCharts(list){
     const sub = pool.find(x=>String(x.id) === cv.dataset.hchart);
     const m = histMaterial(sub);
     if(!m || !m.chartData) return;
-    try{ histCharts.push(new Chart(cv, task1ChartConfig(m.chartData, cv.dataset.htype || "bar"))); }
+    const col = cv.dataset.hcol == null ? null : Number(cv.dataset.hcol);
+    try{ histCharts.push(new Chart(cv, task1ChartConfig(m.chartData, cv.dataset.htype || "bar", col))); }
     catch(e){ console.error("history chart failed", e); }
   });
 }

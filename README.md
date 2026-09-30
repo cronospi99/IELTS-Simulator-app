@@ -83,8 +83,9 @@ Open `index.html` in any modern browser. No build step, no server required.
 Task 1 in the real paper is not always a chart, and the app now covers all three
 kinds of visual:
 
-- **Charts and tables** — line, bar, pie, table and mind map, and the 3D views
-  below.
+- **Charts and tables** — line, bar, horizontal bar, pie (one pie per year, two
+  or three side by side, each slice labelled with its share), table and mind
+  map, and the 3D views below. Axes carry the unit (%, million, °C…).
 - **Process diagrams** — something man-made (recycling glass, making chocolate)
   or natural (the life cycle of the frog, the water cycle), drawn as numbered
   stages from START to END, or as a loop when it is a cycle. An answer needs an
@@ -98,7 +99,29 @@ kinds of visual:
 tables, four processes, three maps — that load instantly and need no AI key.
 Loading one replaces Task 1 only; Task 2 stays.
 
-**Generating one.** In the Writing generator, the Task 1 type menu has *Process
+**🎲 New Task 1, made in the app.** Under the menu, *New Task 1* makes a fresh
+one in a moment, as often as you like, with no AI, no key and no outside
+service: pick a kind — line graph, bar chart, horizontal bar chart, pie charts,
+table, a map of a town centre, a village, a coast, a campus or a riverside, or
+an indoor floor plan — and press **Generate**. Charts come from some 45
+realistic subjects (internet access, rainfall in real cities, household
+spending, visitors to museums…) with figures shaped to be described: rises,
+falls, peaks and lines that cross; pie charts always add up to 100. Maps are
+laid out on the same grid as the others — roads, a river, a railway or the
+coast, then plots — and the second date changes four to seven of them the way
+places really change: farmland built on, a factory turned into flats, a railway
+become a cycle path, a street pedestrianised, a school extended over the plot
+next door, a bridge where the road used to stop at the river. Every map is
+checked for overlaps before it is shown. A made-up process would be nonsense,
+so *Process diagram* loads one from the bank, or asks the AI. **✨ With AI**
+writes a Task 1 of the chosen kind on the topic chosen in the generator above.
+Either way only Task 1 changes; Task 2 stays.
+
+No outside chart service is used on purpose: free chart APIs only turn data
+into a picture, which the app already does itself (Chart.js and SVG), and none
+of them makes IELTS maps. The hard part is the data, and that is made here.
+
+**Generating a whole exam.** In the Writing generator, the Task 1 type menu has *Process
 diagram* and *Map / floor plan* beside the chart types, and there are 26 themes
 to choose from. A generated task is checked before it replaces anything — a
 process needs 4 to 12 stages, a map needs two or three dates with at least three
@@ -200,6 +223,17 @@ Optional secrets: **`GEMINI_MODEL`** picks the model (default
 ask for. The model is the key owner's call — a student's settings cannot point
 your key at a more expensive one. If the app reports *Invalid JWT*, turn off
 **Verify JWT** for the function: it checks the session itself.
+
+**AI voices for Listening.** The same function also reads Listening scripts
+aloud with Gemini's speech models (`gemini-3.1-flash-tts-preview`, then
+`gemini-2.5-flash-preview-tts` when the first is spent — each has its own
+quota). They are free on the free tier but allow only a few recordings a day,
+so by default only teachers may use them on the class key; set the secret
+**`GEMINI_TTS_STUDENTS`** to `on` to let students too, or **`GEMINI_TTS_MODELS`**
+to choose the models. If your function was deployed before this feature,
+**redeploy it**: open Edge Functions → `gemini` → Code, paste the new
+`supabase/functions/gemini/index.ts`, and deploy. When the voices are
+unavailable the app reads the sections with the device's own voice instead.
 
 Who can use it: teachers, and students who have joined a class with its code.
 Not "anyone with an account" — with email confirmation off, anybody could make
@@ -338,6 +372,16 @@ and due date. They get their edit; the teacher's wording survives it.
   for their four skills, a band-history chart, four weeks of activity, their
   practice, and every piece of work — papers and practice — opened the same way
   the student reads it.
+
+- **AI-voiced Listening tests:** the Listening tab's *A new test read by AI
+  voices* writes four sections and 40 questions and has Gemini read them aloud —
+  two voices in the conversations, British, Australian, North American or mixed
+  accents. On the class key only the teacher records voices (the free voice
+  quota is a few tests a day); press **💾 Save to class library** afterwards and
+  the recordings join the library below, where every student can use them
+  without spending any quota. Students can still make a test themselves: theirs
+  is read by their device's own voice. Needs the updated `gemini` function —
+  see *AI voices* in the AI engine setup.
 
 - **The Listening audio library:** **My class → Listening audio library** has one
   column per section. Add recordings to each (several at once is fine; up to
